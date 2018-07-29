@@ -3,15 +3,22 @@ import pandas as pd
 from utils import utils, resource_usage
 
 class DAO:
+    class __DAO:
+        def __init__(self, credentials_jon):
+            self.cnx = mysql.connector.connect(
+                user=credentials_jon['user'],
+                password=credentials_jon['password'],
+                host=credentials_jon['host'],
+                database=credentials_jon['database'])
 
+            self.res_usage = resource_usage.ResourceUsage()
+
+    instance = None
     def __init__(self, credentials_jon):
-        self.cnx = mysql.connector.connect(
-                                     user=credentials_jon['user'],
-                                     password=credentials_jon['password'],
-                                     host=credentials_jon['host'],
-                                     database=credentials_jon['database'])
-
-        self.res_usage = resource_usage.ResourceUsage()
+        if not DAO.instance:
+            DAO.instance = DAO.__DAO(credentials_jon)
+        else:
+            DAO.instance.credentials_jon = credentials_jon
 
     def records_df(self, columns=["db_key", "userid", "tz", "time", "type"]):
         records_df = pd.DataFrame(self.records(", ".join(columns)))
@@ -33,22 +40,22 @@ class DAO:
         return self.sql_query(query, verbose=True)
 
     def sql_query(self, sql_query, verbose=False):
-        cursor = self.cnx.cursor()
+        cursor = self.instance.cnx.cursor()
 
         if (verbose):
-            self.res_usage.start()
+            self.instance.res_usage.start()
 
         cursor.execute(sql_query)
         data = cursor.fetchall()
         cursor.close()
 
         if (verbose):
-            self.res_usage.check()
+            self.instance.res_usage.check()
 
         return data
 
     def __del__(self):
-        self.cnx.close()
+        self.instance.cnx.close()
 
 
 
