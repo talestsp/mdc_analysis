@@ -13,8 +13,6 @@ class DAO:
 
         self.res_usage = resource_usage.ResourceUsage()
 
-        print(self.cnx)
-
     def records_df(self, columns=["db_key", "userid", "tz", "time", "type"]):
         records_df = pd.DataFrame(self.records(", ".join(columns)))
         records_df.columns = columns
@@ -42,11 +40,15 @@ class DAO:
 
         cursor.execute(sql_query)
         data = cursor.fetchall()
+        cursor.close()
 
         if (verbose):
             self.res_usage.check()
 
         return data
+
+    def __del__(self):
+        self.cnx.close()
 
 
 
