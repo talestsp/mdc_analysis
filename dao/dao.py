@@ -15,14 +15,24 @@ class DAO:
 
         print(self.cnx)
 
-    def records(self):
-        query = "SELECT * FROM records;"
+    def records_df(self, columns=["db_key", "userid", "tz", "time", "type"]):
+        records_df = pd.DataFrame(self.records(", ".join(columns)))
+        records_df.columns = columns
+        return records_df
+
+    def users_df(self, columns=["userid", "phonenumber", "test_user"]):
+        users_df = pd.DataFrame(self.users(", ".join(columns)))
+        users_df.columns = columns
+        return users_df
+
+    def records(self, select_columns="*"):
+        query = "SELECT %s FROM records;" % (select_columns)
         return self.sql_query(query, verbose=True)
 
-    def users(self):
-        query = "SELECT * FROM users;"
-        return self.sql_query(query, verbose=True)
+    def users(self, select_columns="*"):
+        query = "SELECT %s FROM users;" % (select_columns)
 
+        return self.sql_query(query, verbose=True)
 
     def sql_query(self, sql_query, verbose=False):
         cursor = self.cnx.cursor()
@@ -42,7 +52,7 @@ class DAO:
 
 if __name__ == "__main__":
     dao = DAO(utils.credentials_db())
-    dao.records()
+    dao.users()
 
 
 
