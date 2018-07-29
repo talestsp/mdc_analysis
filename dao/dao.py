@@ -3,61 +3,62 @@ import pandas as pd
 from utils import utils, resource_usage
 
 class DAO:
-    class __DAO:
-        def __init__(self, credentials_jon):
-            self.cnx = mysql.connector.connect(
-                user=credentials_jon['user'],
-                password=credentials_jon['password'],
-                host=credentials_jon['host'],
-                database=credentials_jon['database'])
+    def __init__(self, credentials_jon=utils.credentials_db()):
+        self.cnx = mysql.connector.connect(
+            user=credentials_jon['user'],
+            password=credentials_jon['password'],
+            host=credentials_jon['host'],
+            database=credentials_jon['database'])
 
-            self.res_usage = resource_usage.ResourceUsage()
+        self.res_usage = resource_usage.ResourceUsage()
 
-    instance = None
-    def __init__(self, credentials_jon):
-        if not DAO.instance:
-            DAO.instance = DAO.__DAO(credentials_jon)
-        else:
-            DAO.instance.credentials_jon = credentials_jon
-
-    def records_df(self, columns=["db_key", "userid", "tz", "time", "type"]):
-        records_df = pd.DataFrame(self.records(select_columns=", ".join(columns)))
-        records_df.columns = columns
+    def records_df(self, userids=[], columns=["db_key", "userid", "tz", "time", "type"]):
+        records_df = pd.DataFrame(self.records(userids=userids, select_columns=", ".join(columns)))
+        if len(records_df) > 0:
+            records_df.columns = columns
         return records_df
 
     def users_df(self, userids=[], columns=["userid", "phonenumber", "test_user"]):
         users_df = pd.DataFrame(self.users(userids=userids, select_columns=", ".join(columns)))
-        users_df.columns = columns
+        if len(users_df) > 0:
+            users_df.columns = columns
         return users_df
 
-    def records(self, select_columns="*"):
+    def records(self, userids=[], select_columns="*"):
         query = "SELECT %s FROM records;" % (select_columns)
+
+        if len(userids) > 0:
+            query = self.selection_match(query=query,
+                                         attribute="userid",
+                                         values=userids,
+                                         logical_conjunction="OR")
+
         return self.sql_query(query, verbose=True)
 
     def users(self, userids=[], select_columns="*"):
         query = "SELECT %s FROM users;" % (select_columns)
 
         if len(userids) > 0:
-            query = self.selection_match(query = query,
+            query = self.selection_match(query=query,
                                          attribute="userid",
                                          values=userids,
                                          logical_conjunction="OR")
 
-        print(query)
         return self.sql_query(query, verbose=True)
 
     def sql_query(self, sql_query, verbose=False):
-        cursor = self.instance.cnx.cursor()
+        cursor = self.cnx.cursor()
 
         if (verbose):
-            self.instance.res_usage.start()
+            self.res_usage.start()
+            print(sql_query)
 
         cursor.execute(sql_query)
         data = cursor.fetchall()
         cursor.close()
 
         if (verbose):
-            self.instance.res_usage.check()
+            self.res_usage.check()
 
         return data
 
@@ -65,7 +66,7 @@ class DAO:
         appendix = " WHERE "
 
         for value in values:
-            appendix = appendix + attribute + "=" + value + " " + logical_conjunction + " "
+            appendix = appendix + attribute + "=" + str(value) + " " + logical_conjunction + " "
 
         appendix = appendix[0:len(appendix) - len(logical_conjunction + " ")]
 
@@ -73,13 +74,16 @@ class DAO:
 
 
     def __del__(self):
-        self.instance.cnx.close()
+        self.cnx.close()
 
 
 
 if __name__ == "__main__":
-    dao = DAO(utils.credentials_db())
-    data = dao.users(userids=["6199", "6214", "6272"])
+    dao = DAO()
+    data = dao.users_df(userids=["6199", "5448", "5462"])
+    print(data)
+
+    data = dao.records_df(userids=["5462"])
     print(data)
 
 
