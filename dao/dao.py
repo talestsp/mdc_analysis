@@ -31,6 +31,17 @@ class DAO:
 
         return data
 
+    def places_df(self, userids=[], columns=["userid", "placeid", "place_label", "with_family", "with_close_friends", "with_friends", "with_colleagues_acquaintances", "with_incidental"]):
+        data = self.places(userids=userids, select_columns=", ".join(columns))
+        return self.to_df(data, columns)
+
+    def to_df(self, data, columns):
+        data = pd.DataFrame(data)
+        if len(data) > 0:
+            data.columns = columns
+
+        return data
+
     def records(self, userids=[], select_columns="*"):
         query = "SELECT %s FROM records;" % (select_columns)
 
