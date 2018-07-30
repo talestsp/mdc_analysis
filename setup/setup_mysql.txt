@@ -4,8 +4,8 @@ mysql_secure_installation
 
 
 mysql>
-	CREATE USER 'tales'@'localhost' IDENTIFIED BY 'lacinamdc';
-	GRANT ALL PRIVILEGES ON * . * TO 'tales'@'localhost';
+	CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
+	GRANT ALL PRIVILEGES ON * . * TO 'username'@'localhost';
 	FLUSH PRIVILEGES;
 
 	CREATE DATABASE mdc;
@@ -13,7 +13,7 @@ mysql>
 
 
 
-./mdc-dump-to-database.py mysql ../mdcdb/mdcdb_1094/ | mysql -u tales -p --database=mdc
+./mdc-dump-to-database.py mysql ../mdcdb/mdcdb_1094/ | mysql -u username -p --database=mdc
 
 
 

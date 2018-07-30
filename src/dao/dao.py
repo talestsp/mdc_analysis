@@ -1,6 +1,7 @@
 import mysql.connector
 import pandas as pd
-from utils import utils, resource_usage
+from src.utils import utils, resource_usage
+
 
 class DAO:
     def __init__(self, credentials_jon=utils.credentials_db()):

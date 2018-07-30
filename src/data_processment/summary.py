@@ -1,4 +1,5 @@
-from dao import dao
+from src.dao import dao
+
 
 def user_records():
     my_dao = dao.DAO()
