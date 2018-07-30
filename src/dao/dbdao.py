@@ -76,6 +76,14 @@ class DBDAO:
 
         return self.sql_query(query, verbose=False)
 
+    def gps(self, dbkeys=[], select_columns=["time", "latitude", "longitude", "altitude", "speed", "horizontal_accuracy", "horizontal_dop", "vertical_accuracy", "vertical_dop", "speed_accuracy", "time_since_gps_boot"]):
+        query = "SELECT %s FROM gps;" % (select_columns)
+
+        if len(dbkeys) > 0:
+            query = self.selection_match(query, "dbkey", dbkeys, "OR")
+
+        return self.sql_query(query, verbose=False)
+
 
     def sql_query(self, sql_query, verbose=False):
         cursor = self.cnx.cursor()
