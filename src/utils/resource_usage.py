@@ -13,7 +13,7 @@ class ResourceUsage:
 
     def check(self):
         print(round(self.check_time(), 2), "secs")
-        print(self.check_memo() / (1024 * 1024), "MB")
+        print(round(self.check_memo() / (1024 * 1024), 2), "MB")
 
     def check_time(self):
         return time.time() - self.start_time

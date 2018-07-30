@@ -3,7 +3,7 @@ import pandas as pd
 from src.utils import utils, resource_usage
 
 
-class DAO:
+class DBDAO:
     def __init__(self, credentials_jon=utils.credentials_db()):
         self.cnx = mysql.connector.connect(
             user=credentials_jon['user'],
@@ -52,7 +52,7 @@ class DAO:
                                          values=userids,
                                          logical_conjunction="OR")
 
-        return self.sql_query(query, verbose=True)
+        return self.sql_query(query, verbose=False)
 
     def users(self, userids=[], select_columns="*"):
         query = "SELECT %s FROM users;" % (select_columns)
@@ -63,7 +63,7 @@ class DAO:
                                          values=userids,
                                          logical_conjunction="OR")
 
-        return self.sql_query(query, verbose=True)
+        return self.sql_query(query, verbose=False)
 
     def places(self, userids=[], select_columns="*"):
         query = "SELECT %s FROM places;" % (select_columns)
@@ -74,7 +74,7 @@ class DAO:
                                          values=userids,
                                          logical_conjunction="OR")
 
-        return self.sql_query(query, verbose=True)
+        return self.sql_query(query, verbose=False)
 
 
     def sql_query(self, sql_query, verbose=False):
@@ -110,7 +110,7 @@ class DAO:
 
 
 if __name__ == "__main__":
-    dao = DAO()
+    dao = DBDAO()
     data = dao.users_df(userids=["6199", "5448", "5462"])
     print(data)
 
