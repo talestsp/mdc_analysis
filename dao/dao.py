@@ -13,16 +13,23 @@ class DAO:
         self.res_usage = resource_usage.ResourceUsage()
 
     def records_df(self, userids=[], columns=["db_key", "userid", "tz", "time", "type"]):
-        records_df = pd.DataFrame(self.records(userids=userids, select_columns=", ".join(columns)))
-        if len(records_df) > 0:
-            records_df.columns = columns
-        return records_df
+        data = self.records(userids=userids, select_columns=", ".join(columns))
+        return self.to_df(data, columns)
 
     def users_df(self, userids=[], columns=["userid", "phonenumber", "test_user"]):
-        users_df = pd.DataFrame(self.users(userids=userids, select_columns=", ".join(columns)))
-        if len(users_df) > 0:
-            users_df.columns = columns
-        return users_df
+        data = self.users(userids=userids, select_columns=", ".join(columns))
+        return self.to_df(data, columns)
+
+    def places_df(self, userids=[], columns=["userid", "placeid", "place_label", "with_family", "with_close_friends", "with_friends", "with_colleagues_acquaintances", "with_incidental"]):
+        data = self.places(userids=userids, select_columns=", ".join(columns))
+        return self.to_df(data, columns)
+
+    def to_df(self, data, columns):
+        data = pd.DataFrame(data)
+        if len(data) > 0:
+            data.columns = columns
+
+        return data
 
     def records(self, userids=[], select_columns="*"):
         query = "SELECT %s FROM records;" % (select_columns)
@@ -45,6 +52,18 @@ class DAO:
                                          logical_conjunction="OR")
 
         return self.sql_query(query, verbose=True)
+
+    def places(self, userids=[], select_columns="*"):
+        query = "SELECT %s FROM places;" % (select_columns)
+
+        if len(userids) > 0:
+            query = self.selection_match(query=query,
+                                         attribute="userid",
+                                         values=userids,
+                                         logical_conjunction="OR")
+
+        return self.sql_query(query, verbose=True)
+
 
     def sql_query(self, sql_query, verbose=False):
         cursor = self.cnx.cursor()
@@ -84,6 +103,10 @@ if __name__ == "__main__":
     print(data)
 
     data = dao.records_df(userids=["5462"])
+    print(data)
+
+
+    data = dao.places_df()
     print(data)
 
 
