@@ -6,7 +6,9 @@ from src.entity.record_types import RecordType
 
 RECORDS_COLUMNS = ["db_key", "userid", "tz", "time", "type"]
 USERS_COLUMNS = ["userid", "phonenumber", "test_user"]
-GPS_COLUMNS = ["time", "latitude", "longitude", "altitude", "speed", "horizontal_accuracy", "horizontal_dop", "vertical_accuracy", "vertical_dop", "speed_accuracy", "time_since_gps_boot"]
+GPS_COLUMNS = ["db_key", "time", "latitude", "longitude", "altitude", "speed", "horizontal_accuracy", "horizontal_dop", "vertical_accuracy", "vertical_dop", "speed_accuracy", "time_since_gps_boot"]
+GPSWLAN_COLUMNS = ["db_key", "latitude", "longitude", "mac"]
+ACCEL_COLUMNS = ["db_key", "start", "stop", "avdelt", "data"]
 PLACES_COLUMNS = ["userid", "placeid", "place_label", "with_family", "with_close_friends", "with_friends", "with_colleagues_acquaintances", "with_incidental"]
 
 
