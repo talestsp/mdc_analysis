@@ -34,6 +34,11 @@ class DBDAO:
         data = self.places(userids=userids, select_columns=", ".join(columns), verbose=verbose)
         return self.to_df(data, columns)
 
+    def records_join_df(self, join_to_table, right_cols, how="INNER", record_cols=RECORDS_COLUMNS, userids=None, verbose=False):
+        data = self.records_join(join_to_table, right_cols, how, record_cols, userids, verbose)
+        return self.to_df(data, right_cols + record_cols)
+
+
     def to_df(self, data, columns):
         data = pd.DataFrame(data)
         if len(data) > 0:
@@ -41,9 +46,6 @@ class DBDAO:
 
         return data
 
-    def records_join_df(self, join_to_table, right_cols, how="INNER", record_cols=RECORDS_COLUMNS, userids=None, verbose=False):
-        data = self.records_join(join_to_table, right_cols, how, record_cols, userids, verbose)
-        return self.to_df(data, right_cols + record_cols)
 
     def records_join(self, join_to_table, right_cols=None, how="INNER", record_cols=RECORDS_COLUMNS, userids=None, verbose=False):
         query = "SELECT <columns> FROM records " + how + " JOIN " + join_to_table + " ON records.db_key=" + join_to_table + ".db_key;"
@@ -141,26 +143,36 @@ class DBDAO:
         return query.replace(";", "") + appendix + ";"
 
 
-    def __del__(self):
+    def close_connection(self):
         self.cnx.close()
+
+    def __del__(self):
+        self.close_connection()
 
 
 
 if __name__ == "__main__":
     dao = DBDAO()
 
-    r1 = dao.records_join_df(join_to_table=RecordType.GPS.value,
-                            right_cols=["latitude", "longitude", "horizontal_accuracy", "vertical_accuracy"],
-                            userids=["6183", "5921"], verbose=True)
+    # r1 = dao.records_join_df(join_to_table=RecordType.GPS.value,
+    #                         right_cols=["latitude", "longitude", "horizontal_accuracy", "vertical_accuracy"],
+    #                         userids=["6183", "5921"], verbose=True)
+    #
+    # r2 = dao.records_join_df(join_to_table=RecordType.GPSWLAN.value,
+    #                         right_cols=["latitude", "longitude"],
+    #                         userids=["6183", "5921"], verbose=True)
+    #
+    # pd.set_option('display.max_columns', None)
+    # pd.set_option('display.width', 1000)
+    # print(r2)
 
-    r2 = dao.records_join_df(join_to_table=RecordType.GPSWLAN.value,
-                            right_cols=["latitude", "longitude"],
-                            userids=["6183", "5921"], verbose=True)
+    d = dao.records_join(join_to_table=RecordType.GPS.value, userids=["5542"],
+                          right_cols=["latitude", "longitude", "horizontal_accuracy", "vertical_accuracy"], verbose=True)
+    print(d)
 
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', 1000)
-    print(r2)
-
+    d = dao.records_join_df(join_to_table=RecordType.GPS.value, userids=["5542"],
+                          right_cols=["latitude", "longitude", "horizontal_accuracy", "vertical_accuracy"], verbose=True)
+    print(d.head(5))
 
 
 

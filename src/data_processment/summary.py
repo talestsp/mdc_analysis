@@ -32,14 +32,17 @@ def user_total_records(save_to_filepath="outputs/user_total_records.csv"):
 def user_gps_records():
     my_dao = dbdao.DBDAO()
     user_df = my_dao.users_df()
+    my_dao.close_connection()
     count = 0
 
     for userid in user_df["userid"]:
         count += 1
+        my_dao = dbdao.DBDAO()
         print("\n")
         print("USERID:", userid)
 
         if not os.path.isfile("outputs/user_gps/" + str(userid) + "_gps.csv"):
+            my_dao = dbdao.DBDAO()
             result = my_dao.records_join_df(join_to_table=RecordType.GPS.value,
                                             right_cols=["latitude", "longitude", "horizontal_accuracy",
                                                         "vertical_accuracy"],
@@ -48,9 +51,10 @@ def user_gps_records():
 
             if len(result) > 5:
                 print(result.sample(5))
-
+            my_dao.close_connection()
 
         if not os.path.isfile("outputs/user_gpswlan/" + str(userid) + "_gpswlan.csv"):
+            my_dao = dbdao.DBDAO()
             result = my_dao.records_join_df(join_to_table=RecordType.GPSWLAN.value,
                                             right_cols=["latitude", "longitude"],
                                             userids=[userid], verbose=True)
@@ -58,9 +62,11 @@ def user_gps_records():
 
             if len(result) > 5:
                 print(result.sample(5))
+            my_dao.close_connection()
 
 
         if not os.path.isfile("outputs/user_accel/" + str(userid) + "_accel.csv"):
+            my_dao = dbdao.DBDAO()
             result = my_dao.records_join_df(join_to_table=RecordType.ACCEL.value,
                                             right_cols=["start", "stop", "avdelt", "data"],
                                             userids=[userid], verbose=True)
@@ -68,9 +74,18 @@ def user_gps_records():
 
             if len(result) > 5:
                 print(result.sample(5))
+            my_dao.close_connection()
 
         print("Instances:", count, "out of", len(user_df["userid"]))
         print("--")
+
+
+
+    def gps_lat_lon_weird():
+        #it seems that there are problemas at latitude and longitude data
+        #they seem incomplete, no decimal cases
+        pass
+
 
 
 
