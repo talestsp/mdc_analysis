@@ -1,6 +1,7 @@
 from src.dao import dbdao
 from src.entity.record_types import RecordType
 import pandas as pd
+import os''
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
@@ -37,30 +38,35 @@ def user_gps_records():
         count += 1
         print("\n")
         print("USERID:", userid)
-        result = my_dao.records_join_df(join_to_table=RecordType.GPS.value,
-                                        right_cols=["latitude", "longitude", "horizontal_accuracy",
-                                                    "vertical_accuracy"],
-                                        userids=[userid], verbose=True)
-        result.to_csv("outputs/user_gps/" + str(userid) + "_gps.csv", index=False)
-        if len(result):
+
+        if not os.path.isfile("outputs/user_gps/" + str(userid) + "_gps.csv"):
+            result = my_dao.records_join_df(join_to_table=RecordType.GPS.value,
+                                            right_cols=["latitude", "longitude", "horizontal_accuracy",
+                                                        "vertical_accuracy"],
+                                            userids=[userid], verbose=True)
+            result.to_csv("outputs/user_gps/" + str(userid) + "_gps.csv", index=False)
+
+        if len(result) > 5:
             print(result.sample(5))
 
 
+        if not os.path.isfile("outputs/user_gpswlan/" + str(userid) + "_gpswlan.csv"):
+            result = my_dao.records_join_df(join_to_table=RecordType.GPSWLAN.value,
+                                            right_cols=["latitude", "longitude"],
+                                            userids=[userid], verbose=True)
+            result.to_csv("outputs/user_gpswlan/" + str(userid) + "_gpswlan.csv", index=False)
 
-        result = my_dao.records_join_df(join_to_table=RecordType.GPSWLAN.value,
-                                        right_cols=["latitude", "longitude"],
-                                        userids=[userid], verbose=True)
-        result.to_csv("outputs/user_gpswlan/" + str(userid) + "_gpswlan.csv", index=False)
-        if len(result):
+        if len(result) > 5:
             print(result.sample(5))
 
 
+        if not os.path.isfile("outputs/user_accel/" + str(userid) + "_accel.csv"):
+            result = my_dao.records_join_df(join_to_table=RecordType.ACCEL.value,
+                                            right_cols=["start", "stop", "avdelt", "data"],
+                                            userids=[userid], verbose=True)
+            result.to_csv("outputs/user_accel/" + str(userid) + "_accel.csv", index=False)
 
-        result = my_dao.records_join_df(join_to_table=RecordType.ACCEL.value,
-                                        right_cols=["start", "stop", "avdelt", "data"],
-                                        userids=[userid], verbose=True)
-        result.to_csv("outputs/user_accel/" + str(userid) + "_accel.csv", index=False)
-        if len(result):
+        if len(result) > 5:
             print(result.sample(5))
 
         print("Instances:", count, "out of", len(user_df["userid"]))
