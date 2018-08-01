@@ -1,7 +1,7 @@
 from src.dao import dbdao
 from src.entity.record_types import RecordType
 import pandas as pd
-import os''
+import os
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
@@ -46,8 +46,8 @@ def user_gps_records():
                                             userids=[userid], verbose=True)
             result.to_csv("outputs/user_gps/" + str(userid) + "_gps.csv", index=False)
 
-        if len(result) > 5:
-            print(result.sample(5))
+            if len(result) > 5:
+                print(result.sample(5))
 
 
         if not os.path.isfile("outputs/user_gpswlan/" + str(userid) + "_gpswlan.csv"):
@@ -56,8 +56,8 @@ def user_gps_records():
                                             userids=[userid], verbose=True)
             result.to_csv("outputs/user_gpswlan/" + str(userid) + "_gpswlan.csv", index=False)
 
-        if len(result) > 5:
-            print(result.sample(5))
+            if len(result) > 5:
+                print(result.sample(5))
 
 
         if not os.path.isfile("outputs/user_accel/" + str(userid) + "_accel.csv"):
@@ -66,8 +66,8 @@ def user_gps_records():
                                             userids=[userid], verbose=True)
             result.to_csv("outputs/user_accel/" + str(userid) + "_accel.csv", index=False)
 
-        if len(result) > 5:
-            print(result.sample(5))
+            if len(result) > 5:
+                print(result.sample(5))
 
         print("Instances:", count, "out of", len(user_df["userid"]))
         print("--")
