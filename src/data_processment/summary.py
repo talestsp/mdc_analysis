@@ -81,9 +81,11 @@ def user_gps_records():
 
 
 
-    def gps_lat_lon_weird():
-        #it seems that there are problemas at latitude and longitude data
-        #they seem incomplete, no decimal cases
+    def time_between_gps_locations(users=None):
+        #time between two data locations
+        if not users is None:
+            pass
+
         pass
 
 
