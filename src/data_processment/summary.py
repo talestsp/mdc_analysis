@@ -82,7 +82,7 @@ def user_gps_records():
 
 
     def time_between_gps_locations(users=None):
-        #time between two data locations
+        #Time between two consecutives locations
         if not users is None:
             pass
 
