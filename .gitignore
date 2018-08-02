@@ -2,6 +2,7 @@
 
 credentials/
 *.pyc
+*.csv
 
 .idea/*
 

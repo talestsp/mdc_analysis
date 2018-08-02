@@ -1,0 +1,125 @@
+Introduction
+============
+
+This directory contains a crypted dump of the Mobile Data Challenge (MDC)
+Database.
+
+Sizes
+=====
+
+Here is a quick list of interesting values.
+
+Number of records
+-----------------
+               accel:    1 M
+ accel_activity_noko:    1 M
+         application:    8 M
+           bnetworks:  587 k
+          btrelation:   34 M
+            calendar:   17 k
+             calllog:  435 k
+            contacts:  130 k
+        demographics:  158  
+        deviceassign:  322  
+             devices:  208  
+                  eb:   71 k
+                 gps:   12 M
+             gpswlan:   12 M
+                 gsm:   53 M
+            gsmcells:  104 k
+               media:   59 k
+           mediaplay:  154 k
+               paths:  672  
+              places:  493  
+     processrelation:  698 M
+             records:  232 M
+                 sms:  192 k
+               state:   13 M
+       survey_phones:  749  
+                 sys:   54 M
+               users:  191  
+        visits_10min:  129 k
+        visits_20min:  112 k
+        wlanrelation:   57 M
+           wnetworks:  591 k
+
+               Total:    1 G
+
+Size of dump
+------------
+- compressed + crypted (.zip): 16 GB
+- uncompressed (.csv files):   50 GB
+
+Size of dabatase (MySQL or PostgreSQL)
+--------------------------------------
+- no indexes: 70 GB
+- with recommended indexes: 120 GB
+
+Tables
+======
+
+This section give a quick view on the tables contained in this database. More
+details are available at:
+
+    http://www.idiap.ch/dataset/mdc/
+
+Shared values
+-------------
+* records: main table containing the userid and time information of all the database records
+
+System informations
+-------------------
+* sys: phone system related informations
+* state: states of the state machine controlling the data acquisition phone software
+* eb: history of the data acquisition phone software used versions
+
+Phone usage
+-----------
+* application: phone applications usage
+* media: history of the media files stored on the phone
+* mediaplay: history of the media files played on the phone
+* paths: full paths of applications executed on the phone
+* processrelation: history of the phone applications usage
+
+Social communication
+--------------------
+* calllog: history of the phone calls
+* sms: statistics on the SMS stored in the phone
+ 
+User agenda/contacts
+--------------------
+* calendar: calendar events stored in the phone
+* contacts: contacts (phone numbers) stored in the phone
+
+Networking
+----------
+* bluetooth:
+    * devices: phone devices used in the data collection campaign
+    * bnetworks: anonymized bluetooth mac addresses seen during the campaign
+    * btrelation: history of the bluetooth devices seen during the campaign
+* gsm:
+    * gsm: history of gsm cells seen by each participant
+    * gsmcells: list of the gsm cells seen during the campaign
+* wireless lan:
+    * wlanrelation: history of wireless access points seen during the campaign
+    * wnetworks: list of all wireless access points seen during the campaign
+
+Location and movement
+---------------------
+* accel: scans of the phone accelerometer sensors
+* gps: history of the gps position of the participants
+* gpswlan: geo-locacalized positions of the wireless access points seen during the campaign
+
+User forms
+----------
+* demographics: some demographic informations extracted from forms filled by the participants
+* deviceassign: history of which participant has which phone
+* places: places visited by the participants
+* survey_phones: relations between a participant an the owner of a specific phone number
+* users: general informations on the participants
+* visits_10min: history of place visits by the participants (on 10 minutes bases)
+* visits_20min: history of place visits by the participants (on 20 minutes bases)
+
+User generated
+--------------
+* by Nokia: accel_activity_noko informations computed by Nokia based on the accel table

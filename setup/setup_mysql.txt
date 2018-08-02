@@ -1,0 +1,25 @@
+sudo apt-get update
+sudo apt-get install mysql-server
+mysql_secure_installation
+
+
+mysql>
+	CREATE USER 'username'@'localhost' IDENTIFIED BY 'password';
+	GRANT ALL PRIVILEGES ON * . * TO 'username'@'localhost';
+	FLUSH PRIVILEGES;
+
+	CREATE DATABASE mdc;
+	USE mdc;
+
+
+
+./mdc-dump-to-database.py mysql ../mdcdb/mdcdb_1094/ | mysql -u username -p --database=mdc
+IMPORTANT: Change latitude and longitude types (and maybe others) from NUMERIC to FLOAT to prevent coordinates truncation.
+
+
+
+IF THIS ERROR RISES...
+	ERROR 1290 (HY000): The MySQL server is running with the --secure-file-priv option so it cannot execute this statement
+
+DO - It means that all data file must be inside /var/lib/mysql-files/ directory... Check the correct dir with SHOW VARIABLES LIKE "secure_file_priv";
+DO - Add 'LOCAL' to 'LOAD DATA'
