@@ -1,5 +1,6 @@
 from src.dao import dbdao
 from src.entity.record_types import RecordType
+from src.utils.stats import quantiles
 import pandas as pd
 import os
 
@@ -81,14 +82,26 @@ def user_gps_records():
 
 
 
-    def time_between_gps_locations(users=None):
-        #Time between two consecutives locations
-        if not users is None:
-            pass
+def time_resolution_gps(userids=None):
+    if userids is None:
+        my_dao = dbdao.DBDAO()
+        user_df = my_dao.users_df()
+        userids = user_df["userid"]
+        my_dao.close_connection()
 
-        pass
+    time_diffs_list_dict = []
+
+    for userid in userids:
+        user_gps_df = pd.read_csv("outputs/" + userid + "_gps.csv").sort_values("time")
+        user_time = user_gps_df["time"][1:len(user_gps_df)].reset_index(drop=True)
+        user_time_prev = user_gps_df["time"][0:len(user_gps_df) - 1].reset_index(drop=True)
+
+        diff = user_time - user_time_prev
+
+        time_diffs_list_dict.append({"userid": userid, "time_diff_percentiles": quantiles(diff)})
+
+    pd.DataFrame(time_diffs_list_dict).to_csv("outputs/time_resolution_gps.csv", index=False)
 
 
 
-
-user_gps_records()
+time_resolution_gps(["5925", "5928"])
