@@ -92,13 +92,19 @@ def time_resolution_gps(userids=None):
     time_diffs_list_dict = []
 
     for userid in userids:
-        user_gps_df = pd.read_csv("outputs/" + userid + "_gps.csv").sort_values("time")
-        user_time = user_gps_df["time"][1:len(user_gps_df)].reset_index(drop=True)
-        user_time_prev = user_gps_df["time"][0:len(user_gps_df) - 1].reset_index(drop=True)
+        print(userid)
+        try:
+            user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
+            user_time = user_gps_df["time"][1:len(user_gps_df)].reset_index(drop=True)
+            user_time_prev = user_gps_df["time"][0:len(user_gps_df) - 1].reset_index(drop=True)
 
-        diff = user_time - user_time_prev
+            diff = user_time - user_time_prev
 
-        time_diffs_list_dict.append({"userid": userid, "time_diff_percentiles": quantiles(diff)})
+            time_diffs_list_dict.append({"userid": userid, "time_diff_percentiles": quantiles(diff)})
+
+        except pd.errors.EmptyDataError:
+            print("Empty CSV")
+        print("")
 
     pd.DataFrame(time_diffs_list_dict).to_csv("outputs/time_resolution_gps.csv", index=False)
 
