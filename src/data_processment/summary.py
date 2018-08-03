@@ -95,6 +95,7 @@ def time_resolution_gps(userids=None):
         print(userid)
         try:
             user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
+            user_gps_df = user_gps_df.sort_values(by="time")
             user_time = user_gps_df["time"][1:len(user_gps_df)].reset_index(drop=True)
             user_time_prev = user_gps_df["time"][0:len(user_gps_df) - 1].reset_index(drop=True)
 
@@ -110,4 +111,4 @@ def time_resolution_gps(userids=None):
 
 
 
-time_resolution_gps(["5925", "5928"])
+time_resolution_gps()
