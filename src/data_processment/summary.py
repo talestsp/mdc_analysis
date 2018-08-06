@@ -1,5 +1,6 @@
 from src.dao import dbdao
 from src.entity.record_types import RecordType
+from src.utils.stats import quantiles
 import pandas as pd
 import os
 
@@ -81,12 +82,33 @@ def user_gps_records():
 
 
 
-    def gps_lat_lon_weird():
-        #it seems that there are problemas at latitude and longitude data
-        #they seem incomplete, no decimal cases
-        pass
+def time_resolution_gps(userids=None):
+    if userids is None:
+        my_dao = dbdao.DBDAO()
+        user_df = my_dao.users_df()
+        userids = user_df["userid"]
+        my_dao.close_connection()
+
+    time_diffs_list_dict = []
+
+    for userid in userids:
+        print(userid)
+        try:
+            user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
+            user_gps_df = user_gps_df.sort_values(by="time")
+            user_time = user_gps_df["time"][1:len(user_gps_df)].reset_index(drop=True)
+            user_time_prev = user_gps_df["time"][0:len(user_gps_df) - 1].reset_index(drop=True)
+
+            diff = user_time - user_time_prev
+
+            time_diffs_list_dict.append({"userid": userid, "time_diff_percentiles": quantiles(diff)})
+
+        except pd.errors.EmptyDataError:
+            print("Empty CSV")
+        print("")
+
+    pd.DataFrame(time_diffs_list_dict).to_csv("outputs/time_resolution_gps.csv", index=False)
 
 
 
-
-user_gps_records()
+time_resolution_gps()
