@@ -45,8 +45,8 @@ def user_gps_records():
         if not os.path.isfile("outputs/user_gps/" + str(userid) + "_gps.csv"):
             my_dao = dbdao.DBDAO()
             result = my_dao.records_join_df(join_to_table=RecordType.GPS.value,
-                                            right_cols=["latitude", "longitude", "horizontal_accuracy",
-                                                        "vertical_accuracy"],
+                                            right_cols=["latitude", "longitude", "speed", "horizontal_accuracy",
+                                                        "vertical_accuracy", "speed_accuracy"],
                                             userids=[userid], verbose=True)
             result.to_csv("outputs/user_gps/" + str(userid) + "_gps.csv", index=False)
 
