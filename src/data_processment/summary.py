@@ -110,5 +110,29 @@ def time_resolution_gps(userids=None):
     pd.DataFrame(time_diffs_list_dict).to_csv("outputs/time_resolution_gps.csv", index=False)
 
 
+def speed_gps(userids=None):
+    if userids is None:
+        my_dao = dbdao.DBDAO()
+        user_df = my_dao.users_df()
+        userids = user_df["userid"]
+        my_dao.close_connection()
+
+    speeds_df = pd.DataFrame()
+
+    for userid in userids:
+        print(userid)
+        try:
+            user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
+            user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates()
+
+            speeds_df = speeds_df.append(user_gps_df[["speed", "speed_accuracy"]])
+
+
+        except pd.errors.EmptyDataError:
+            print("Empty CSV")
+        print("")
+
+    speeds_df.to_csv("outputs/speed_gps.csv", index=False)
+
 
 time_resolution_gps()
