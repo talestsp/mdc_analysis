@@ -2,7 +2,7 @@
 
 credentials/
 *.pyc
-*.csv
+outputs/*
 
 *.ipynb
 .ipynb_checkpoints
