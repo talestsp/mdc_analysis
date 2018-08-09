@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 #from src.dao.dbdao import DBDAO
 
-def stop_regions(user_data, d=10000, delta_t=300):
+def stop_regions(user_data, d=50, delta_t=60):
     '''
     Returns the places that the user has stopped within a time interval and a circumference.
     :param user_data: user data with latitude, longitude and time.
@@ -35,6 +35,10 @@ def stop_regions(user_data, d=10000, delta_t=300):
     for cluster in clusters:
         counter += 1
         cluster.to_csv("clusters_temp/cluster_" + str(counter) + ".csv", index=False)
+
+        print(cluster)
+        print(sr.cluster_centroid(cluster))
+        print("-----------------------------\n\n")
 
 
 class StopRegion:
@@ -135,7 +139,7 @@ if __name__ == "__main__":
     pd.set_option('display.width', 1000)
     pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
-    data = pd.read_csv("outputs/user_gps/5480_gps.csv").drop_duplicates()
+    data = pd.read_csv("outputs/user_gps/6171_gps.csv").drop_duplicates().sort_values(by="time")[0:267]
 
     stop_regions(data)
 
