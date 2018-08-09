@@ -1,8 +1,9 @@
-import math
+import time
 import pandas as pd
-from src.dao.dbdao import DBDAO
+import numpy as np
+#from src.dao.dbdao import DBDAO
 
-def stop_regions(user_data, d=1, delta_t=300):
+def stop_regions(user_data, d=10000, delta_t=300):
     '''
     Returns the places that the user has stopped within a time interval and a circumference.
     :param user_data: user data with latitude, longitude and time.
@@ -14,22 +15,32 @@ def stop_regions(user_data, d=1, delta_t=300):
     user_data = user_data.sort_values(by="time")
     print(user_data.head())
 
+    clusters = []
+
     sr = StopRegion(d, delta_t)
 
+    start_time = time.time()
     for i in range(len(user_data)):
+        print(i, "out of", len(user_data))
+
         point = user_data.iloc[i]
-        print("\n\n\n\n====================================================")
-        print("----\n")
         sr.check_location_point(point)
-        if len(sr.cluster) > 2:
-            print("CLUSTER::::")
-            print(sr.cluster)
+        if sr.is_optimum_cluster():
+            clusters.append(sr.get_optimum_cluster())
+            print("CLUSTERRRRRRR")
+            print(clusters[-1])
+
+    print(time.time() - start_time)
+    counter = 0
+    for cluster in clusters:
+        counter += 1
+        cluster.to_csv("clusters_temp/cluster_" + str(counter) + ".csv", index=False)
 
 
 class StopRegion:
 
-    def __init__(self, radius_m, delta_time):
-        self.radius = radius_m * (0.00001 / 1.1132)
+    def __init__(self, region_radius, delta_time):
+        self.region_radius = region_radius
         self.delta_time = delta_time
 
         self.cluster = pd.DataFrame()
@@ -38,62 +49,79 @@ class StopRegion:
         self.last_cluster = pd.DataFrame()
         self.last_cluster_centroid = None
 
-    def cluster_centroid(self):
-        length = len(self.cluster)
-        sum_lat = self.cluster["latitude"].sum()
-        sum_lon = self.cluster["longitude"].sum()
-        points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
-        return points_centroid
-
-    def euclidean_distance(self, point_a, point_b):
-        return math.sqrt((point_a["longitude"] - point_b["longitude"]) ** 2 + (point_a["latitude"] - point_b["latitude"]) ** 2)
-
     def check_location_point(self, point):
-        print("CHECKING POINT:")
-        print(point)
-
         self.last_cluster = self.cluster
         self.last_cluster_centroid = self.centroid
 
-        self.cluster = self.cluster.append(point)
-        self.centroid = self.cluster_centroid()
+        if len(self.cluster) > 0 and self.distance(point, self.centroid) > 1.5 * self.region_radius:
+            self.cluster = pd.DataFrame()
+            self.cluster = self.cluster.append(point)
+            self.centroid = self.cluster_centroid(self.cluster)
 
-        self.__remove_outer_points()
-
-    def is_stop_region(self):
-        # due to points removing from cluster each time a point is checked there is no need to check the radius again
-        return self.cluster_delta_time() >= self.delta_time
-
-    def get_stop_region_cluster(self):
-        if self.is_stop_region():
-            return self.__get_optimum_cluster()
         else:
-            return None
+            self.cluster = self.cluster.append(point)
+            self.centroid = self.cluster_centroid(self.cluster)
+            self.__remove_outer_points()
 
-    def __check_optimum_location(self):
-        return len(self.last_cluster) > len(self.cluster)
+        print(point["latitude"], point["longitude"])
+        print("cluster size:", len(self.cluster))
+        print("centroid:", self.centroid)
+        print("delta t:", self.cluster_delta_time(self.cluster))
+        print()
 
-    def __get_optimum_cluster(self):
-        if self.__check_optimum_location():
+    def cluster_centroid(self, cluster):
+        length = len(cluster)
+        sum_lat = cluster["latitude"].sum()
+        sum_lon = cluster["longitude"].sum()
+        points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
+        return points_centroid
+
+    def distance(self, point_a, point_b):
+        return self.__haversine_vectorized(point_a["longitude"], point_a["latitude"], point_b["longitude"], point_b["latitude"])
+
+    def __haversine_vectorized(self, lon1, lat1, lon2, lat2):
+        """
+        Calculate the great circle distance between two points
+        on the earth (specified in decimal degrees)
+        Adapted from code found at: https://stackoverflow.com/questions/4913349/haversine-formula-in-python-bearing-and-distance-between-two-gps-points
+        """
+        # Convert decimal degrees to Radians:
+        lon1 = np.radians(lon1)
+        lat1 = np.radians(lat1)
+        lon2 = np.radians(lon2)
+        lat2 = np.radians(lat2)
+        # Implementing Haversine Formula:
+        dlon = np.subtract(lon2, lon1)
+        dlat = np.subtract(lat2, lat1)
+        a = np.add(np.power(np.sin(np.divide(dlat, 2)), 2),
+                   np.multiply(np.cos(lat1),
+                               np.multiply(np.cos(lat2),
+                                           np.power(np.sin(np.divide(dlon, 2)), 2))))
+        c = np.multiply(2, np.arcsin(np.sqrt(a)))
+        r = 6371
+        return c * r * 1000
+
+    def is_optimum_cluster(self):
+        return len(self.last_cluster) > 1 and len(self.last_cluster) > len(self.cluster) and self.cluster_delta_time(self.last_cluster) >= self.delta_time
+
+    def get_optimum_cluster(self):
+        if self.is_optimum_cluster():
             return self.last_cluster
         else:
             return self.cluster
 
-    def cluster_delta_time(self):
-        return self.cluster["time"][-1] - self.cluster["time"][1]
+    def is_stop_region(self):
+        # due to points removing from cluster each time a point is checked there is no need to check the radius again
+        return len(self.cluster) > 1 and self.cluster_delta_time(self.cluster) >= self.delta_time
 
-    def points_delta_time(self, point_a, point_b):
-        return abs(point_b["time"] - point_a["time"])
+    def cluster_delta_time(self, cluster):
+        return cluster["time"].iloc[len(cluster) - 1] - cluster["time"].iloc[0]
 
     def __remove_outer_points(self):
         for row in self.cluster.iterrows():
             point = row[1]
-            if self.euclidean_distance(self.centroid, point) > self.radius:
-                print()
-                print(">>> REMOVING POINT:")
-                print(point)
-                # print(self.euclidean_distance(self.centroid, point), self.radius)
-                # print(float(self.euclidean_distance(self.centroid, point)))
+            distance = self.distance(self.centroid, point)
+            if distance > self.region_radius:
                 #TO THINK - prunning not necessary then it stays robust against outlier points duye to measurement errors
                 self.cluster = self.cluster.drop(point.name)
 
@@ -107,7 +135,8 @@ if __name__ == "__main__":
     pd.set_option('display.width', 1000)
     pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
-    data = pd.read_csv("outputs/user_gps/6187_gps.csv")
+    data = pd.read_csv("outputs/user_gps/5480_gps.csv").drop_duplicates()
+
     stop_regions(data)
 
 

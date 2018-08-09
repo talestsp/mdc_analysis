@@ -117,7 +117,7 @@ def speed_gps(userids=None):
         userids = user_df["userid"]
         my_dao.close_connection()
 
-    speeds_df = pd.DataFrame()
+    speeds_list_dict = []
 
     for userid in userids:
         print(userid)
@@ -125,14 +125,18 @@ def speed_gps(userids=None):
             user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
             user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates()
 
-            speeds_df = speeds_df.append(user_gps_df[["speed", "speed_accuracy"]])
+            sp = quantiles(user_gps_df["speed"])
+            sp["userid"] = userid
 
+            speeds_list_dict.append(sp)
 
         except pd.errors.EmptyDataError:
             print("Empty CSV")
         print("")
 
-    speeds_df.to_csv("outputs/speed_gps.csv", index=False)
+    pd.DataFrame(speeds_list_dict).to_csv("outputs/speed_gps.csv", index=False)
+
+    print(pd.DataFrame(speeds_list_dict).describe())
 
 
-time_resolution_gps()
+speed_gps()
