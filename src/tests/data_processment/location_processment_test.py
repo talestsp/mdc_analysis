@@ -1,6 +1,6 @@
 import unittest
 import pandas as pd
-from src.data_processment.location_processment import StopRegion
+from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 
 
 class location_processment_test(unittest.TestCase):
@@ -10,26 +10,26 @@ class location_processment_test(unittest.TestCase):
 
     def test_optimum_cluster(self):
         data = pd.read_csv("src/tests/data/optimum_cluster.csv")
-        sr = StopRegion(region_radius=1255976, delta_time=60)
+        sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         clusters = []
 
         for row in data.iterrows():
             point = row[1]
-            sr.check_location_point(point)
+            sr.online_location_point_checking(point)
 
-            if sr.is_optimum_cluster():
-                clusters.append(sr.get_optimum_cluster())
+            if sr.is_stop_region():
+                clusters.append(sr.get_last_stop_region_detected())
 
         self.assertEqual(1, len(clusters))
 
     def test_cluster_centroid(self):
         data = pd.read_csv("src/tests/data/cluster_centroid.csv")
-        sr = StopRegion(region_radius=1255976, delta_time=60)
+        sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         for row in data.iterrows():
             point = row[1]
-            sr.check_location_point(point)
+            sr.online_location_point_checking(point)
             c = sr.cluster_centroid(sr.cluster)
 
         c = sr.cluster_centroid(sr.cluster)
@@ -37,7 +37,7 @@ class location_processment_test(unittest.TestCase):
         self.assertEqual(2, c["longitude"])
 
     def test_distance(self):
-        sr = StopRegion(region_radius=100000000000, delta_time=60)
+        sr = MovingCentroidStopRegionFinder(region_radius=100000000000, delta_time=60)
 
         d = sr.distance({"latitude": -7.2376725, "longitude": -35.8830033},
                         {"latitude": -7.2372265, "longitude": -35.8781688})
@@ -50,22 +50,47 @@ class location_processment_test(unittest.TestCase):
 
     def test_detect_clusters(self):
         data = pd.read_csv("src/tests/data/clusters.csv")
-        sr = StopRegion(region_radius=1255976, delta_time=60)
+        sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
-        clusters = []
+        clusters = sr.find_clusters(data)
 
-        for row in data.iterrows():
-            point = row[1]
-            sr.check_location_point(point)
-            if sr.is_optimum_cluster():
-                clusters.append(sr.get_optimum_cluster())
-
-        print("*****************************************************")
-        print("*****************************************************")
-        for cluster in clusters:
-            print(cluster)
-            print("\n\n")
+        # for row in data.iterrows():
+        #     point = row[1]
+        #     sr.online_location_point_checking(point)
+        #     if sr.is_stop_region():
+        #         clusters.append(sr.get_last_stop_region_detected())
+        #
+        # print("*****************************************************")
+        # print("*****************************************************")
+        # for cluster in clusters:
+        #     print(cluster)
+        #     print("\n\n")
 
         self.assertEqual(2, len(clusters))
+
+
+    def test_detect_clusters_2(self):
+        data = pd.read_csv("src/tests/data/clusters2.csv")
+        sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
+
+        clusters = sr.find_clusters(data)
+
+        # for row in data.iterrows():
+        #     point = row[1]
+        #     sr.online_location_point_checking(point)
+        #     if sr.is_stop_region():
+        #         clusters.append(sr.get_last_stop_region_detected())
+        #
+        # print("*****************************************************")
+        # print("*****************************************************")
+        # for cluster in clusters:
+        #     print(cluster)
+        #     print("\n\n")
+
+        self.assertEqual(2, len(clusters))
+
+
+
+
 
 
