@@ -1,6 +1,6 @@
 import mysql.connector
 import pandas as pd
-from src.utils import utils, resource_usage
+from src.utils import others, resource_usage
 from src.entity.record_types import RecordType
 
 
@@ -13,7 +13,7 @@ PLACES_COLUMNS = ["userid", "placeid", "place_label", "with_family", "with_close
 
 
 class DBDAO:
-    def __init__(self, credentials_jon=utils.credentials_db()):
+    def __init__(self, credentials_jon=others.credentials_db()):
         self.cnx = mysql.connector.connect(
             user=credentials_jon['user'],
             password=credentials_jon['password'],
@@ -148,32 +148,4 @@ class DBDAO:
 
     def __del__(self):
         self.close_connection()
-
-
-
-if __name__ == "__main__":
-    dao = DBDAO()
-
-    # r1 = dao.records_join_df(join_to_table=RecordType.GPS.value,
-    #                         right_cols=["latitude", "longitude", "horizontal_accuracy", "vertical_accuracy"],
-    #                         userids=["6183", "5921"], verbose=True)
-    #
-    # r2 = dao.records_join_df(join_to_table=RecordType.GPSWLAN.value,
-    #                         right_cols=["latitude", "longitude"],
-    #                         userids=["6183", "5921"], verbose=True)
-    #
-    # pd.set_option('display.max_columns', None)
-    # pd.set_option('display.width', 1000)
-    # print(r2)
-
-    d = dao.records_join(join_to_table=RecordType.GPS.value, userids=["5542"],
-                          right_cols=["latitude", "longitude", "horizontal_accuracy", "vertical_accuracy"], verbose=True)
-    print(d)
-
-    d = dao.records_join_df(join_to_table=RecordType.GPS.value, userids=["5542"],
-                          right_cols=["latitude", "longitude", "horizontal_accuracy", "vertical_accuracy"], verbose=True)
-    print(d.head(5))
-
-
-
 
