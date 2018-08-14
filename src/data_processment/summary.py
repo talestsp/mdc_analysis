@@ -128,6 +128,13 @@ def speed_gps(userids=None):
             sp = quantiles(user_gps_df["speed"])
             sp["userid"] = userid
 
+            if user_gps_df["speed"].count() > 0:
+                n = len(user_gps_df["speed"])
+                valid_values = float(user_gps_df["speed"].count())
+                sp["nan_proportion"] = (n - valid_values) / (n)
+            else:
+                sp["nan_proportion"] = 0
+
             speeds_list_dict.append(sp)
 
         except pd.errors.EmptyDataError:
