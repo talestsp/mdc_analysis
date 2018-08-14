@@ -53,19 +53,6 @@ class location_processment_test(unittest.TestCase):
         sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         clusters = sr.find_clusters(data)
-
-        # for row in data.iterrows():
-        #     point = row[1]
-        #     sr.online_location_point_checking(point)
-        #     if sr.is_stop_region():
-        #         clusters.append(sr.get_last_stop_region_detected())
-        #
-        # print("*****************************************************")
-        # print("*****************************************************")
-        # for cluster in clusters:
-        #     print(cluster)
-        #     print("\n\n")
-
         self.assertEqual(2, len(clusters))
 
 
@@ -74,23 +61,4 @@ class location_processment_test(unittest.TestCase):
         sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         clusters = sr.find_clusters(data)
-
-        # for row in data.iterrows():
-        #     point = row[1]
-        #     sr.online_location_point_checking(point)
-        #     if sr.is_stop_region():
-        #         clusters.append(sr.get_last_stop_region_detected())
-        #
-        # print("*****************************************************")
-        # print("*****************************************************")
-        # for cluster in clusters:
-        #     print(cluster)
-        #     print("\n\n")
-
         self.assertEqual(2, len(clusters))
-
-
-
-
-
-

@@ -1,6 +1,7 @@
 from src.dao import dbdao
 from src.entity.record_types import RecordType
 from src.utils.stats import quantiles
+from src.utils.geo import haversine_vectorized
 import pandas as pd
 import os
 
@@ -145,5 +146,37 @@ def speed_gps(userids=None):
 
     print(pd.DataFrame(speeds_list_dict).describe())
 
+def speed_nan(userids=None):
+    if userids is None:
+        my_dao = dbdao.DBDAO()
+        user_df = my_dao.users_df()
+        userids = user_df["userid"]
+        my_dao.close_connection()
 
-speed_gps()
+    speeds_list_dict = []
+
+    for userid in userids:
+        print(userid)
+        try:
+            user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
+            user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates().reset_index(drop=True)
+
+            nan_indexes = user_gps_df[user_gps_df["speed"].isnull()].index.tolist()
+
+            print(user_gps_df)
+
+            for nan_index in nan_indexes:
+                prev_loc = user_gps_df.iloc[nan_index - 1][["latitude", "longitude", "time"]]
+                loc = user_gps_df.iloc[nan_index][["latitude", "longitude", "time"]]
+                print(prev_loc)
+                print(loc)
+                print(loc - prev_loc)
+                print("d:", haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"]))
+                print("\n\n------")
+
+
+        except pd.errors.EmptyDataError:
+            print("Empty CSV")
+        print("")
+
+speed_nan()
