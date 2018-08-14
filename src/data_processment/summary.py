@@ -162,18 +162,30 @@ def speed_nan(userids=None):
             user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates().reset_index(drop=True)
 
             nan_indexes = user_gps_df[user_gps_df["speed"].isnull()].index.tolist()
-
-            print(user_gps_df)
+            nan_index_data_list = []
 
             for nan_index in nan_indexes:
-                prev_loc = user_gps_df.iloc[nan_index - 1][["latitude", "longitude", "time"]]
-                loc = user_gps_df.iloc[nan_index][["latitude", "longitude", "time"]]
-                print(prev_loc)
-                print(loc)
-                print(loc - prev_loc)
-                print("d:", haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"]))
-                print("\n\n------")
+                if nan_index > 0:
+                    prev_loc = user_gps_df.loc[nan_index - 1][["latitude", "longitude", "time"]]
+                    loc = user_gps_df.loc[nan_index][["latitude", "longitude", "time"]]
+                    dS = haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"])
+                    dT = loc["time"] - prev_loc["time"]
 
+                    nan_index_data_list.append({"dS": dS, "dT": dT, "speed_valid": 0})
+
+            not_nan_indexes = set(user_gps_df.index.tolist()) - set(nan_indexes)
+            not_nan_index_data_list = []
+
+            for not_nan_index in not_nan_indexes:
+                if not_nan_index > 0:
+                    prev_loc = user_gps_df.loc[not_nan_index - 1][["latitude", "longitude", "time"]]
+                    loc = user_gps_df.loc[not_nan_index][["latitude", "longitude", "time"]]
+                    dS = haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"])
+                    dT = loc["time"] - prev_loc["time"]
+
+                    not_nan_index_data_list.append({"dS": dS, "dT": dT, "speed_valid": 1})
+
+            pd.DataFrame(nan_index_data_list).to_csv("outputs/nan_speed_data.csv", index=False)
 
         except pd.errors.EmptyDataError:
             print("Empty CSV")
