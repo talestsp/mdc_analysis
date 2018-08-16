@@ -21,3 +21,11 @@ def haversine_vectorized(lon1, lat1, lon2, lat2):
     c = np.multiply(2, np.arcsin(np.sqrt(a)))
     r = 6371
     return c * r * 1000
+
+
+def cluster_centroid(cluster):
+    length = len(cluster)
+    sum_lat = cluster["latitude"].sum()
+    sum_lon = cluster["longitude"].sum()
+    points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
+    return points_centroid
