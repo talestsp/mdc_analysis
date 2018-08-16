@@ -1,8 +1,8 @@
 import pandas as pd
 
 from bokeh.plotting import figure
-from bokeh.layouts import gridplot
-from bokeh.io import output_notebook, show
+from bokeh.io import show
+from src.utils.geo import cluster_centroid
 
 from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 from src.dao import csv_dao
@@ -11,19 +11,22 @@ def plot_stop_region(user_data, stop_region_clusters, title, color="navy", circl
     p = plot_user_loc(user_data=user_data, title=title, color=color, alpha=circle_alpha)
 
     for cluster in stop_region_clusters:
-        centroid = cluster_centroid(cluster)
-
-        centroid_circle = p.circle(centroid["longitude"], centroid["latitude"])
-
-        glyph = centroid_circle.glyph
-        glyph.size = 20
-        glyph.fill_alpha = cluster_alpha
-        glyph.line_alpha = cluster_alpha
-        glyph.line_color = "firebrick"
-        glyph.line_dash = [6, 3]
-        glyph.line_width = 1
+        add_centroid_figure(p, cluster, cluster_alpha)
 
     return p
+
+def add_centroid_figure(figure, cluster, cluster_alpha=0.5):
+    centroid = cluster_centroid(cluster)
+
+    centroid_circle = figure.circle(centroid["longitude"], centroid["latitude"])
+
+    glyph = centroid_circle.glyph
+    glyph.size = 20
+    glyph.fill_alpha = cluster_alpha
+    glyph.line_alpha = cluster_alpha
+    glyph.line_color = "firebrick"
+    glyph.line_dash = [6, 3]
+    glyph.line_width = 1
 
 
 def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=800, height=800):
