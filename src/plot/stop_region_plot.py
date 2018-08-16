@@ -11,9 +11,6 @@ def plot_stop_region(user_data, stop_region_clusters, title, color="navy", circl
     p = plot_user_loc(user_data=user_data, title=title, color=color, alpha=circle_alpha)
 
     for cluster in stop_region_clusters:
-        print("CLUSTER")
-        print(cluster)
-        print()
         centroid = cluster_centroid(cluster)
 
         centroid_circle = p.circle(centroid["longitude"], centroid["latitude"])
@@ -25,7 +22,6 @@ def plot_stop_region(user_data, stop_region_clusters, title, color="navy", circl
         glyph.line_color = "firebrick"
         glyph.line_dash = [6, 3]
         glyph.line_width = 1
-
 
     return p
 

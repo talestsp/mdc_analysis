@@ -46,13 +46,6 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         self.last_cluster = self.cluster
         self.last_cluster_centroid = self.centroid
 
-        if len(self.cluster) > 0:
-            print(point[["latitude", "longitude", "speed"]])
-            print("len(self.cluster)", len(self.cluster))
-            print(self.distance(point, self.centroid))
-            print( self.centroid, self.distance(point, self.centroid) > 1.5 * self.region_radius)
-            print()
-
         if len(self.cluster) > 0 and self.distance(point, self.centroid) > 1.5 * self.region_radius:
             self.cluster = pd.DataFrame()
             self.cluster = self.cluster.append(point)
