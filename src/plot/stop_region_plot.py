@@ -36,13 +36,6 @@ def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=800, height=8
 
     return p
 
-def cluster_centroid(cluster):
-    length = len(cluster)
-    sum_lat = cluster["latitude"].sum()
-    sum_lon = cluster["longitude"].sum()
-    points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
-    return points_centroid
-
 if __name__ == "__main__":
     pd.set_option('display.max_columns', None)
     pd.set_option('display.width', 1000)
