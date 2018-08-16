@@ -1,7 +1,7 @@
 import time
 import pandas as pd
 import numpy as np
-from src.utils.geo import haversine_vectorized
+from src.utils.geo import haversine_vectorized, cluster_centroid
 #from src.dao.dbdao import DBDAO
 
 class StopRegionsFinder:
@@ -26,11 +26,7 @@ class StopRegionsFinder:
         raise NotImplementedError
 
     def cluster_centroid(self, cluster):
-        length = len(cluster)
-        sum_lat = cluster["latitude"].sum()
-        sum_lon = cluster["longitude"].sum()
-        points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
-        return points_centroid
+        return cluster_centroid(cluster)
 
     def distance(self, point_a, point_b):
         return haversine_vectorized(point_a["longitude"], point_a["latitude"], point_b["longitude"],
