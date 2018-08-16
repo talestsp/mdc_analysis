@@ -153,8 +153,6 @@ def speed_nan(userids=None):
         userids = user_df["userid"]
         my_dao.close_connection()
 
-    speeds_list_dict = []
-
     for userid in userids:
         print(userid)
         try:
@@ -171,7 +169,7 @@ def speed_nan(userids=None):
                     dS = haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"])
                     dT = loc["time"] - prev_loc["time"]
 
-                    nan_index_data_list.append({"dS": dS, "dT": dT, "speed_valid": 0})
+                    nan_index_data_list.append({"userid": userid, "current_time": loc["time"], "dS": dS, "dT": dT, "speed_valid": 0, "lon": loc["longitude"], "lat": loc["latitude"], "prev_lon": prev_loc["longitude"], "prev_lat": prev_loc["latitude"]})
 
             not_nan_indexes = set(user_gps_df.index.tolist()) - set(nan_indexes)
             not_nan_index_data_list = []
@@ -183,12 +181,17 @@ def speed_nan(userids=None):
                     dS = haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"])
                     dT = loc["time"] - prev_loc["time"]
 
-                    not_nan_index_data_list.append({"dS": dS, "dT": dT, "speed_valid": 1})
+                    not_nan_index_data_list.append({"userid": userid, "current_time": loc["time"], "dS": dS, "dT": dT, "speed_valid": 1, "lon": loc["longitude"], "lat": loc["latitude"], "prev_lon": prev_loc["longitude"], "prev_lat": prev_loc["latitude"]})
 
-            pd.DataFrame(nan_index_data_list).to_csv("outputs/nan_speed_data.csv", index=False)
+
+            pd.DataFrame(nan_index_data_list + not_nan_index_data_list).to_csv("outputs/user_gps/speeds/" + str(userid) + "_user_gps_speeds.csv", index=False)
+
 
         except pd.errors.EmptyDataError:
             print("Empty CSV")
         print("")
+
+
+
 
 speed_nan()
