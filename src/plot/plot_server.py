@@ -86,5 +86,5 @@ def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
 user_data, p, aplot = plot_gps_points(userid=6171, r=50, delta_t=300, from_day_n=0, n_days=1)
 
 if __name__ == "__main__":
-    os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/server.py")
+    os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/plot_server.py")
 

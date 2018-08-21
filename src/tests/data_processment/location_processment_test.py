@@ -49,7 +49,7 @@ class location_processment_test(unittest.TestCase):
         self.assertAlmostEqual(3830, d, delta=50)
 
     def test_detect_clusters(self):
-        data = pd.read_csv("src/tests/data/clusters.csv")
+        data = pd.read_csv("src/tests/data/stop_regions.csv")
         sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         clusters = sr.find_clusters(data)

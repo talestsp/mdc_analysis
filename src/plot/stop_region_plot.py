@@ -2,7 +2,9 @@ import pandas as pd
 
 from bokeh.plotting import figure
 from bokeh.io import show
-from src.utils.geo import cluster_centroid
+from src.utils.geo import cluster_centroid, user_data_gps_to_web_mercator, gps_loc_to_web_mercator
+
+from bokeh.tile_providers import CARTODBPOSITRON
 
 from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 from src.dao import csv_dao
@@ -15,10 +17,14 @@ def plot_stop_region(user_data, stop_region_clusters, title, color="navy", circl
 
     return p
 
-def add_centroid_figure(figure, cluster, cluster_alpha=0.5):
+def add_centroid_figure(figure, cluster, cluster_alpha=0.5, to_mercator=True):
     centroid = cluster_centroid(cluster)
 
-    centroid_circle = figure.circle(centroid["longitude"], centroid["latitude"])
+    if to_mercator:
+        lon, lat = gps_loc_to_web_mercator(lat=centroid["latitude"], lon=centroid["longitude"])
+        centroid_circle = figure.circle(lon, lat)
+    else:
+        centroid_circle = figure.circle(lon=centroid["longitude"], lat=centroid["latitude"])
 
     glyph = centroid_circle.glyph
     glyph.size = 20
@@ -31,8 +37,23 @@ def add_centroid_figure(figure, cluster, cluster_alpha=0.5):
 
 def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=800, height=800):
     tools = "pan,wheel_zoom,reset"
-    p = figure(plot_width=width, plot_height=height, tools=tools, title=title)
-    p.circle(user_data["longitude"], user_data["latitude"], size=2, alpha=alpha, color=color)
+
+    p1 = gps_loc_to_web_mercator(lat=user_data["latitude"].min(), lon=user_data["longitude"].min())
+    p2 = gps_loc_to_web_mercator(lat=user_data["latitude"].max(), lon=user_data["longitude"].max())
+
+    p = figure(title=title,
+               plot_width=width, plot_height=height, tools=tools,
+               x_axis_type="mercator",
+               y_axis_type="mercator",
+               x_range=(p1[0] * 0.999, p2[0] * 1.001),
+               y_range=(p1[1] * 0.999, p2[1] * 1.001))
+
+    p.add_tile(CARTODBPOSITRON)
+
+    mercator_loc_list = user_data_gps_to_web_mercator(user_data)
+
+    for loc in mercator_loc_list:
+        p.circle(x=loc[0], y=loc[1], size=2, alpha=alpha, color=color)
 
     return p
 
