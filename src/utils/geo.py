@@ -1,4 +1,5 @@
 import numpy as np
+from pyproj import Proj, transform
 
 def haversine_vectorized(lon1, lat1, lon2, lat2):
     """
@@ -29,3 +30,13 @@ def cluster_centroid(cluster):
     sum_lon = cluster["longitude"].sum()
     points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
     return points_centroid
+
+def user_df_loc_tuples(user_df):
+    return [tuple(loc) for loc in user_df[["latitude", "longitude"]].values]
+
+def user_data_gps_to_web_mercator(user_df):
+    gps_list = user_df_loc_tuples(user_df)
+    return [gps_loc_to_web_mercator(lat=gps_loc[0], lon=gps_loc[1]) for gps_loc in gps_list]
+
+def gps_loc_to_web_mercator(lat, lon):
+    return transform(Proj(init='epsg:4326'), Proj(init='epsg:3857'), lon, lat)
