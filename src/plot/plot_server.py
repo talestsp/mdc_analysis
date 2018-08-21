@@ -1,6 +1,5 @@
-# myapp.py
-
 import time
+import os
 
 from bokeh.layouts import column
 from bokeh.models import Button
@@ -10,6 +9,7 @@ from bokeh.plotting import figure, curdoc
 from src.dao.csv_dao import load_user_gps_csv
 from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 from src.plot.animated_plot import AnimatedPlot
+from src.utils.geo import gps_loc_to_web_mercator
 
 
 def callback():
@@ -37,16 +37,20 @@ def callback():
             point = next["point"]
             centroid = next["centroid"]
 
-            new_point_data['x'] = ds_point.data["x"] + [point["longitude"]]
-            new_point_data['y'] = ds_point.data["y"] + [point["latitude"]]
+            point_mercator = gps_loc_to_web_mercator(lat=point["latitude"], lon=point["longitude"])
+
+            new_point_data['x'] = ds_point.data["x"] + [point_mercator[0]]
+            new_point_data['y'] = ds_point.data["y"] + [point_mercator[1]]
             new_point_data['line_color'] = ds_point.data["line_color"] + ["navy"]
             new_point_data['size'] = point_sizes + [4]
 
             point_sizes.append(2)
 
             if not centroid is None:
-                new_centroid_data["x"] = ds_centroid.data["x"] + [centroid["longitude"]]
-                new_centroid_data["y"] = ds_centroid.data["y"] + [centroid["latitude"]]
+                centroid_mercator = gps_loc_to_web_mercator(lat=centroid["latitude"], lon=centroid["longitude"])
+
+                new_centroid_data["x"] = ds_centroid.data["x"] + [centroid_mercator[0]]
+                new_centroid_data["y"] = ds_centroid.data["y"] + [centroid_mercator[1]]
                 new_centroid_data["size"] = ds_centroid.data["size"] + [20]
                 new_centroid_data["fill_alpha"] = ds_centroid.data["fill_alpha"] + [0.4]
                 new_centroid_data["line_alpha"] = ds_centroid.data["line_alpha"] + [0.3]
@@ -58,25 +62,29 @@ def callback():
             ds_point.data = new_point_data
 
 
-userid = 6171
-r = 50
-delta_t = 300
-from_day_n = 0
-n_days = 1
 
-print("LOADING USER DATA")
-user_data = load_user_gps_csv(userid, from_day_n, n_days)
-print("FINDING STOP REGIONS")
-clusters = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t).find_clusters(user_data, verbose=False)
-print("PLOTTING")
+def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
+    print("LOADING USER DATA")
+    user_data = load_user_gps_csv(userid, from_day_n, n_days)
+    print("FINDING STOP REGIONS")
+    clusters = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t).find_clusters(user_data, verbose=False)
+    print("PLOTTING")
 
-aplot = AnimatedPlot(user_data, clusters, title="USERID: " + str(userid) + " - n_CLUSTERS: " + str(len(clusters)) + " - " + "d: " + str(r) + ", " + "delta_t: " + str(delta_t))
-p = aplot.build_stop_region_plot(color="orange", cluster_alpha=0.05)
+    aplot = AnimatedPlot(user_data, clusters, title="USERID: " + str(userid) + " - n_CLUSTERS: " + str(len(clusters)) + " - " + "d: " + str(r) + ", " + "delta_t: " + str(delta_t))
+    p = aplot.build_stop_region_plot(color="orange", circle_alpha=0.4, cluster_alpha=0.05)
 
-# add a button widget and configure with the call back
-button_go = Button(label="Go")
-button_go.on_click(callback)
+    # add a button widget and configure with the call back
+    button_go = Button(label="Go")
+    button_go.on_click(callback)
 
-# put the button and plot in a layout and add to the document
-curdoc().add_root(column(p, button_go))
+    # put the button and plot in a layout and add to the document
+    curdoc().add_root(column(p, button_go))
+
+    return user_data, p, aplot
+
+
+user_data, p, aplot = plot_gps_points(userid=6171, r=50, delta_t=300, from_day_n=0, n_days=1)
+
+if __name__ == "__main__":
+    os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/server.py")
 

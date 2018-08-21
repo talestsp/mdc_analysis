@@ -3,11 +3,20 @@ import os
 
 DAY_SECONDS = 86400
 
-def load_user_gps_csv(userid, from_day_n, to_day_n):
+def load_user_gps_csv(userid, from_day_n=None, to_day_n=None):
     user_data = pd.read_csv("outputs/user_gps/" + str(userid) + '_gps.csv').drop_duplicates().sort_values(by="time")
+
     min_time = user_data["time"].min()
-    use_data_from_time = min_time + DAY_SECONDS * from_day_n
-    use_data_to_time = use_data_from_time + to_day_n * DAY_SECONDS
+
+    if from_day_n is None:
+        use_data_from_time = min_time
+    else:
+        use_data_from_time = min_time + DAY_SECONDS * from_day_n
+
+    if to_day_n is None:
+        use_data_to_time = user_data["time"].max()
+    else:
+        use_data_to_time = use_data_from_time + to_day_n * DAY_SECONDS
 
     return user_data[(user_data["time"] >= use_data_from_time) & (user_data["time"] <= use_data_to_time)]
 
