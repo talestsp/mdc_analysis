@@ -19,7 +19,6 @@ def callback():
     centroid_circle = p.circle(x=[], y=[], size=[], fill_alpha=[], line_alpha=[], line_color=[], line_width=[])
     ds_centroid = centroid_circle.data_source
 
-    period = 0.01
     last_time = time.time() + period
     counter = 0
 
@@ -65,6 +64,7 @@ def callback():
 
 def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
     print("LOADING USER DATA")
+    print("User:", userid)
     user_data = load_user_gps_csv(userid, from_day_n, n_days)
     print("FINDING STOP REGIONS")
     clusters = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t).find_clusters(user_data, verbose=False)
@@ -82,8 +82,8 @@ def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
 
     return user_data, p, aplot
 
-
-user_data, p, aplot = plot_gps_points(userid=6171, r=50, delta_t=300, from_day_n=0, n_days=1)
+period = 0.1
+user_data, p, aplot = plot_gps_points(userid="6171", r=50, delta_t=300, from_day_n=0, n_days=1)
 
 if __name__ == "__main__":
     os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/plot_server.py")
