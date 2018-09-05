@@ -31,3 +31,10 @@ def load_gps_speeds(userid=None):
             if filename.endswith(".csv"):
                 data = data.append(pd.read_csv("outputs/user_gps/speeds/" + filename))
         return data
+
+def list_user_gps_files():
+    filenames = []
+    for filename in os.listdir("outputs/user_gps/"):
+        if filename.endswith("_gps.csv"):
+            filenames.append(filename)
+    return filenames
