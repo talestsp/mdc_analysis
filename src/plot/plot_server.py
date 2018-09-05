@@ -1,12 +1,12 @@
 import time
 import os
+import random
 
 from bokeh.layouts import column
 from bokeh.models import Button
-from bokeh.palettes import RdYlBu3
-from bokeh.plotting import figure, curdoc
+from bokeh.plotting import curdoc
 
-from src.dao.csv_dao import load_user_gps_csv
+from src.dao.csv_dao import load_user_gps_csv, list_user_gps_files
 from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 from src.plot.animated_plot import AnimatedPlot
 from src.utils.geo import gps_loc_to_web_mercator
@@ -65,6 +65,10 @@ def callback():
 def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
     print("LOADING USER DATA")
     print("User:", userid)
+    print("From Day N:", from_day_n)
+    print("N Days:", n_days)
+    print("R:", r)
+    print("Delta T:", delta_t)
     user_data = load_user_gps_csv(userid, from_day_n, n_days)
     print("FINDING STOP REGIONS")
     clusters = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t).find_clusters(user_data, verbose=False)
@@ -80,11 +84,25 @@ def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
     # put the button and plot in a layout and add to the document
     curdoc().add_root(column(p, button_go))
 
+    for cluster in clusters:
+        print(len(cluster))
+        print(cluster[["longitude", "latitude", "time", "db_key"]])
+        print("\n\n")
+
+    cluster.to_csv("~/teste.csv", index=False)
+
     return user_data, p, aplot
 
+def random_user():
+    user_gps_filenames = list_user_gps_files()
+    filename = user_gps_filenames[random.randint(0, len(user_gps_filenames) - 1)]
+    return filename.replace("_gps.csv", "")
+
 period = 0.1
-user_data, p, aplot = plot_gps_points(userid="6171", r=50, delta_t=300, from_day_n=0, n_days=1)
+
 
 if __name__ == "__main__":
     os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/plot_server.py")
 
+else:
+    user_data, p, aplot = plot_gps_points(userid=random_user(), r=50, delta_t=300, from_day_n=0, n_days=1.5)
