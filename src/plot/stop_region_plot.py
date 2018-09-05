@@ -35,7 +35,7 @@ def add_centroid_figure(figure, cluster, cluster_alpha=0.5, to_mercator=True):
     glyph.line_width = 1
 
 
-def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=800, height=800):
+def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=800):
     tools = "pan,wheel_zoom,reset"
 
     p1 = gps_loc_to_web_mercator(lat=user_data["latitude"].min(), lon=user_data["longitude"].min())
