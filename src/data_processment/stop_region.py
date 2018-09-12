@@ -40,19 +40,20 @@ class StopRegionsFinder:
 
 class MovingCentroidStopRegionFinder(StopRegionsFinder):
 
+
     def online_location_point_checking(self, point):
         self.last_cluster = self.cluster
         self.last_cluster_centroid = self.centroid
 
-        if len(self.cluster) > 0 and self.check_outlier_tolerance(point, self.last_cluster):
-            self.cluster = pd.DataFrame()
-            self.cluster = self.cluster.append(point)
-            self.centroid = self.cluster_centroid(self.cluster)
-
-        else:
+        if len(self.cluster) == 0 or self.check_outlier_tolerance(point, self.last_cluster):
             self.cluster = self.cluster.append(point)
             self.centroid = self.cluster_centroid(self.cluster)
             self.__remove_outer_points()
+
+        else:
+            self.cluster = pd.DataFrame()
+            self.cluster = self.cluster.append(point)
+            self.centroid = self.cluster_centroid(self.cluster)
 
     def find_clusters(self, location_df, verbose=False):
         clusters = []
@@ -79,6 +80,13 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         return clusters
 
     def check_outlier_tolerance(self, point, cluster):
+        """
+        Returns True if the number of consecutive outlier points if less than the consecutive outliers threshold.
+        Outlier point is a point that its distance to the centroid is greater than the region_radius.
+        :param point:
+        :param cluster:
+        :return:
+        """
         centroid = cluster_centroid(cluster)
 
         if haversine_vectorized(lat1=point["latitude"], lon1=point["longitude"], lat2=centroid["latitude"], lon2=centroid["longitude"]) > self.region_radius:
@@ -86,18 +94,20 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         else:
             self.consecutive_outliers_counter = 0
 
-        return self.consecutive_outliers_counter > self.consecutive_outliers_tolerance
-
-
-
-
-
+        return self.consecutive_outliers_counter <= self.consecutive_outliers_tolerance
 
     def is_stop_region(self, is_last_point=False):
         if is_last_point:
             return self.cluster_delta_time(self.last_cluster) >= self.delta_time
+
+        elif len(self.last_cluster) > len(self.cluster) and self.cluster_delta_time(self.last_cluster) >= self.delta_time:
+            return True
+
+        elif len(self.last_cluster) == len(self.cluster) and self.cluster_delta_time(self.last_cluster) >= 5 * self.delta_time:
+            return True
+
         else:
-            return len(self.last_cluster) > 1 and len(self.last_cluster) > len(self.cluster) and self.cluster_delta_time(self.last_cluster) >= self.delta_time
+            return False
 
     def get_last_stop_region_detected(self, is_last_point=False):
         if self.is_stop_region(is_last_point) and is_last_point:
@@ -112,7 +122,6 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
             point = row[1]
             distance = self.distance(self.centroid, point)
             if distance > self.region_radius:
-                #TO THINK - prunning not necessary then it stays robust against outlier points duye to measurement errors
                 self.cluster = self.cluster.drop(point.name)
 
     def size(self):
