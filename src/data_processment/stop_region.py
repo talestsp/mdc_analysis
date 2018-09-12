@@ -6,7 +6,7 @@ from src.utils.geo import haversine_vectorized, cluster_centroid
 
 class StopRegionsFinder:
 
-    def __init__(self, region_radius, delta_time):
+    def __init__(self, region_radius, delta_time, consecutive_outliers_tolerance=1):
         '''
         Finds the places that the user has stopped within a time interval and a circumference.
         :param user_data: user data with latitude, longitude and time.
@@ -15,6 +15,8 @@ class StopRegionsFinder:
         '''
         self.region_radius = region_radius
         self.delta_time = delta_time
+        self.consecutive_outliers_tolerance = consecutive_outliers_tolerance
+        self.consecutive_outliers_counter = 0
 
         self.cluster = pd.DataFrame()
         self.centroid = None
@@ -42,7 +44,7 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         self.last_cluster = self.cluster
         self.last_cluster_centroid = self.centroid
 
-        if len(self.cluster) > 0 and self.distance(point, self.centroid) > 1.5 * self.region_radius:
+        if len(self.cluster) > 0 and self.check_outlier_tolerance(point, self.last_cluster):
             self.cluster = pd.DataFrame()
             self.cluster = self.cluster.append(point)
             self.centroid = self.cluster_centroid(self.cluster)
@@ -75,6 +77,20 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
                     print(clusters[-1])
             counter += 1
         return clusters
+
+    def check_outlier_tolerance(self, point, cluster):
+        centroid = cluster_centroid(cluster)
+
+        if haversine_vectorized(lat1=point["latitude"], lon1=point["longitude"], lat2=centroid["latitude"], lon2=centroid["longitude"]) > self.region_radius:
+            self.consecutive_outliers_counter += 1
+        else:
+            self.consecutive_outliers_counter = 0
+
+        return self.consecutive_outliers_counter > self.consecutive_outliers_tolerance
+
+
+
+
 
 
     def is_stop_region(self, is_last_point=False):
