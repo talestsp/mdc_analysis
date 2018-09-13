@@ -69,7 +69,7 @@ def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
     print("N Days:", n_days)
     print("R:", r)
     print("Delta T:", delta_t)
-    user_data = load_user_gps_csv(userid, from_day_n, n_days)
+    user_data = load_user_gps_csv(userid, from_day_n, n_days, fill=True)
     print("FINDING STOP REGIONS")
     clusters = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t).find_clusters(user_data, verbose=False)
     print("PLOTTING")
@@ -98,6 +98,8 @@ def random_user():
     filename = user_gps_filenames[random.randint(0, len(user_gps_filenames) - 1)]
     return filename.replace("_gps.csv", "")
 
+
+
 period = 0.1
 
 
@@ -105,4 +107,4 @@ if __name__ == "__main__":
     os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/plot_server.py")
 
 else:
-    user_data, p, aplot = plot_gps_points(userid=random_user(), r=50, delta_t=300, from_day_n=0, n_days=1.5)
+    user_data, p, aplot = plot_gps_points(userid=6178, r=50, delta_t=300, from_day_n=0, n_days=1.5)
