@@ -35,6 +35,12 @@ class StopRegionsFinder:
                                            point_b["latitude"])
 
     def cluster_delta_time(self, cluster):
+        if len(cluster) == 0:
+            return -1
+
+        if len(cluster) == 1:
+            return 0
+
         return cluster["time"].iloc[len(cluster) - 1] - cluster["time"].iloc[0]
 
 
@@ -45,7 +51,7 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         self.last_cluster = self.cluster
         self.last_cluster_centroid = self.centroid
 
-        if len(self.cluster) == 0 or self.check_outlier_tolerance(point, self.last_cluster):
+        if (not self.reached_maximum_cluster_size()) and (len(self.cluster) == 0 or self.check_outlier_tolerance(point, self.last_cluster)):
             self.cluster = self.cluster.append(point)
             self.centroid = self.cluster_centroid(self.cluster)
             self.__remove_outer_points()
@@ -64,6 +70,7 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         for location_row in location_df.iterrows():
             if verbose:
                 print(counter, "out of", len_location_df)
+                print("n clusters:", len(clusters), ", ", "current cluster size:", len(self.last_cluster))
 
             point = location_row[1]
 
@@ -100,14 +107,19 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         if is_last_point:
             return self.cluster_delta_time(self.last_cluster) >= self.delta_time
 
-        elif len(self.last_cluster) > len(self.cluster) and self.cluster_delta_time(self.last_cluster) >= self.delta_time:
+        elif len(self.last_cluster) > 0 and len(self.last_cluster) > len(self.cluster) and self.cluster_delta_time(self.last_cluster) >= self.delta_time:
             return True
 
-        elif len(self.last_cluster) == len(self.cluster) and self.cluster_delta_time(self.last_cluster) >= 5 * self.delta_time:
+        elif len(self.last_cluster) > 0 and len(self.last_cluster) +1 == len(self.cluster) and self.reached_maximum_cluster_size():
             return True
 
         else:
             return False
+
+    def reached_maximum_cluster_size(self):
+        if len(self.last_cluster) <= 1:
+            return False
+        return self.cluster_delta_time(self.last_cluster) >= 5 * self.delta_time
 
     def get_last_stop_region_detected(self, is_last_point=False):
         if self.is_stop_region(is_last_point) and is_last_point:
