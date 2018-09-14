@@ -1,5 +1,5 @@
 from src.dao import dbdao
-from src.entity.record_types import RecordType
+from src.data_processment.record_types import RecordType
 from src.utils.stats import quantiles
 from src.utils.geo import haversine_vectorized
 import pandas as pd

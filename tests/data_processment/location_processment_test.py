@@ -9,7 +9,7 @@ class location_processment_test(unittest.TestCase):
         pass
 
     def test_optimum_cluster(self):
-        data = pd.read_csv("src/tests/data/optimum_cluster.csv")
+        data = pd.read_csv("tests/data/optimum_cluster.csv")
         sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         clusters = []
@@ -24,7 +24,7 @@ class location_processment_test(unittest.TestCase):
         self.assertEqual(1, len(clusters))
 
     def test_cluster_centroid(self):
-        data = pd.read_csv("src/tests/data/cluster_centroid.csv")
+        data = pd.read_csv("tests/data/cluster_centroid.csv")
         sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         for row in data.iterrows():
@@ -49,7 +49,7 @@ class location_processment_test(unittest.TestCase):
         self.assertAlmostEqual(3830, d, delta=50)
 
     def test_detect_clusters(self):
-        data = pd.read_csv("src/tests/data/clusters.csv")
+        data = pd.read_csv("tests/data/clusters.csv")
         sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         clusters = sr.find_clusters(data)
@@ -57,7 +57,7 @@ class location_processment_test(unittest.TestCase):
 
 
     def test_detect_clusters_2(self):
-        data = pd.read_csv("src/tests/data/clusters2.csv")
+        data = pd.read_csv("tests/data/clusters2.csv")
         sr = MovingCentroidStopRegionFinder(region_radius=1255976, delta_time=60)
 
         clusters = sr.find_clusters(data)

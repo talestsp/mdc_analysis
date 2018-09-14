@@ -1,8 +1,6 @@
 import mysql.connector
 import pandas as pd
 from src.utils import others, resource_usage
-from src.entity.record_types import RecordType
-
 
 RECORDS_COLUMNS = ["db_key", "userid", "tz", "time", "type"]
 USERS_COLUMNS = ["userid", "phonenumber", "test_user"]
