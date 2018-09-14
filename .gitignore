@@ -2,7 +2,10 @@
 
 credentials/
 *.pyc
-*.csv
+outputs/*
+*plot.html
+
+.pytest_cache/*
 
 *.ipynb
 .ipynb_checkpoints
