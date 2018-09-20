@@ -89,8 +89,6 @@ def plot_gps_points(userid, from_day_n, n_days, r=50, delta_t=300):
         print(cluster[["longitude", "latitude", "time", "db_key"]])
         print("\n\n")
 
-    cluster.to_csv("~/teste.csv", index=False)
-
     return user_data, p, aplot
 
 def random_user():
@@ -104,7 +102,7 @@ period = 0.1
 
 
 if __name__ == "__main__":
-    os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/plot_server.py")
+    os.system("PYTHONPATH=. ~/anaconda3/bin/bokeh serve --show src/plot/plot_traj_server.py")
 
 else:
     user_data, p, aplot = plot_gps_points(userid=6178, r=50, delta_t=300, from_day_n=0, n_days=1.5)

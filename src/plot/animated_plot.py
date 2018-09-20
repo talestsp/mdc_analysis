@@ -1,4 +1,4 @@
-from src.plot.stop_region_plot import plot_stop_region, plot_user_loc
+from src.plot.stop_region_plot import plot_stop_region_with_trajectory, plot_user_loc
 from src.utils.geo import cluster_centroid
 
 class AnimatedPlot:
@@ -20,8 +20,8 @@ class AnimatedPlot:
         return plot_user_loc(self.user_data, self.title, color=color, alpha=alpha)
 
     def build_stop_region_plot(self, color="navy", circle_alpha=0.2, cluster_alpha=0.2):
-        return plot_stop_region(self.user_data, [self.indexed_clusters[key] for key in self.indexed_clusters.keys()],
-                                self.title, color=color, circle_alpha=circle_alpha, cluster_alpha=cluster_alpha)
+        return plot_stop_region_with_trajectory(self.user_data, [self.indexed_clusters[key] for key in self.indexed_clusters.keys()],
+                                                self.title, color=color, circle_alpha=circle_alpha, cluster_alpha=cluster_alpha)
 
     def get_next_point(self, reset=False):
         if reset:

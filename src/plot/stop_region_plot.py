@@ -9,7 +9,7 @@ from bokeh.tile_providers import CARTODBPOSITRON
 from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 from src.dao import csv_dao
 
-def plot_stop_region(user_data, stop_region_clusters, title, color="navy", circle_alpha=0.5, cluster_alpha=0.2):
+def plot_stop_region_with_trajectory(user_data, stop_region_clusters, title, color="navy", circle_alpha=0.5, cluster_alpha=0.2):
     p = plot_user_loc(user_data=user_data, title=title, color=color, alpha=circle_alpha)
 
     for cluster in stop_region_clusters:
@@ -36,24 +36,39 @@ def add_centroid_figure(figure, cluster, cluster_alpha=0.5, to_mercator=True):
 
 
 def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=800):
-    tools = "pan,wheel_zoom,reset"
-
+    '''
+    Plots user locations
+    :param user_data:
+    :param title:
+    :param color:
+    :param alpha:
+    :param width:
+    :param height:
+    :return:
+    '''
     p1 = gps_loc_to_web_mercator(lat=user_data["latitude"].min(), lon=user_data["longitude"].min())
     p2 = gps_loc_to_web_mercator(lat=user_data["latitude"].max(), lon=user_data["longitude"].max())
 
-    p = figure(title=title,
-               plot_width=width, plot_height=height, tools=tools,
-               x_axis_type="mercator",
-               y_axis_type="mercator",
-               x_range=(p1[0] * 0.999, p2[0] * 1.001),
-               y_range=(p1[1] * 0.999, p2[1] * 1.001))
-
-    p.add_tile(CARTODBPOSITRON)
+    p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
 
     mercator_loc_list = user_data_gps_to_web_mercator(user_data)
 
     for loc in mercator_loc_list:
         p.circle(x=loc[0], y=loc[1], size=2, alpha=alpha, color=color)
+
+    return p
+
+def mercator_fig(title, point_mercator1, point_mercator2, width=1500, height=800):
+    tools = "pan,wheel_zoom,reset"
+
+    p = figure(title=title,
+               plot_width=width, plot_height=height, tools=tools,
+               x_axis_type="mercator",
+               y_axis_type="mercator",
+               x_range=(point_mercator1[0] * 0.999, point_mercator2[0] * 1.001),
+               y_range=(point_mercator1[1] * 0.999, point_mercator2[1] * 1.001))
+
+    p.add_tile(CARTODBPOSITRON)
 
     return p
 
@@ -70,4 +85,4 @@ if __name__ == "__main__":
         user_data = csv_dao.load_user_gps_csv(userid, 0, 1)
         stop_region_finder = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t)
         clusters = stop_region_finder.find_clusters(user_data)
-        show(plot_stop_region(user_data, clusters, title="USERID: " + str(userid) + " - n_CLUSTERS: " + str(len(clusters)) + " - " + "d: " + str(r) + ", " + "delta_t: " + str(delta_t)))
+        show(plot_stop_region_with_trajectory(user_data, clusters, title="USERID: " + str(userid) + " - n_CLUSTERS: " + str(len(clusters)) + " - " + "d: " + str(r) + ", " + "delta_t: " + str(delta_t)))

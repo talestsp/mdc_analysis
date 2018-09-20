@@ -47,7 +47,7 @@ def user_gps_records():
             my_dao = dbdao.DBDAO()
             result = my_dao.records_join_df(join_to_table=RecordType.GPS.value,
                                             right_cols=["latitude", "longitude", "speed", "horizontal_accuracy",
-                                                        "vertical_accuracy", "speed_accuracy"],
+                                                        "vertical_accuracy", "speed_accuracy", "altitude", "horizontal_dop", "vertical_dop"],
                                             userids=[userid], verbose=True)
             result.to_csv("outputs/user_gps/" + str(userid) + "_gps.csv", index=False)
 
@@ -194,4 +194,4 @@ def speed_nan(userids=None):
 
 
 
-speed_nan()
+user_gps_records()
