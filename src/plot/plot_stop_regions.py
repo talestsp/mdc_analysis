@@ -1,1 +1,0 @@
-from src.plot.stop_region_plot import plot_stop_region_with_trajectory

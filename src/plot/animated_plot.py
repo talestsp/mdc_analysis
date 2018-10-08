@@ -1,4 +1,4 @@
-from src.plot.stop_region_plot import plot_stop_region_with_trajectory, plot_user_loc
+from src.plot.plot import plot_stop_region_with_trajectory, plot_user_loc
 from src.utils.geo import cluster_centroid
 
 class AnimatedPlot:
