@@ -80,9 +80,13 @@ def list_stop_region_usernames():
 
     return dirnames
 
-def load_user_stop_regions(user):
+def load_user_stop_regions(user, columns=None):
     user = str(user)
     stop_regions = []
+
+    if columns is None:
+        columns = ["db_key", "time", "latitude", "longitude"]
+
     for stop_region_cluster in os.listdir("outputs/stop_regions/" + user):
-        stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[["db_key", "time", "latitude", "longitude"]])
+        stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[columns])
     return stop_regions
