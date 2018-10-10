@@ -6,7 +6,9 @@ DAY_SECONDS = 86400
 TEN_SECONDS = 10
 
 def load_user_gps_csv(userid, from_day_n=None, to_day_n=None, fill=False):
-    user_data = pd.read_csv("outputs/user_gps/" + str(userid) + '_gps.csv').drop_duplicates().sort_values(by="time")
+    user_data = pd.read_csv("outputs/user_gps/" + str(userid) + '_gps.csv')
+    if len(user_data) > 0:
+        user_data = user_data.drop_duplicates().sort_values(by="time")
 
     min_time = user_data["time"].min()
 
@@ -69,3 +71,18 @@ def list_user_gps_files():
         if filename.endswith("_gps.csv"):
             filenames.append(filename)
     return filenames
+
+def list_stop_region_usernames():
+    dirnames = []
+    for dirname in os.listdir("outputs/stop_regions/"):
+        if os.path.isdir("outputs/stop_regions/" + dirname):
+            dirnames.append(dirname)
+
+    return dirnames
+
+def load_user_stop_regions(user):
+    user = str(user)
+    stop_regions = []
+    for stop_region_cluster in os.listdir("outputs/stop_regions/" + user):
+        stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[["db_key", "time", "latitude", "longitude"]])
+    return stop_regions
