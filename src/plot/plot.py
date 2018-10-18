@@ -7,6 +7,7 @@ from bokeh.tile_providers import CARTODBPOSITRON
 from src.utils.geo import cluster_centroid, user_data_gps_to_web_mercator, gps_loc_to_web_mercator
 from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 from src.dao import csv_dao
+from src.plot import poi_plot
 
 def plot_stop_region_with_trajectory(user_data, stop_region_clusters, title, color="navy", circle_alpha=0.5, cluster_alpha=0.2):
     p = plot_user_loc(user_data=user_data, title=title, color=color, alpha=circle_alpha)
@@ -26,7 +27,7 @@ def add_centroid_figure(figure, cluster, cluster_alpha=0.5, to_mercator=True):
         centroid_circle = figure.circle(lon=centroid["longitude"], lat=centroid["latitude"])
 
     centroid_mercator = gps_loc_to_web_mercator(centroid["latitude"], centroid["longitude"])
-    figure.circle(centroid_mercator[0], centroid_mercator[1], color="magenta", size=2)
+    figure.circle(centroid_mercator[0], centroid_mercator[1], color="magenta", size=3)
 
     glyph = centroid_circle.glyph
     glyph.size = 20
@@ -101,29 +102,44 @@ def plot_point(figure, lat, lon, alpha=0.5, color="magenta", conver_to_mercator=
     figure.circle(x=lat, y=lon, size=4, alpha=alpha, color=color)
     return figure
 
+def plot_stop_regions_and_pois(userids=None):
+    if userids is None:
+        userids = csv_dao.list_stop_region_usernames()
 
-if __name__ == "__main__":
-    pd.set_option('display.max_columns', None)
-    pd.set_option('display.width', 1000)
-    pd.set_option('display.float_format', lambda x: '%.3f' % x)
+    userids = pd.Series(userids).sample(1)
 
-    p = plot_point(mercator_fig(title=""), lat=45.739885, lon=5.7493075000000005)
-    p = plot_point(p, lat=47.790615, lon=10.6232425)
+    p = plot_users_stop_region(userids)
 
-    p = plot_point(p, lat=47.277932500000006, lon=9.40475875, color="blue")
-    p = plot_point(p, lat=47.277932500000006, lon=6.96779125, color="blue")
-    p = plot_point(p, lat=46.2525675, lon=6.96779125, color="blue")
-    p = plot_point(p, lat=46.2525675, lon=9.40475875, color="blue")
-
-    p = plot_point(p, lat=46.76525, lon=8.186275, color="orange")
-
-    p = plot_point(p, lat=46.124396875, lon=6.6631703125, color="red")
-    p = plot_point(p, lat=46.124396875, lon=6.053928437500001, color="red")
-    p = plot_point(p, lat=45.868055625, lon=6.053928437500001, color="red")
-    p = plot_point(p, lat=45.868055625, lon=6.6631703125, color="red")
-
+    p = poi_plot.add_google_pois(p)
+    p = poi_plot.add_foursquare_pois(p)
 
     show(p)
+
+
+
+if __name__ == "__main__":
+    #pd.set_option('display.max_columns', None)
+    #pd.set_option('display.width', 1000)
+    #pd.set_option('display.float_format', lambda x: '%.3f' % x)
+
+    #p = plot_point(mercator_fig(title=""), lat=45.739885, lon=5.7493075000000005)
+    #p = plot_point(p, lat=47.790615, lon=10.6232425)
+
+    #p = plot_point(p, lat=47.277932500000006, lon=9.40475875, color="blue")
+    #p = plot_point(p, lat=47.277932500000006, lon=6.96779125, color="blue")
+    #p = plot_point(p, lat=46.2525675, lon=6.96779125, color="blue")
+    #p = plot_point(p, lat=46.2525675, lon=9.40475875, color="blue")
+
+    #p = plot_point(p, lat=46.76525, lon=8.186275, color="orange")
+
+    #p = plot_point(p, lat=46.124396875, lon=6.6631703125, color="red")
+    #p = plot_point(p, lat=46.124396875, lon=6.053928437500001, color="red")
+    #p = plot_point(p, lat=45.868055625, lon=6.053928437500001, color="red")
+    #p = plot_point(p, lat=45.868055625, lon=6.6631703125, color="red")
+
+    #show(p)
+
+    plot_stop_regions_and_pois()
 
     # r = 50
     # delta_t = 300
