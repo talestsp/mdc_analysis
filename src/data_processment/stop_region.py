@@ -61,13 +61,16 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
             self.cluster = self.cluster.append(point)
             self.centroid = self.cluster_centroid(self.cluster)
 
-    def find_clusters(self, location_df, verbose=False):
+    def find_clusters(self, location_df, n_limit_clusters=None, verbose=False):
         clusters = []
         counter = 0
         len_location_df = len(location_df)
         location_df = location_df.drop_duplicates().sort_values(by="time")
 
         for location_row in location_df.iterrows():
+            if not n_limit_clusters is None and len(clusters) > n_limit_clusters:
+                break
+                
             if verbose:
                 print(counter, "out of", len_location_df)
                 print("n clusters:", len(clusters), ", ", "current cluster size:", len(self.last_cluster))

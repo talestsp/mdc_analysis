@@ -51,7 +51,7 @@ def add_users_stop_region(user, figure):
 
     return figure
 
-def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=800):
+def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=800, size=2, p=None, legend=None):
     '''
     Plots user locations
     :param user_data:
@@ -65,12 +65,13 @@ def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=
     p1 = gps_loc_to_web_mercator(lat=user_data["latitude"].min(), lon=user_data["longitude"].min())
     p2 = gps_loc_to_web_mercator(lat=user_data["latitude"].max(), lon=user_data["longitude"].max())
 
-    p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
+    if p is None:
+        p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
 
     mercator_loc_list = user_data_gps_to_web_mercator(user_data)
 
     for loc in mercator_loc_list:
-        p.circle(x=loc[0], y=loc[1], size=2, alpha=alpha, color=color)
+        p.circle(x=loc[0], y=loc[1], size=size, alpha=alpha, color=color, legend=legend)
 
     return p
 

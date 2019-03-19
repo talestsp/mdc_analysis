@@ -1,1 +1,1 @@
-PYTHONPATH=. ~/anaconda3/bin/python src/plot/plot_traj_server.py
+PYTHONPATH=. ~/anaconda3/bin/python src/plot/plot_traj_server.py ordinary

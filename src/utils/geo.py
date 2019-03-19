@@ -31,6 +31,14 @@ def cluster_centroid(cluster):
     points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
     return points_centroid
 
+def index_clusters(clusters):
+    indexed_clusters = {}
+    for cluster in clusters:
+        cluster = cluster.sort_values(by="local_time")
+        indexed_clusters[int(cluster.tail(1)["local_time"])] = cluster
+
+    return indexed_clusters
+
 def user_df_loc_tuples(user_df):
     return [tuple(loc) for loc in user_df[["latitude", "longitude"]].values]
 
@@ -40,3 +48,4 @@ def user_data_gps_to_web_mercator(user_df):
 
 def gps_loc_to_web_mercator(lat, lon):
     return transform(Proj(init='epsg:4326'), Proj(init='epsg:3857'), lon, lat)
+
