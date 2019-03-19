@@ -8,7 +8,8 @@ GPS_COLUMNS = ["db_key", "time", "latitude", "longitude", "altitude", "speed", "
 GPSWLAN_COLUMNS = ["db_key", "latitude", "longitude", "mac"]
 ACCEL_COLUMNS = ["db_key", "start", "stop", "avdelt", "data"]
 PLACES_COLUMNS = ["userid", "placeid", "place_label", "with_family", "with_close_friends", "with_friends", "with_colleagues_acquaintances", "with_incidental"]
-
+PLACES_HOME_COLUMNS = ["userid", "place_label", "placeid", "time_start", "time_end", "tz_start", "tz_end", "trusted_start", "trusted_end", "trusted_transition"]
+PLACES_WORK_COLUMNS = ["userid", "place_label", "placeid", "time_start", "time_end", "tz_start", "tz_end", "trusted_start", "trusted_end", "trusted_transition"]
 
 class DBDAO:
     def __init__(self, credentials_jon=others.credentials_db()):
@@ -36,6 +37,21 @@ class DBDAO:
         data = self.records_join(join_to_table, right_cols, how, record_cols, userids, verbose)
         return self.to_df(data, right_cols + record_cols)
 
+    def places_df(self):
+        data = self.places()
+        return self.to_df(data, PLACES_COLUMNS)
+
+    def places_home_df(self, userid, trusted_times=True, verbose=False):
+        data = self.places_label(userid, place_label=1, trusted_times=trusted_times, verbose=verbose)
+        return self.to_df(data, PLACES_HOME_COLUMNS)
+
+    def places_home_friend_df(self, userid, trusted_times=True, verbose=False):
+        data = self.places_label(userid, place_label=2, trusted_times=trusted_times, verbose=verbose)
+        return self.to_df(data, PLACES_HOME_COLUMNS)
+
+    def places_work_df(self, userid, trusted_times=True, verbose=False):
+        data = self.places_label(userid, place_label=3, trusted_times=trusted_times, verbose=verbose)
+        return self.to_df(data, PLACES_WORK_COLUMNS)
 
     def to_df(self, data, columns):
         data = pd.DataFrame(data)
@@ -43,6 +59,12 @@ class DBDAO:
             data.columns = columns
 
         return data
+
+    def users_with_places(self, verbose=False):
+        query = "SELECT DISTINCT visits_20min.userid FROM visits_20min " + \
+        "INNER JOIN places WHERE visits_20min.userid=places.userid;"
+
+        return pd.Series([userid[0] for userid in list(self.sql_query(query, verbose=verbose))])
 
 
     def records_join(self, join_to_table, right_cols=None, how="INNER", record_cols=RECORDS_COLUMNS, userids=None, verbose=False):
@@ -109,6 +131,20 @@ class DBDAO:
 
         return self.sql_query(query, verbose=verbose)
 
+    def places_label(self, userid, place_label, trusted_times=True, verbose=False):
+        query = "SELECT places.userid, places.place_label, places.placeid, visits_20min.time_start, visits_20min.time_end, visits_20min.tz_start, visits_20min.tz_end, visits_20min.trusted_start, visits_20min.trusted_end, visits_20min.trusted_transition " + \
+        "FROM places " + \
+        "INNER JOIN visits_20min ON places.userid=visits_20min.userid AND places.placeid=visits_20min.placeid " + \
+        "WHERE places.place_label={};".format(place_label)
+
+        query = self.selection_match(query, "places.userid", [userid], "AND")
+
+        if trusted_times:
+            query = self.selection_match(query, "trusted_start", "t", "AND")
+            query = self.selection_match(query, "trusted_end", "t", "AND")
+            query = self.selection_match(query, "trusted_transition", "t", "AND")
+
+        return self.sql_query(query, verbose=verbose)
 
     def sql_query(self, sql_query, verbose=False):
         cursor = self.cnx.cursor()

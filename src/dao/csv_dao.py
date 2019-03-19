@@ -2,15 +2,18 @@ import pandas as pd
 import os
 import math
 
+from src.utils.time_utils import local_time, enrich_time_columns
+
 DAY_SECONDS = 86400
 TEN_SECONDS = 10
 
 def load_user_gps_csv(userid, from_day_n=None, to_day_n=None, fill=False):
     user_data = pd.read_csv("outputs/user_gps/" + str(userid) + '_gps.csv')
+    user_data = local_time(user_data)
     if len(user_data) > 0:
-        user_data = user_data.drop_duplicates().sort_values(by="time")
+        user_data = user_data.drop_duplicates().sort_values(by="local_time")
 
-    min_time = user_data["time"].min()
+    min_time = user_data["local_time"].min()
 
     if from_day_n is None:
         use_data_from_time = min_time
@@ -18,16 +21,26 @@ def load_user_gps_csv(userid, from_day_n=None, to_day_n=None, fill=False):
         use_data_from_time = min_time + DAY_SECONDS * from_day_n
 
     if to_day_n is None:
-        use_data_to_time = user_data["time"].max()
+        use_data_to_time = user_data["local_time"].max()
     else:
         use_data_to_time = use_data_from_time + to_day_n * DAY_SECONDS
 
-    user_data = user_data[(user_data["time"] >= use_data_from_time) & (user_data["time"] <= use_data_to_time)]
+    user_data = user_data[(user_data["local_time"] >= use_data_from_time) & (user_data["local_time"] <= use_data_to_time)]
 
     if fill:
         pass
 
     return user_data
+
+def load_user_gps_time_window(userid, from_local_time, to_local_time):
+    user_gps_data = load_user_gps_csv(userid)
+
+    user_gps_data["userid"] = [userid] * len(user_gps_data)
+    user_gps_data = local_time(user_gps_data)
+    user_gps_data = user_gps_data[["userid", "latitude", "longitude", "tz", "time", "local_time"]].sort_values("local_time")
+
+    user_gps_data = user_gps_data[(user_gps_data["local_time"] >= from_local_time) & (user_gps_data["local_time"] <= to_local_time)]
+    return user_gps_data
 
 def fill_data_missing_ts(data, tolerance=20):
     """
@@ -90,3 +103,6 @@ def load_user_stop_regions(user, columns=None):
     for stop_region_cluster in os.listdir("outputs/stop_regions/" + user):
         stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[columns])
     return stop_regions
+
+def user_home_gps():
+    pass
