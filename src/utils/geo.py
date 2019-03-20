@@ -1,5 +1,6 @@
 import numpy as np
 from pyproj import Proj, transform
+from src.utils.math import normalize
 
 def haversine_vectorized(lon1, lat1, lon2, lat2):
     """
@@ -30,6 +31,13 @@ def cluster_centroid(cluster):
     sum_lon = cluster["longitude"].sum()
     points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
     return points_centroid
+
+def weighted_cluster_centroid(cluster, weight_col):
+    length = len(cluster)
+    w_sum_lat = (cluster["latitude"] * cluster[weight_col]).sum()
+    w_sum_lon = (cluster["longitude"] * cluster[weight_col]).sum()
+    points_w_centroid = {"latitude": w_sum_lat / cluster[weight_col].sum(), "longitude": w_sum_lon / cluster[weight_col].sum()}
+    return points_w_centroid
 
 def index_clusters(clusters):
     indexed_clusters = {}

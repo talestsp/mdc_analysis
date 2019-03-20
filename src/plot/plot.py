@@ -13,13 +13,15 @@ def plot_stop_region_with_trajectory(user_data, stop_region_clusters, title, col
     p = plot_user_loc(user_data=user_data, title=title, color=color, alpha=circle_alpha)
 
     for cluster in stop_region_clusters:
-        add_centroid_figure(p, cluster, cluster_alpha)
+        add_centroid_figure(p, cluster=cluster, cluster_alpha=cluster_alpha)
 
     return p
 
-def add_centroid_figure(figure, cluster, cluster_alpha=0.5, to_mercator=True):
+def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
     centroid = cluster_centroid(cluster)
+    add_calculated_centroid_figure(figure, centroid, legend, point_color, point_size, fill_color, cluster_alpha, to_mercator)
 
+def add_calculated_centroid_figure(figure, centroid, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
     if to_mercator:
         lon, lat = gps_loc_to_web_mercator(lat=centroid["latitude"], lon=centroid["longitude"])
         centroid_circle = figure.circle(lon, lat)
@@ -27,11 +29,16 @@ def add_centroid_figure(figure, cluster, cluster_alpha=0.5, to_mercator=True):
         centroid_circle = figure.circle(lon=centroid["longitude"], lat=centroid["latitude"])
 
     centroid_mercator = gps_loc_to_web_mercator(centroid["latitude"], centroid["longitude"])
-    figure.circle(centroid_mercator[0], centroid_mercator[1], color="magenta", size=3)
+
+    if legend is None:
+        figure.circle(centroid_mercator[0], centroid_mercator[1], color=point_color, size=point_size)
+    else:
+        figure.circle(centroid_mercator[0], centroid_mercator[1], color=point_color, size=point_size, legend=legend)
 
     glyph = centroid_circle.glyph
     glyph.size = 20
     glyph.fill_alpha = cluster_alpha
+    glyph.fill_color = fill_color
     glyph.line_alpha = cluster_alpha
     glyph.line_color = "firebrick"
     glyph.line_dash = [6, 3]
@@ -47,7 +54,7 @@ def plot_users_stop_region(users, width=1500, height=800):
 def add_users_stop_region(user, figure):
     clusters = csv_dao.load_user_stop_regions(user)
     for cluster in clusters:
-        add_centroid_figure(figure, cluster, cluster_alpha=0.2)
+        add_centroid_figure(figure, cluster=cluster, cluster_alpha=0.2)
 
     return figure
 
