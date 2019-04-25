@@ -146,6 +146,41 @@ def speed_gps(userids=None):
 
     print(pd.DataFrame(speeds_list_dict).describe())
 
+def gps_accuracy(userids=None):
+    if userids is None:
+        my_dao = dbdao.DBDAO()
+        user_df = my_dao.users_df()
+        userids = user_df["userid"]
+        my_dao.close_connection()
+
+    horizontal_accuracy_list_dict = []
+
+    for userid in userids:
+        print(userid)
+        try:
+            user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
+            user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates()
+
+            sp = quantiles(user_gps_df["horizontal_accuracy"])
+            sp["userid"] = userid
+
+            if user_gps_df["horizontal_accuracy"].count() > 0:
+                n = len(user_gps_df["horizontal_accuracy"])
+                valid_values = float(user_gps_df["horizontal_accuracy"].count())
+                sp["nan_proportion"] = (n - valid_values) / (n)
+            else:
+                sp["nan_proportion"] = 0
+
+            horizontal_accuracy_list_dict.append(sp)
+
+        except pd.errors.EmptyDataError:
+            print("Empty CSV")
+        print("")
+
+    pd.DataFrame(horizontal_accuracy_list_dict).to_csv("outputs/horizontal_accuracy.csv", index=False)
+
+    print(pd.DataFrame(horizontal_accuracy_list_dict).describe())
+
 def speed_nan(userids=None):
     if userids is None:
         my_dao = dbdao.DBDAO()
@@ -191,7 +226,3 @@ def speed_nan(userids=None):
             print("Empty CSV")
         print("")
 
-
-
-
-user_gps_records()

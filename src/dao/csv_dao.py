@@ -8,7 +8,11 @@ DAY_SECONDS = 86400
 TEN_SECONDS = 10
 
 def load_user_gps_csv(userid, from_day_n=None, to_day_n=None, fill=False):
-    user_data = pd.read_csv("outputs/user_gps/" + str(userid) + '_gps.csv')
+    try:
+        user_data = pd.read_csv("outputs/user_gps/" + str(userid) + '_gps.csv')
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
+
     user_data = local_time(user_data)
     if len(user_data) > 0:
         user_data = user_data.drop_duplicates().sort_values(by="local_time")
