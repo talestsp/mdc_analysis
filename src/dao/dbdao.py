@@ -37,9 +37,9 @@ class DBDAO:
         data = self.records_join(join_to_table, right_cols, how, record_cols, userids, verbose)
         return self.to_df(data, right_cols + record_cols)
 
-    def places_df(self):
-        data = self.places()
-        return self.to_df(data, PLACES_COLUMNS)
+    #def places_df(self):
+    #    data = self.places()
+    #    return self.to_df(data, PLACES_COLUMNS)
 
     def places_home_df(self, userid, trusted_times=True, verbose=False):
         data = self.places_label(userid, place_label=1, trusted_times=trusted_times, verbose=verbose)
@@ -52,6 +52,10 @@ class DBDAO:
     def places_work_df(self, userid, trusted_times=True, verbose=False):
         data = self.places_label(userid, place_label=3, trusted_times=trusted_times, verbose=verbose)
         return self.to_df(data, PLACES_WORK_COLUMNS)
+
+    def users_list(self, drop_test_users=True):
+        result = self.users(drop_test_users=drop_test_users)
+        return [user[0] for user in result]
 
     def to_df(self, data, columns):
         data = pd.DataFrame(data)
@@ -101,7 +105,7 @@ class DBDAO:
 
         return self.sql_query(query, verbose=verbose)
 
-    def users(self, userids=None, select_columns="*", verbose=False):
+    def users(self, drop_test_users=True, userids=None, select_columns="*", verbose=False):
         query = "SELECT %s FROM users;" % (select_columns)
 
         if userids:
@@ -109,6 +113,9 @@ class DBDAO:
                                          attribute="userid",
                                          values=userids,
                                          logical_conjunction="OR")
+
+        if drop_test_users:
+            query = query.replace(";", " WHERE test_user='f'")
 
         return self.sql_query(query, verbose= verbose)
 
