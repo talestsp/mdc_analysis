@@ -65,7 +65,7 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         clusters = []
         counter = 0
         len_location_df = len(location_df)
-        location_df = location_df.drop_duplicates().sort_values(by="time")
+        location_df = location_df.drop_duplicates().sort_values(by="local_time")
 
         for location_row in location_df.iterrows():
             if not n_limit_clusters is None and len(clusters) > n_limit_clusters:
