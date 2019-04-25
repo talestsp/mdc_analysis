@@ -26,14 +26,13 @@ def haversine_vectorized(lon1, lat1, lon2, lat2):
 
 
 def cluster_centroid(cluster):
-    length = len(cluster)
+    count = cluster["latitude"].count() # count() instead of len() to avoid count nan values
     sum_lat = cluster["latitude"].sum()
     sum_lon = cluster["longitude"].sum()
-    points_centroid = {"latitude": sum_lat / length, "longitude": sum_lon / length}
+    points_centroid = {"latitude": sum_lat / count, "longitude": sum_lon / count}
     return points_centroid
 
 def weighted_cluster_centroid(cluster, weight_col):
-    length = len(cluster)
     w_sum_lat = (cluster["latitude"] * cluster[weight_col]).sum()
     w_sum_lon = (cluster["longitude"] * cluster[weight_col]).sum()
     points_w_centroid = {"latitude": w_sum_lat / cluster[weight_col].sum(), "longitude": w_sum_lon / cluster[weight_col].sum()}
