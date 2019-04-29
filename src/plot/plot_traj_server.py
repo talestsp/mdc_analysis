@@ -115,7 +115,7 @@ def animate(userid, user_data, clusters, r, delta_t):
 
     for cluster in clusters:
         print(len(cluster))
-        print(cluster[["longitude", "latitude", "time"]])
+        print(cluster[["longitude", "latitude", "local_time"]])
         print("\n\n")
 
     return user_data, p, aplot

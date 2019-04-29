@@ -1,6 +1,7 @@
 from src.data_processment.stop_region import MovingCentroidStopRegionFinder
 from src.dao.csv_dao import load_user_gps_csv
 from src.dao.dbdao import DBDAO
+from src.utils.time_utils import local_time
 import pandas as pd
 import gc
 import os
@@ -14,7 +15,7 @@ gc.collect()
 r = 50
 delta_t = 300
 
-for userid in userids:
+for userid in userids[1:]:
     print("USERID:", userid)
 
     user_clusters_dir = "outputs/stop_regions/" + str(userid)
@@ -26,7 +27,12 @@ for userid in userids:
 
     try:
         print("LOADING USER DATA")
-        user_data = load_user_gps_csv(userid)
+        user_data = local_time(load_user_gps_csv(userid))
+        if len (user_data) == 0:
+            continue
+
+        print("user_data")
+        print(user_data)
         print("FINDING STOP REGIONS")
         clusters = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t).find_clusters(user_data, verbose=False)
         print(len(clusters), "found")

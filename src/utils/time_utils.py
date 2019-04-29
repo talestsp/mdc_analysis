@@ -13,6 +13,6 @@ def enrich_time_columns(gps_data, time_col="local_time"):
     return gps_data
 
 
-def local_time(data, time_col="time", tz_col="tz"):
+def local_time(data, time_col="local_time", tz_col="tz"):
     data["local_" + time_col] = data[time_col] + data[tz_col]
     return data

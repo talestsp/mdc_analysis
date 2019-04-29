@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import math
 
-from src.utils.time_utils import local_time, enrich_time_columns
+from src.utils.time_utils import local_time
 
 DAY_SECONDS = 86400
 TEN_SECONDS = 10
@@ -53,22 +53,25 @@ def fill_data_missing_ts(data, tolerance=20):
     :param data:
     :return:
     """
-    last_timestamp = data["time"].iloc[0]
+
+    data = local_time(data)
+
+    last_timestamp = data["local_time"].iloc[0]
 
     for index, current_row in data[1 : len(data) - 1].iterrows():
-        current_timestamp = current_row["time"]
+        current_timestamp = current_row["local_time"]
 
         if current_timestamp - last_timestamp >= tolerance:
             for n in range( math.trunc((current_timestamp - last_timestamp) / TEN_SECONDS) - 1):
                 new_entry_timestamp = last_timestamp + (n+1) * TEN_SECONDS
                 new_row = current_row.copy()
-                new_row["time"] = new_entry_timestamp
+                new_row["local_time"] = new_entry_timestamp
                 new_row["db_key"] = None
                 data = data.append(new_row)
 
         last_timestamp = current_timestamp
 
-    return data.sort_values(by="time")
+    return data.sort_values(by="local_time")
 
 
 def load_gps_speeds(userid=None):
