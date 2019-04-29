@@ -5,7 +5,7 @@ from bokeh.io import show
 from bokeh.tile_providers import CARTODBPOSITRON
 
 from src.utils.geo import cluster_centroid, user_data_gps_to_web_mercator, gps_loc_to_web_mercator
-from src.data_processment.stop_region import MovingCentroidStopRegionFinder
+from src.utils.color_utils import pick_random_color
 from src.dao import csv_dao
 from src.plot import poi_plot
 
@@ -16,6 +16,26 @@ def plot_stop_region_with_trajectory(user_data, stop_region_clusters, title, col
         add_centroid_figure(p, cluster=cluster, cluster_alpha=cluster_alpha)
 
     return p
+
+def plot_stop_regions(clusters, title, plot_points=False, same_color=True):
+    p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=1500, height=800)
+
+    if same_color:
+        color = pick_random_color()
+
+    for cluster in clusters:
+        if not same_color:
+            color = pick_random_color()
+
+        add_centroid_figure(p, cluster, fill_color=color)
+
+        if plot_points:
+            mercator_loc_list = user_data_gps_to_web_mercator(cluster)
+            for loc in mercator_loc_list:
+                p.circle(x=loc[0], y=loc[1], size=2, alpha=0.3, color=color)
+
+    return p
+
 
 def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
     centroid = cluster_centroid(cluster)
@@ -111,6 +131,8 @@ def plot_point(figure, lat, lon, alpha=0.5, color="magenta", conver_to_mercator=
     return figure
 
 def plot_stop_regions_and_pois(userids=None):
+    #não foi testada
+
     if userids is None:
         userids = csv_dao.list_stop_region_usernames()
 
@@ -147,7 +169,7 @@ if __name__ == "__main__":
 
     #show(p)
 
-    plot_stop_regions_and_pois()
+    # plot_stop_regions_and_pois()
 
     # r = 50
     # delta_t = 300
@@ -158,3 +180,5 @@ if __name__ == "__main__":
     #     stop_region_finder = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t)
     #     clusters = stop_region_finder.find_clusters(user_data)
     #     show(plot_stop_region_with_trajectory(user_data, clusters, title="USERID: " + str(userid) + " - n_CLUSTERS: " + str(len(clusters)) + " - " + "d: " + str(r) + ", " + "delta_t: " + str(delta_t)))
+
+    pass
