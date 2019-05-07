@@ -15,7 +15,7 @@ gc.collect()
 r = 50
 delta_t = 300
 
-for userid in userids[1:]:
+for userid in userids:
     print("USERID:", userid)
 
     user_clusters_dir = "outputs/stop_regions/" + str(userid)
@@ -27,12 +27,18 @@ for userid in userids[1:]:
 
     try:
         print("LOADING USER DATA")
-        user_data = local_time(load_user_gps_csv(userid))
+        user_data = load_user_gps_csv(userid)
+        if len(user_data) == 0:
+            print("Empty csv\n")
+            continue
+
+        user_data = local_time(user_data)
+
         if len (user_data) == 0:
             continue
 
-        print("user_data")
-        print(user_data)
+        print("user_data head")
+        print(user_data.head())
         print("FINDING STOP REGIONS")
         clusters = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t).find_clusters(user_data, verbose=False)
         print(len(clusters), "found")

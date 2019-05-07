@@ -105,7 +105,7 @@ def load_user_stop_regions(user, columns=None):
     stop_regions = []
 
     if columns is None:
-        columns = ["db_key", "time", "latitude", "longitude"]
+        columns = ["time", "latitude", "longitude"]
 
     for stop_region_cluster in os.listdir("outputs/stop_regions/" + user):
         stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[columns])

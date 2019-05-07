@@ -17,8 +17,8 @@ def plot_stop_region_with_trajectory(user_data, stop_region_clusters, title, col
 
     return p
 
-def plot_stop_regions(clusters, title, plot_points=False, same_color=True):
-    p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=1500, height=800)
+def plot_stop_regions(clusters, title, width=800, height=600, plot_points=False, same_color=True):
+    p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
 
     if same_color:
         color = pick_random_color()
@@ -129,22 +129,6 @@ def plot_point(figure, lat, lon, alpha=0.5, color="magenta", conver_to_mercator=
 
     figure.circle(x=lat, y=lon, size=4, alpha=alpha, color=color)
     return figure
-
-def plot_stop_regions_and_pois(userids=None):
-    #não foi testada
-
-    if userids is None:
-        userids = csv_dao.list_stop_region_usernames()
-
-    userids = pd.Series(userids).sample(1)
-
-    p = plot_users_stop_region(userids)
-
-    p = poi_plot.add_google_pois(p)
-    p = poi_plot.add_foursquare_pois(p)
-
-    show(p)
-
 
 
 if __name__ == "__main__":
