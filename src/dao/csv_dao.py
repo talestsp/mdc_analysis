@@ -107,7 +107,9 @@ def load_user_stop_regions(user, columns=None):
     if columns is None:
         columns = ["time", "latitude", "longitude"]
 
-    for stop_region_cluster in os.listdir("outputs/stop_regions/" + user):
+    filenames = sorted(os.listdir("outputs/stop_regions/" + user))
+
+    for stop_region_cluster in filenames:
         stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[columns])
     return stop_regions
 
