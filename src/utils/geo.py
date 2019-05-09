@@ -56,3 +56,45 @@ def user_data_gps_to_web_mercator(user_df):
 def gps_loc_to_web_mercator(lat, lon):
     return transform(Proj(init='epsg:4326'), Proj(init='epsg:3857'), lon, lat)
 
+
+def box_limits(users):
+    global_min_lon = 999999999
+    global_min_lat = 999999999
+    global_max_lat = -999999999
+    global_max_lon = -999999999
+
+    for userid in users:
+        user_gps_data = load_user_gps_csv(userid=userid)
+        if len(user_gps_data) == 0:
+            continue
+
+        user_min_lat = user_gps_data["latitude"].min()
+        user_min_lon = user_gps_data["longitude"].min()
+        user_max_lat = user_gps_data["latitude"].max()
+        user_max_lon = user_gps_data["longitude"].max()
+
+        if user_min_lat < global_min_lat:
+            global_min_lat = user_min_lat
+
+        if user_max_lat > global_max_lat:
+            global_max_lat = user_max_lat
+
+        if user_min_lon < global_min_lon:
+            global_min_lon = user_min_lon
+
+        if user_max_lon > global_max_lon:
+            global_max_lon = user_max_lon
+
+    return {"min_lon": global_min_lon, "max_lon": global_max_lon,
+            "min_lat": global_min_lat, "max_lat": global_max_lat}
+
+
+def bounding_box(users):
+    limits = box_limits(users)
+
+    p1 = {"latitude": limits["min_lat"], "longitude": limits["min_lon"]}
+    p2 = {"latitude": limits["min_lat"], "longitude": limits["max_lon"]}
+    p3 = {"latitude": limits["max_lat"], "longitude": limits["min_lon"]}
+    p4 = {"latitude": limits["max_lat"], "longitude": limits["max_lon"]}
+
+    return pd.DataFrame([p1, p2, p3, p4])
