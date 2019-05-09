@@ -111,5 +111,8 @@ def load_user_stop_regions(user, columns=None):
         stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[columns])
     return stop_regions
 
+def load_hot_osm_pois():
+    return pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_3857.csv")
+
 def user_home_gps():
     pass

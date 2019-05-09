@@ -37,6 +37,18 @@ def plot_stop_regions(clusters, title, width=800, height=600, plot_points=False,
     return p
 
 
+def plot_poi(data, title, width=800, height=600, color=None, figure=None):
+    if figure is None:
+        figure = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
+
+    if color is None:
+        color = pick_random_color()
+
+    figure.circle(x=data["latitude"], y=data["longitude"], size=5, alpha=0.3, color=color)
+
+    return figure
+
+
 def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
     centroid = cluster_centroid(cluster)
     add_calculated_centroid_figure(figure, centroid, legend, point_color, point_size, fill_color, cluster_alpha, to_mercator)
