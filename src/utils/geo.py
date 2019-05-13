@@ -1,6 +1,7 @@
 import numpy as np
+import pandas as pd
 from pyproj import Proj, transform
-from src.utils.math import normalize
+from src.dao import csv_dao
 
 def haversine_vectorized(lon1, lat1, lon2, lat2):
     """
@@ -64,7 +65,7 @@ def box_limits(users):
     global_max_lon = -999999999
 
     for userid in users:
-        user_gps_data = load_user_gps_csv(userid=userid)
+        user_gps_data = csv_dao.load_user_gps_csv(userid=userid)
         if len(user_gps_data) == 0:
             continue
 
@@ -92,9 +93,35 @@ def box_limits(users):
 def bounding_box(users):
     limits = box_limits(users)
 
-    p1 = {"latitude": limits["min_lat"], "longitude": limits["min_lon"]}
-    p2 = {"latitude": limits["min_lat"], "longitude": limits["max_lon"]}
-    p3 = {"latitude": limits["max_lat"], "longitude": limits["min_lon"]}
-    p4 = {"latitude": limits["max_lat"], "longitude": limits["max_lon"]}
+    p3 = {"latitude": limits["min_lat"], "longitude": limits["min_lon"]}
+    p4 = {"latitude": limits["min_lat"], "longitude": limits["max_lon"]}
+    p2 = {"latitude": limits["max_lat"], "longitude": limits["min_lon"]}
+    p1 = {"latitude": limits["max_lat"], "longitude": limits["max_lon"]}
 
     return pd.DataFrame([p1, p2, p3, p4])
+
+
+def user_bounding_box(user_id, expand=None):
+    box = bounding_box([user_id])
+
+    if expand is None:
+        return box
+
+    else:
+        p1, p2, p3, p4 = box.iloc[0], box.iloc[1], box.iloc[2], box.iloc[3]
+
+        p1["longitude"] = p1["longitude"] + abs(p1["longitude"] - p2["longitude"]) * expand
+        p1["latitude"] = p1["latitude"] + abs(p1["latitude"] - p4["latitude"]) * expand
+
+        p2["longitude"] = p2["longitude"] - abs(p1["longitude"] - p2["longitude"]) * expand
+        p2["latitude"] = p2["latitude"] + abs(p2["latitude"] - p3["latitude"]) * expand
+
+        p3["longitude"] = p3["longitude"] - abs(p4["longitude"] - p3["longitude"]) * expand
+        p3["latitude"] = p3["latitude"] - abs(p2["latitude"] - p3["latitude"]) * expand
+
+        p4["longitude"] = p4["longitude"] + abs(p4["longitude"] - p3["longitude"]) * expand
+        p4["latitude"] = p4["latitude"] - abs(p1["latitude"] - p4["latitude"]) * expand
+
+        expanded_box = pd.DataFrame([p1.to_dict(), p2.to_dict(), p3.to_dict(), p4.to_dict()])
+
+        return expanded_box
