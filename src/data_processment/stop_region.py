@@ -1,8 +1,5 @@
-import time
 import pandas as pd
-import numpy as np
 from src.utils.geo import haversine_vectorized, cluster_centroid
-#from src.dao.dbdao import DBDAO
 
 class StopRegionsFinder:
 
@@ -41,7 +38,7 @@ class StopRegionsFinder:
         if len(cluster) == 1:
             return 0
 
-        return cluster["time"].iloc[len(cluster) - 1] - cluster["time"].iloc[0]
+        return cluster["local_time"].iloc[len(cluster) - 1] - cluster["local_time"].iloc[0]
 
 
 class MovingCentroidStopRegionFinder(StopRegionsFinder):
@@ -65,6 +62,7 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
         clusters = []
         counter = 0
         len_location_df = len(location_df)
+        #print(location_df)
         location_df = location_df.drop_duplicates().sort_values(by="local_time")
 
         for location_row in location_df.iterrows():
@@ -81,7 +79,7 @@ class MovingCentroidStopRegionFinder(StopRegionsFinder):
 
             is_last_point = counter == len_location_df - 1
             if self.is_stop_region(is_last_point):
-                cluster = self.get_last_stop_region_detected(is_last_point)
+                cluster = self.get_last_stop_region_detected(is_last_point)[['local_time', 'latitude', 'longitude', 'horizontal_accuracy', 'speed_accuracy', 'time', 'speed', 'tz', 'userid']]
                 clusters.append(cluster)
                 if verbose:
                     print("CLUSTERRRRRRR")
@@ -157,7 +155,7 @@ if __name__ == "__main__":
     pd.set_option('display.width', 1000)
     pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
-    data = pd.read_csv("outputs/user_gps/6171_gps.csv").drop_duplicates().sort_values(by="time")[0:267]
+    data = pd.read_csv("outputs/user_gps/6171_gps.csv").drop_duplicates().sort_values(by="local_time")[0:267]
 
 
 

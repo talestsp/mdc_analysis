@@ -25,8 +25,8 @@ class DBDAO:
         data = self.records(userids=userids, record_type=record_type, select_columns=", ".join(columns), verbose=verbose)
         return self.to_df(data, columns)
 
-    def users_df(self, userids=None, columns=USERS_COLUMNS, verbose=False):
-        data = self.users(userids=userids, select_columns=", ".join(columns), verbose=verbose)
+    def users_df(self, userids=None, drop_test_users=True, columns=USERS_COLUMNS, verbose=False):
+        data = self.users(userids=userids, drop_test_users=drop_test_users, select_columns=", ".join(columns), verbose=verbose)
         return self.to_df(data, columns)
 
     def places_df(self, userids=None, columns=PLACES_COLUMNS, verbose=False):

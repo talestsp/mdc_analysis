@@ -96,9 +96,9 @@ def time_resolution_gps(userids=None):
         print(userid)
         try:
             user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
-            user_gps_df = user_gps_df.sort_values(by="time")
-            user_time = user_gps_df["time"][1:len(user_gps_df)].reset_index(drop=True)
-            user_time_prev = user_gps_df["time"][0:len(user_gps_df) - 1].reset_index(drop=True)
+            user_gps_df = user_gps_df.sort_values(by="local_time")
+            user_time = user_gps_df["local_time"][1:len(user_gps_df)].reset_index(drop=True)
+            user_time_prev = user_gps_df["local_time"][0:len(user_gps_df) - 1].reset_index(drop=True)
 
             diff = user_time - user_time_prev
 
@@ -124,7 +124,7 @@ def speed_gps(userids=None):
         print(userid)
         try:
             user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
-            user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates()
+            user_gps_df = user_gps_df.sort_values(by="local_time").drop_duplicates()
 
             sp = quantiles(user_gps_df["speed"])
             sp["userid"] = userid
@@ -159,7 +159,7 @@ def gps_accuracy(userids=None):
         print(userid)
         try:
             user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
-            user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates()
+            user_gps_df = user_gps_df.sort_values(by="local_time").drop_duplicates()
 
             sp = quantiles(user_gps_df["horizontal_accuracy"])
             sp["userid"] = userid
@@ -192,31 +192,31 @@ def speed_nan(userids=None):
         print(userid)
         try:
             user_gps_df = pd.read_csv("outputs/user_gps/" + str(userid) + "_gps.csv")
-            user_gps_df = user_gps_df.sort_values(by="time").drop_duplicates().reset_index(drop=True)
+            user_gps_df = user_gps_df.sort_values(by="local_time").drop_duplicates().reset_index(drop=True)
 
             nan_indexes = user_gps_df[user_gps_df["speed"].isnull()].index.tolist()
             nan_index_data_list = []
 
             for nan_index in nan_indexes:
                 if nan_index > 0:
-                    prev_loc = user_gps_df.loc[nan_index - 1][["latitude", "longitude", "time"]]
-                    loc = user_gps_df.loc[nan_index][["latitude", "longitude", "time"]]
+                    prev_loc = user_gps_df.loc[nan_index - 1][["latitude", "longitude", "local_time"]]
+                    loc = user_gps_df.loc[nan_index][["latitude", "longitude", "local_time"]]
                     dS = haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"])
-                    dT = loc["time"] - prev_loc["time"]
+                    dT = loc["local_time"] - prev_loc["local_time"]
 
-                    nan_index_data_list.append({"userid": userid, "current_time": loc["time"], "dS": dS, "dT": dT, "speed_valid": 0, "lon": loc["longitude"], "lat": loc["latitude"], "prev_lon": prev_loc["longitude"], "prev_lat": prev_loc["latitude"]})
+                    nan_index_data_list.append({"userid": userid, "current_time": loc["local_time"], "dS": dS, "dT": dT, "speed_valid": 0, "lon": loc["longitude"], "lat": loc["latitude"], "prev_lon": prev_loc["longitude"], "prev_lat": prev_loc["latitude"]})
 
             not_nan_indexes = set(user_gps_df.index.tolist()) - set(nan_indexes)
             not_nan_index_data_list = []
 
             for not_nan_index in not_nan_indexes:
                 if not_nan_index > 0:
-                    prev_loc = user_gps_df.loc[not_nan_index - 1][["latitude", "longitude", "time"]]
-                    loc = user_gps_df.loc[not_nan_index][["latitude", "longitude", "time"]]
+                    prev_loc = user_gps_df.loc[not_nan_index - 1][["latitude", "longitude", "local_time"]]
+                    loc = user_gps_df.loc[not_nan_index][["latitude", "longitude", "local_time"]]
                     dS = haversine_vectorized(loc["longitude"], loc["latitude"], prev_loc["longitude"], prev_loc["latitude"])
-                    dT = loc["time"] - prev_loc["time"]
+                    dT = loc["local_time"] - prev_loc["local_time"]
 
-                    not_nan_index_data_list.append({"userid": userid, "current_time": loc["time"], "dS": dS, "dT": dT, "speed_valid": 1, "lon": loc["longitude"], "lat": loc["latitude"], "prev_lon": prev_loc["longitude"], "prev_lat": prev_loc["latitude"]})
+                    not_nan_index_data_list.append({"userid": userid, "current_time": loc["local_time"], "dS": dS, "dT": dT, "speed_valid": 1, "lon": loc["longitude"], "lat": loc["latitude"], "prev_lon": prev_loc["longitude"], "prev_lat": prev_loc["latitude"]})
 
 
             pd.DataFrame(nan_index_data_list + not_nan_index_data_list).to_csv("outputs/user_gps/speeds/" + str(userid) + "_user_gps_speeds.csv", index=False)
