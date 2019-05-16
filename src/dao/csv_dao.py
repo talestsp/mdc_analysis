@@ -3,7 +3,6 @@ import os
 import math
 
 from src.utils.time_utils import local_time
-import src.utils.geo as geo
 
 DAY_SECONDS = 86400
 TEN_SECONDS = 10
@@ -78,7 +77,6 @@ def fill_data_missing_ts(data, tolerance=20):
 def load_gps_speeds(userid=None):
     if userid:
         return pd.read_csv("outputs/user_gps/speeds/" + str(userid) + "_user_gps_speeds.csv")
-
     else:
         data = pd.DataFrame()
         for filename in os.listdir("outputs/user_gps/speeds/"):
@@ -119,6 +117,7 @@ def load_user_stop_regions(user, columns=None):
 
 
 def load_user_stop_regions_centroids(user_id):
+    import src.utils.geo as geo
     '''
     Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user
     :param user_id:
