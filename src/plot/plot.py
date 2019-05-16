@@ -111,7 +111,7 @@ def plot_user_loc(user_data, lat_col="latitude", lon_col="longitude", title="", 
     if p is None:
         p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
 
-    mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(user_data))
+    mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(user_data, lat_col=lat_col, lon_col=lon_col))
 
     p.circle(x=mercator_loc_df[0], y=mercator_loc_df[1], size=size, alpha=alpha, color=color, legend=legend)
 
