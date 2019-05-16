@@ -3,6 +3,8 @@ import os
 import math
 
 from src.utils.time_utils import local_time
+import src.utils.geo as geo
+
 
 DAY_SECONDS = 86400
 TEN_SECONDS = 10
@@ -155,13 +157,7 @@ def load_hot_osm_pois():
     Return a pandas.DataFrame with all POIs registered
     :return:
     '''
-    pois = pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_3857.csv")
-
-    pois["lon_4326"] = round(
-        pois.apply(lambda row: geo.convert_3857_4326(lat=row["latitude"], lon=row["longitude"])[0], axis=1), 6)
-
-    pois["lat_4326"] = round(
-        pois.apply(lambda row: geo.convert_3857_4326(lat=row["latitude"], lon=row["longitude"])[1], axis=1), 6)
+    pois = pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_4326.csv")
 
     return pois
 
