@@ -48,11 +48,11 @@ def index_clusters(clusters):
 
     return indexed_clusters
 
-def user_df_loc_tuples(user_df):
-    return [tuple(loc) for loc in user_df[["latitude", "longitude"]].values]
+def user_df_loc_tuples(user_df, lat_col="latitude", lon_col="longitude"):
+    return [tuple(loc) for loc in user_df[[lat_col, lon_col]].values]
 
-def user_data_gps_to_web_mercator(user_df):
-    gps_list = user_df_loc_tuples(user_df)
+def user_data_gps_to_web_mercator(user_df, lat_col="latitude", lon_col="longitude"):
+    gps_list = user_df_loc_tuples(user_df, lat_col=lat_col, lon_col=lon_col)
     return [gps_loc_to_web_mercator(lat=gps_loc[0], lon=gps_loc[1]) for gps_loc in gps_list]
 
 def gps_loc_to_web_mercator(lat, lon):
