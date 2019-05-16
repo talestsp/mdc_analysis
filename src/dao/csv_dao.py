@@ -3,6 +3,7 @@ import os
 import math
 
 from src.utils.time_utils import local_time
+import src.utils.geo as geo
 
 DAY_SECONDS = 86400
 TEN_SECONDS = 10
@@ -105,16 +106,66 @@ def load_user_stop_regions(user, columns=None):
     stop_regions = []
 
     if columns is None:
-        columns = ["time", "latitude", "longitude"]
+        columns = ["time", "latitude", "longitude", "sr_id"]
 
     filenames = sorted(os.listdir("outputs/stop_regions/" + user))
 
     for stop_region_cluster in filenames:
-        stop_regions.append(pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)[columns])
+        sr = pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)
+        sr["sr_id"] = str(user) + "_" + stop_region_cluster.split("_")[1].split(".csv")[0]
+        stop_regions.append(sr[columns])
+
     return stop_regions
 
+
+def load_user_stop_regions_centroids(user_id):
+    '''
+    Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user
+    :param user_id:
+    :return:
+    '''
+    centroids = []
+    stop_regions = load_user_stop_regions(user_id)
+    for sr in stop_regions:
+        sr_id = sr["sr_id"].drop_duplicates().item()
+
+        centroid = geo.cluster_centroid(sr)
+        centroid["sr_id"] = sr_id
+        centroids.append(centroid)
+
+    return pd.DataFrame(centroids)
+
+def load_sr_distance_to_close_pois(user_id):
+    '''
+    Return a single pandas.DataFrame with all nearest POIs for each Stop Region
+    :param user_id:
+    :return:
+    '''
+    user_sr_knn_path = "outputs/sr_knn/{}/".format(user_id)
+    user_srs_knn = pd.DataFrame()
+
+    for filename in os.listdir(user_sr_knn_path):
+        sr_knn = pd.read_csv(user_sr_knn_path + filename)
+        sr_knn["position"] = sr_knn.index
+        user_srs_knn = user_srs_knn.append(sr_knn)
+
+    return user_srs_knn
+
 def load_hot_osm_pois():
-    return pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_3857.csv")
+    '''
+    Return a pandas.DataFrame with all POIs registered
+    :return:
+    '''
+    pois = pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_3857.csv")
+
+    pois["lon_4326"] = round(
+        pois.apply(lambda row: geo.convert_3857_4326(lat=row["latitude"], lon=row["longitude"])[0], axis=1), 6)
+
+    pois["lat_4326"] = round(
+        pois.apply(lambda row: geo.convert_3857_4326(lat=row["latitude"], lon=row["longitude"])[1], axis=1), 6)
+
+    return pois
+
 
 def user_home_gps():
     pass
