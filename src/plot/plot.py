@@ -101,6 +101,30 @@ def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=
     :param height:
     :return:
     '''
+
+    p1 = gps_loc_to_web_mercator(lat=user_data["latitude"].min(), lon=user_data["longitude"].min())
+    p2 = gps_loc_to_web_mercator(lat=user_data["latitude"].max(), lon=user_data["longitude"].max())
+
+    if p is None:
+        p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
+
+    mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(user_data))
+
+    p.circle(x=mercator_loc_df[0], y=mercator_loc_df[1], size=size, alpha=alpha, color=color, legend=legend)
+
+    return p
+
+def plot_user_loc_bkp(user_data, title, color="navy", alpha=0.5, width=1500, height=800, size=2, p=None, legend=None):
+    '''
+    Plots user locations
+    :param user_data:
+    :param title:
+    :param color:
+    :param alpha:
+    :param width:
+    :param height:
+    :return:
+    '''
     p1 = gps_loc_to_web_mercator(lat=user_data["latitude"].min(), lon=user_data["longitude"].min())
     p2 = gps_loc_to_web_mercator(lat=user_data["latitude"].max(), lon=user_data["longitude"].max())
 
@@ -108,6 +132,8 @@ def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=
         p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
 
     mercator_loc_list = user_data_gps_to_web_mercator(user_data)
+
+    print(mercator_loc_list)
 
     for loc in mercator_loc_list:
         p.circle(x=loc[0], y=loc[1], size=size, alpha=alpha, color=color, legend=legend)
