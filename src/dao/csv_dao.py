@@ -1,11 +1,10 @@
 import pandas as pd
 import os
-import mathimport
+import math
 
 
 
 from src.utils.time_utils import local_time
-import src.utils.geo as geo
 
 
 DAY_SECONDS = 86400
@@ -104,6 +103,12 @@ def list_stop_region_usernames():
     return dirnames
 
 def load_user_stop_regions(user, columns=None):
+    '''
+    Return a list of pandas.DataFrame
+    :param user:
+    :param columns:
+    :return:
+    '''
     user = str(user)
     stop_regions = []
 
@@ -130,8 +135,9 @@ def load_user_stop_regions_centroids(user_id):
     centroids = []
     stop_regions = load_user_stop_regions(user_id)
     for sr in stop_regions:
+        if len(sr) == 0:
+            continue
         sr_id = sr["sr_id"].drop_duplicates().item()
-
         centroid = geo.cluster_centroid(sr)
         centroid["sr_id"] = sr_id
         centroids.append(centroid)
@@ -146,7 +152,6 @@ def load_sr_distance_to_close_pois(user_id):
     '''
     user_sr_knn_path = "outputs/sr_knn/{}/".format(user_id)
     user_srs_knn = pd.DataFrame()
-
     for filename in os.listdir(user_sr_knn_path):
         sr_knn = pd.read_csv(user_sr_knn_path + filename)
         sr_knn["position"] = sr_knn.index
