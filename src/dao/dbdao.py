@@ -64,11 +64,17 @@ class DBDAO:
 
         return data
 
-    def users_with_places(self, verbose=False):
+    def users_with_places(self, verbose=False, drop_test_users=True):
         query = "SELECT DISTINCT visits_20min.userid FROM visits_20min " + \
         "INNER JOIN places WHERE visits_20min.userid=places.userid;"
 
-        return pd.Series([userid[0] for userid in list(self.sql_query(query, verbose=verbose))])
+        result_users = pd.Series([userid[0] for userid in list(self.sql_query(query, verbose=verbose))])
+
+        if drop_test_users:
+            result_users = result_users[result_users.isin(DBDAO().users_df(drop_test_users=True)["userid"])]
+
+        return result_users
+
 
 
     def records_join(self, join_to_table, right_cols=None, how="INNER", record_cols=RECORDS_COLUMNS, userids=None, verbose=False):
