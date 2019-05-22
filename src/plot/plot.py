@@ -34,7 +34,7 @@ def plot_stop_regions(clusters, title, width=800, height=600, plot_points=False,
 
     return p
 
-def plot_stop_regions_centroids(centroids, title, lat_col="latitude", lon_col="longitude", width=800, height=600, fill_color=pick_random_color()):
+def plot_stop_regions_centroids(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600, fill_color=pick_random_color()):
     p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
 
     for index, centroid in centroids.iterrows():
@@ -54,9 +54,11 @@ def plot_poi(data, title, lat_col="latitude", lon_col="longitude", width=800, he
 
 def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
     centroid = cluster_centroid(cluster)
-    add_calculated_centroid_figure(figure, centroid, legend, point_color, point_size, fill_color, cluster_alpha, to_mercator)
+    add_calculated_centroid_figure(figure, centroid, legend=legend, point_color=point_color, point_size=point_size,
+                                   fill_color=fill_color, cluster_alpha=cluster_alpha, to_mercator=to_mercator)
 
 def add_calculated_centroid_figure(figure, centroid, lat_col="latitude", lon_col="longitude", legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
+
     if to_mercator:
         lon, lat = gps_loc_to_web_mercator(lat=centroid[lat_col], lon=centroid[lon_col])
         centroid_circle = figure.circle(lon, lat)
@@ -170,40 +172,3 @@ def plot_point(figure, lat, lon, alpha=0.5, color="magenta", conver_to_mercator=
 
     figure.circle(x=lat, y=lon, size=4, alpha=alpha, color=color)
     return figure
-
-
-if __name__ == "__main__":
-    #pd.set_option('display.max_columns', None)
-    #pd.set_option('display.width', 1000)
-    #pd.set_option('display.float_format', lambda x: '%.3f' % x)
-
-    #p = plot_point(mercator_fig(title=""), lat=45.739885, lon=5.7493075000000005)
-    #p = plot_point(p, lat=47.790615, lon=10.6232425)
-
-    #p = plot_point(p, lat=47.277932500000006, lon=9.40475875, color="blue")
-    #p = plot_point(p, lat=47.277932500000006, lon=6.96779125, color="blue")
-    #p = plot_point(p, lat=46.2525675, lon=6.96779125, color="blue")
-    #p = plot_point(p, lat=46.2525675, lon=9.40475875, color="blue")
-
-    #p = plot_point(p, lat=46.76525, lon=8.186275, color="orange")
-
-    #p = plot_point(p, lat=46.124396875, lon=6.6631703125, color="red")
-    #p = plot_point(p, lat=46.124396875, lon=6.053928437500001, color="red")
-    #p = plot_point(p, lat=45.868055625, lon=6.053928437500001, color="red")
-    #p = plot_point(p, lat=45.868055625, lon=6.6631703125, color="red")
-
-    #show(p)
-
-    # plot_stop_regions_and_pois()
-
-    # r = 50
-    # delta_t = 300
-    #
-    #
-    # for userid in [6171]:#[6171, 6033]:
-    #     user_data = csv_dao.load_user_gps_csv(userid, 0, 1)
-    #     stop_region_finder = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t)
-    #     clusters = stop_region_finder.find_clusters(user_data)
-    #     show(plot_stop_region_with_trajectory(user_data, clusters, title="USERID: " + str(userid) + " - n_CLUSTERS: " + str(len(clusters)) + " - " + "d: " + str(r) + ", " + "delta_t: " + str(delta_t)))
-
-    pass
