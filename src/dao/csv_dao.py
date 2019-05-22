@@ -1,9 +1,7 @@
 import pandas as pd
 import os
 import math
-
-
-
+import src.utils.geo as geo
 from src.utils.time_utils import local_time
 
 
@@ -113,7 +111,7 @@ def load_user_stop_regions(user, columns=None):
     stop_regions = []
 
     if columns is None:
-        columns = ["time", "latitude", "longitude", "sr_id"]
+        columns = ["local_time", "latitude", "longitude", "sr_id"]
 
     filenames = sorted(os.listdir("outputs/stop_regions/" + user))
 
@@ -126,7 +124,6 @@ def load_user_stop_regions(user, columns=None):
 
 
 def load_user_stop_regions_centroids(user_id):
-    import src.utils.geo as geo
     '''
     Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user
     :param user_id:
@@ -138,8 +135,13 @@ def load_user_stop_regions_centroids(user_id):
         if len(sr) == 0:
             continue
         sr_id = sr["sr_id"].drop_duplicates().item()
+        start_time = sr["local_time"].min()
+        end_time = sr["local_time"].max()
         centroid = geo.cluster_centroid(sr)
         centroid["sr_id"] = sr_id
+        centroid["user_id"] = user_id
+        centroid["local_start_time"] = start_time
+        centroid["local_end_time"] = end_time
         centroids.append(centroid)
 
     return pd.DataFrame(centroids)
@@ -150,7 +152,7 @@ def load_sr_distance_to_close_pois(user_id):
     :param user_id:
     :return:
     '''
-    user_sr_knn_path = "outputs/sr_knn/{}/".format(user_id)
+    user_sr_knn_path = "outputs/hot_osm_sr_knn/{}/".format(user_id)
     user_srs_knn = pd.DataFrame()
     for filename in os.listdir(user_sr_knn_path):
         sr_knn = pd.read_csv(user_sr_knn_path + filename)
@@ -167,6 +169,34 @@ def load_hot_osm_pois():
     pois = pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_4326.csv")
 
     return pois
+
+
+def load_all_users_stop_regions_centroids(unique_sr=False):
+    stop_regions = pd.DataFrame()
+
+    for user_id in list_stop_region_usernames():
+        stop_regions = stop_regions.append(load_user_stop_regions_centroids(user_id))
+
+    print("All Stop Regions:    {}".format(len(stop_regions)))
+
+    if unique_sr:
+        stop_regions = unique_stop_regions(stop_regions)
+        print("Unique Stop Regions:    {}".format(len(stop_regions)))
+
+    return stop_regions
+
+def unique_stop_regions(sr_data, on_cols=['latitude', 'longitude']):
+    unique_sr = sr_data.drop_duplicates(subset=on_cols, keep="first")["sr_id"].tolist()
+    return sr_data[sr_data["sr_id"].isin(unique_sr)]
+
+def load_home_inferred_sr_ids(user_id):
+    return pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id)).tolist()
+
+def load_home_inferred_sr(user_id):
+    home_sr_ids = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id)).tolist()
+    stop_regions = load_user_stop_regions_centroids(user_id)
+    return stop_regions[stop_regions["sr_id"].isin(home_sr_ids)]
+
 
 
 def user_home_gps():
