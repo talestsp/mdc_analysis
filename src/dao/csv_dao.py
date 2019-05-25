@@ -123,7 +123,7 @@ def load_user_stop_regions(user, columns=None):
     return stop_regions
 
 
-def load_user_stop_regions_centroids(user_id):
+def load_user_stop_regions_centroids(user_id, tag_stop_regions=True):
     '''
     Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user
     :param user_id:
@@ -131,6 +131,11 @@ def load_user_stop_regions_centroids(user_id):
     '''
     centroids = []
     stop_regions = load_user_stop_regions(user_id)
+
+    if tag_stop_regions:
+        home_sr_ids = load_home_inferred_sr_ids(user_id)
+        work_sr_ids = load_work_inferred_sr_ids(user_id)
+
     for sr in stop_regions:
         if len(sr) == 0:
             continue
@@ -142,9 +147,21 @@ def load_user_stop_regions_centroids(user_id):
         centroid["user_id"] = user_id
         centroid["local_start_time"] = start_time
         centroid["local_end_time"] = end_time
+
+        if tag_stop_regions:
+            centroid['tag'] = ''
+            if sr_id in (home_sr_ids):
+                centroid['tag'] = "HOME" + ","
+            if sr_id in (work_sr_ids):
+                centroid['tag'] = centroid['tag'] + "WORK" + ","
+
+            centroid['tag'] = centroid['tag'][0 : len(centroid['tag']) - 1]
+
         centroids.append(centroid)
 
-    return pd.DataFrame(centroids)
+    centroids = pd.DataFrame(centroids)
+
+    return centroids
 
 def load_sr_distance_to_close_pois(user_id):
     '''
@@ -171,11 +188,13 @@ def load_hot_osm_pois():
     return pois
 
 
-def load_all_users_stop_regions_centroids(unique_sr=False):
+def load_all_users_stop_regions_centroids(unique_sr=False, verbose=False):
     stop_regions = pd.DataFrame()
 
     for user_id in list_stop_region_usernames():
         stop_regions = stop_regions.append(load_user_stop_regions_centroids(user_id))
+        if verbose:
+            print("User {} data loaded".format(user_id))
 
     print("All Stop Regions:    {}".format(len(stop_regions)))
 
@@ -190,12 +209,28 @@ def unique_stop_regions(sr_data, on_cols=['latitude', 'longitude']):
     return sr_data[sr_data["sr_id"].isin(unique_sr)]
 
 def load_home_inferred_sr_ids(user_id):
-    return pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id)).tolist()
+    try:
+        data = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id))['sr_id'].tolist()
+        return data
+    except FileNotFoundError:
+        return []
+
+def load_work_inferred_sr_ids(user_id):
+    try:
+        data = pd.read_csv("outputs/work_inferred/work_stop_regions_user_{}.csv".format(user_id))['sr_id'].tolist()
+        return data
+    except FileNotFoundError:
+        return []
 
 def load_home_inferred_sr(user_id):
-    home_sr_ids = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id)).tolist()
+    home_sr_ids = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id))
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(home_sr_ids)]
+
+def load_work_inferred_sr(user_id):
+    work_sr_ids = pd.read_csv("outputs/home_inferred/work_stop_regions_user_{}.csv".format(user_id))
+    stop_regions = load_user_stop_regions_centroids(user_id)
+    return stop_regions[stop_regions["sr_id"].isin(work_sr_ids)]
 
 
 
