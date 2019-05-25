@@ -35,6 +35,12 @@ def cluster_centroid(cluster):
     return points_centroid
 
 def weighted_cluster_centroid(cluster, weight_col):
+    '''
+    The
+    :param cluster:
+    :param weight_col:
+    :return:
+    '''
     w_sum_lat = (cluster["latitude"] * cluster[weight_col]).sum()
     w_sum_lon = (cluster["longitude"] * cluster[weight_col]).sum()
     points_w_centroid = {"latitude": w_sum_lat / cluster[weight_col].sum(), "longitude": w_sum_lon / cluster[weight_col].sum()}
@@ -136,7 +142,6 @@ def distance_epsg_4326(lat1, lon1, lat2, lon2):
     coords2 = (lat2, lon2)
     distance = gp.distance(coords1, coords2).m #utiliza o modelo WGS-84
     return distance
-
 
 def distance_stop_region_pois(s_region, pois):
     distances = []
@@ -254,3 +259,6 @@ def convert_4326_3857(lat, lon):
     inProj  = Proj("+init=EPSG:4326")
     outProj = Proj("+init=EPSG:3857")
     return transform(inProj,outProj,lat,lon)
+
+
+
