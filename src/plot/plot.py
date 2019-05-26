@@ -34,13 +34,13 @@ def plot_stop_regions(clusters, title, width=800, height=600, plot_points=False,
 
     return p
 
-def plot_stop_regions_centroids(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600, fill_color=pick_random_color(), p=None):
+def plot_stop_regions_centroids(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600, fill_color=pick_random_color(), legend=None, p=None):
     if p is None:
-        p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height, legend=None)
+        p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
     
     for index, centroid in centroids.iterrows():
         add_calculated_centroid_figure(p, centroid, lat_col=lat_col, lon_col=lon_col, point_color="magenta", point_size=3,
-                                   fill_color=fill_color, cluster_alpha=0.3, to_mercator=True, legend=legend)
+                                       fill_color=fill_color, cluster_alpha=0.3, to_mercator=True, legend=legend)
 
     return p
 
