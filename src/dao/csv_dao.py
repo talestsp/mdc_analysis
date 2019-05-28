@@ -210,25 +210,25 @@ def unique_stop_regions(sr_data, on_cols=['latitude', 'longitude']):
 
 def load_home_inferred_sr_ids(user_id):
     try:
-        data = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id))['sr_id'].tolist()
+        data = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}_v2.csv".format(user_id))['sr_id'].tolist()
         return data
     except FileNotFoundError:
         return []
 
 def load_work_inferred_sr_ids(user_id):
     try:
-        data = pd.read_csv("outputs/work_inferred/work_stop_regions_user_{}.csv".format(user_id))['sr_id'].tolist()
+        data = pd.read_csv("outputs/work_inferred/work_stop_regions_user_{}_v2.csv".format(user_id))['sr_id'].tolist()
         return data
     except FileNotFoundError:
         return []
 
 def load_home_inferred_sr(user_id):
-    home_sr_ids = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}.csv".format(user_id))
+    home_sr_ids = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}_v2.csv".format(user_id))
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(home_sr_ids)]
 
 def load_work_inferred_sr(user_id):
-    work_sr_ids = pd.read_csv("outputs/home_inferred/work_stop_regions_user_{}.csv".format(user_id))
+    work_sr_ids = pd.read_csv("outputs/home_inferred/work_stop_regions_user_{}_v2.csv".format(user_id))
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(work_sr_ids)]
 
