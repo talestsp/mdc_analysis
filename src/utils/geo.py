@@ -261,4 +261,106 @@ def convert_4326_3857(lat, lon):
     return transform(inProj,outProj,lat,lon)
 
 
+def remove_outliers(data, quantile_threshold=0.05):
+    clean_data = data.copy()
 
+    if len(clean_data) == 0:
+        return pd.DataFrame()
+
+    lower_lat_value = data["latitude"].quantile(quantile_threshold)
+    higher_lat_value = data["latitude"].quantile(1 - quantile_threshold)
+    lower_lon_value = data["longitude"].quantile(quantile_threshold)
+    higher_lon_value = data["longitude"].quantile(1 - quantile_threshold)
+
+    clean_data = clean_data[
+        (clean_data["latitude"] >= lower_lat_value) & (clean_data["latitude"] <= higher_lat_value) & (
+                    clean_data["longitude"] >= lower_lon_value) & (clean_data["longitude"] <= higher_lon_value)]
+
+    return clean_data
+
+
+def infer_close_sr_as_home(home_stop_regions, stop_regions, radius=20, search_tolerance=0.001):
+    '''
+    Return all Stop Regions that stands inside the given radius for some place Stop Region
+    :param place_stop_regions:
+    :param stop_regions:
+    :param radius:
+    :search_tolerance:
+    :return:
+    '''
+
+    return get_closest_stop_regions(home_stop_regions, stop_regions, radius=radius, search_tolerance=search_tolerance)
+
+def infer_close_sr_as_work(work_stop_regions, stop_regions, radius=10, search_tolerance=0.0005):
+    '''
+    Return all Stop Regions that stands inside the given radius for some place Stop Region
+    :param place_stop_regions:
+    :param stop_regions:
+    :param radius:
+    :search_tolerance:
+    :return:
+    '''
+
+    return get_closest_stop_regions(work_stop_regions, stop_regions, radius=radius, search_tolerance=search_tolerance)
+
+
+def get_closest_stop_regions(place_stop_regions, stop_regions, radius, search_tolerance=0.001):
+    '''
+    Return all Stop Regions that stands inside the given radius for some place Stop Region
+    :param place_stop_regions:
+    :param stop_regions:
+    :param radius:
+    :search_tolerance:
+    :return:
+    '''
+    sr_close_to_place = pd.DataFrame()
+
+    for i, stop_region in stop_regions.iterrows():
+
+        min_lats = place_stop_regions["latitude"] - search_tolerance
+        max_lats = place_stop_regions["latitude"] + search_tolerance
+        min_lons = place_stop_regions["longitude"] - search_tolerance
+        max_lons = place_stop_regions["longitude"] + search_tolerance
+
+        use_place_stop_regions = place_stop_regions[(place_stop_regions["latitude"] >= min_lats) &
+                                                    (place_stop_regions["latitude"] <= max_lats) &
+                                                    (place_stop_regions["longitude"] >= min_lons) &
+                                                    (place_stop_regions["longitude"] <= max_lons)]
+
+        for j, use_place_stop_region in use_place_stop_regions.iterrows():
+
+            d = distance_epsg_4326(stop_region["latitude"],
+                                   stop_region["longitude"],
+                                   use_place_stop_region["latitude"],
+                                   use_place_stop_region["longitude"])
+
+            if d <= radius:
+                sr_close_to_place = sr_close_to_place.append(stop_region)
+                break
+
+    return sr_close_to_place
+
+
+if __name__ == "__main__":
+    from src.dao.dbdao import DBDAO
+    from src.dao import places_dao
+    import os
+
+    for user_id in DBDAO().users_with_places():
+        print()
+        print("---------------")
+        print("user_id: {}".format(user_id))
+        sr = places_dao.load_stop_regions_home(user_id, verbose=True)
+
+        dirpath = "outputs/home_inferred/"
+        filename = "home_stop_regions_user_{}_v2.csv".format(user_id)
+
+        if os.path.exists(dirpath + filename):
+            print("User already computed")
+            continue
+
+        home_close_sr = infer_close_sr_as_home(sr["home"], sr["not_home"], radius=20)
+        print("{} stop regions close to home".format(len(home_close_sr)))
+
+        home_sr = sr["home"].append(home_close_sr)
+        home_sr["sr_id"].rename("sr_id").to_csv(dirpath + filename, header=True, index=False)
