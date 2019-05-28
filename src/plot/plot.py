@@ -34,15 +34,42 @@ def plot_stop_regions(clusters, title, width=800, height=600, plot_points=False,
 
     return p
 
-def plot_stop_regions_centroids(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600, fill_color=pick_random_color(), legend=None, p=None):
+
+def plot_stop_regions_centroids(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600,
+                                fill_color=pick_random_color(), legend=None, p=None):
     if p is None:
         p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
-    
+
     for index, centroid in centroids.iterrows():
-        add_calculated_centroid_figure(p, centroid, lat_col=lat_col, lon_col=lon_col, point_color="magenta", point_size=3,
-                                       fill_color=fill_color, cluster_alpha=0.3, to_mercator=True, legend=legend)
+        add_calculated_centroid_figure(p, centroid, lat_col=lat_col, lon_col=lon_col, point_color="magenta",
+                                       point_size=3, fill_color=fill_color, cluster_alpha=0.3, to_mercator=True,
+                                       legend=legend)
 
     return p
+
+
+def plot_stop_regions_centroids3(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600,
+                                fill_color=pick_random_color(), legend=None, p=None, mark="circle"):
+    if p is None:
+        p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
+
+    return add_calculated_centroids_figure(p, centroids, lat_col=lat_col, lon_col=lon_col, point_color=fill_color,
+                                       point_size=3, fill_color=fill_color, cluster_alpha=0.3, to_mercator=True,
+                                       legend=legend, mark=mark)
+
+
+def plot_stop_regions_centroids2(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600,
+                                 fill_color=pick_random_color(), legend=None, p=None):
+    if p is None:
+        p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
+
+    centroids.apply(
+        lambda row: add_calculated_centroid_figure(p, row, lat_col=lat_col, lon_col=lon_col, point_color=fill_color,
+                                                   point_size=3, fill_color=fill_color, cluster_alpha=0.3,
+                                                   to_mercator=True, legend=legend), axis=1)
+
+    return p
+
 
 def plot_poi(data, title, lat_col="latitude", lon_col="longitude", width=800, height=600, color=pick_random_color(), figure=None):
     if figure is None:
@@ -53,12 +80,15 @@ def plot_poi(data, title, lat_col="latitude", lon_col="longitude", width=800, he
 
     return figure
 
-def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
+def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta",
+                        cluster_alpha=0.3, to_mercator=True):
     centroid = cluster_centroid(cluster)
     add_calculated_centroid_figure(figure, centroid, legend=legend, point_color=point_color, point_size=point_size,
                                    fill_color=fill_color, cluster_alpha=cluster_alpha, to_mercator=to_mercator)
 
-def add_calculated_centroid_figure(figure, centroid, lat_col="latitude", lon_col="longitude", legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
+def add_calculated_centroid_figure(figure, centroid, lat_col="latitude", lon_col="longitude", legend=None,
+                                   point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3,
+                                   to_mercator=True):
 
     if to_mercator:
         lon, lat = gps_loc_to_web_mercator(lat=centroid[lat_col], lon=centroid[lon_col])
@@ -81,6 +111,35 @@ def add_calculated_centroid_figure(figure, centroid, lat_col="latitude", lon_col
     glyph.line_color = "firebrick"
     glyph.line_dash = [6, 3]
     glyph.line_width = 1
+
+def add_calculated_centroids_figure(figure, centroids, lat_col="latitude", lon_col="longitude", legend=None,
+                                   point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3,
+                                   to_mercator=True, mark="circle"):
+
+
+    if mark == "circle":
+        mark = figure.circle
+    elif mark == "square":
+        mark = figure.square
+    else:
+        mark = figure.circle = figure.circle
+
+    if to_mercator:
+        locs = centroids.apply(lambda centroid : gps_loc_to_web_mercator(lat=centroid[lat_col], lon=centroid[lon_col]), axis=1)
+        lons_mercator = locs.apply(lambda loc: loc[0])
+        lats_mercator = locs.apply(lambda loc: loc[1])
+
+        mark(lons_mercator, lats_mercator, size=20, color=point_color, alpha=cluster_alpha,
+                        fill_color=fill_color, legend=legend)
+        mark(lons_mercator, lats_mercator, color=point_color, size=point_size)
+    else:
+        mark(centroids[lon_col], centroids[lat_col], size=20, color=point_color, alpha=cluster_alpha,
+                        fill_color=fill_color, legend=legend)
+
+        mark(lon=centroids[lon_col], lat=centroids[lat_col])
+
+    return figure
+
 
 def plot_users_stop_region(users, width=1500, height=800):
     p = mercator_fig(title="Users: " + str(users), width=width, height=height)
