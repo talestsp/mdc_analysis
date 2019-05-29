@@ -100,7 +100,7 @@ def list_stop_region_usernames():
 
     return dirnames
 
-def load_user_stop_regions(user, columns=None, round_lat_lon=5):
+def load_user_stop_regions(user, columns=None):
     '''
     Return a list of pandas.DataFrame
     :param user:
@@ -119,10 +119,6 @@ def load_user_stop_regions(user, columns=None, round_lat_lon=5):
         sr = pd.read_csv("outputs/stop_regions/" + user + "/" + stop_region_cluster)
         sr["sr_id"] = str(user) + "_" + stop_region_cluster.split("_")[1].split(".csv")[0]
 
-        if not round_lat_lon is None:
-            sr['latitude'] = sr['latitude'].apply(lambda value : round(value, round_lat_lon))
-            sr['longitude'] = sr['longitude'].apply(lambda value : round(value, round_lat_lon))
-
         stop_regions.append(sr[columns])
 
     return stop_regions
@@ -135,7 +131,7 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
     :return:
     '''
     centroids = []
-    stop_regions = load_user_stop_regions(user_id, round_lat_lon=round_lat_lon)
+    stop_regions = load_user_stop_regions(user_id, round_lat_lon=5)
 
     if tag_stop_regions:
         home_sr_ids = load_home_inferred_sr_ids(user_id)
@@ -165,6 +161,10 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
         centroids.append(centroid)
 
     centroids = pd.DataFrame(centroids)
+
+    if not round_lat_lon is None:
+            sr['latitude'] = sr['latitude'].apply(lambda value : round(value, round_lat_lon))
+            sr['longitude'] = sr['longitude'].apply(lambda value : round(value, round_lat_lon))
 
     return centroids
 
