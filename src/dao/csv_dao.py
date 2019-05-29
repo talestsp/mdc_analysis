@@ -131,7 +131,7 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
     :return:
     '''
     centroids = []
-    stop_regions = load_user_stop_regions(user_id, round_lat_lon=5)
+    stop_regions = load_user_stop_regions(user_id)
 
     if tag_stop_regions:
         home_sr_ids = load_home_inferred_sr_ids(user_id)
