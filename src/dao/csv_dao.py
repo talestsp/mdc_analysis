@@ -3,6 +3,7 @@ import os
 import math
 import src.utils.geo as geo
 from src.utils.time_utils import local_time
+from src.entity.geo_circle import GeoCircle
 
 
 DAY_SECONDS = 86400
@@ -237,7 +238,52 @@ def load_work_inferred_sr(user_id):
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(work_sr_ids)]
 
+def save_request_circles(request_circle_list, radius, search_tolerance):
+    center_lats = []
+    center_lons = []
+    radius_list = []
+    stop_regions_inside = []
+
+    for request_circle in request_circle_list:
+        center_lats.append(request_circle.center_lat)
+        center_lons.append(request_circle.center_lon)
+        radius_list.append(request_circle.radius_m)
+
+        stop_regions_ids = []
+        for sr in request_circle.sr.iterrows():
+            stop_regions_ids.append(sr["sr_id"])
+        stop_regions_inside.append(stop_regions_ids)
+
+    request_circles = pd.DataFrame()
+    request_circles["latitude"] = center_lats
+    request_circles["longitude"] = center_lons
+    request_circles["radius_m"] = radius_list
+    request_circles["search_tolerance"] = [search_tolerance] * len(request_circles["radius_m"])
+    request_circles["sr_ids"] = stop_regions_inside
+
+    request_circles.to_csv("outputs/request_circles/rerquest_circles_{}m.csv".format(radius))
+
+def load_request_circles(request_radius):
+    request_df = load_request_circles_df(request_radius)
+    stop_regions = load_all_users_stop_regions_centroids()
+
+    request_circles = []
+
+    for index, row in request_df.iterrows():
+        geo_c = GeoCircle(row["latitude"], row["longitude"], row["radius_m"])
+        geo_c.sr = stop_regions[stop_regions["sr_id"].isin(geo_c["sr_ids"])]
+
+        request_circles.append(geo_c)
+
+    return request_circles
 
 
-def user_home_gps():
-    pass
+def load_request_circles_df(request_radius):
+    return pd.read_csv("outputs/request_circles/rerquest_circles_{}m.csv".format(request_radius))
+
+if __name__ == "__main__":
+    d200 = load_request_circles_df(200)
+
+
+
+
