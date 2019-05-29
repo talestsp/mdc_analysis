@@ -15,7 +15,7 @@ class GeoCircle:
         return "Center Lat: {} \nCenter Lon: {} \nRadius (m) {}".format(self.center_lat, self.center_lon, self.radius_m)
 
     def contains_point(self, latitude, longitude):
-        return geo.distance_epsg_4326(self.center_lat, self.center_lon, latitude, longitude) <= radius_m
+        return geo.distance_epsg_4326(self.center_lat, self.center_lon, latitude, longitude) <= self.radius_m
 
 
     def contains_geo_circle(self, another_geo_circle):
