@@ -150,8 +150,13 @@ def stop_regions_work(work_points, stop_regions):
     return work_stop_regions
 
 def load_stop_regions_home(user_id, verbose=False):
-    print("My Warning!")
-    print("Try to use csv_dao.load_user_stop_regions_centroids")
+    '''
+    Return HOME stop regions as informed at Places table by the user.
+    Note that for the HOME inferred Stop Regions you must call functions at csv_dao
+    :param user_id:
+    :param verbose:
+    :return:
+    '''
     user_sr = csv_dao.load_user_stop_regions_centroids(user_id)
 
     if verbose:
@@ -173,8 +178,13 @@ def load_stop_regions_home(user_id, verbose=False):
 
 
 def load_stop_regions_work(user_id, verbose=False):
-    print("My Warning!")
-    print("Try to use csv_dao.load_user_stop_regions_centroids")
+    '''
+    Return WORK stop regions as informed at Places table by the user.
+    Note that for the WORK inferred Stop Regions you must call functions at csv_dao
+    :param user_id:
+    :param verbose:
+    :return:
+    '''
     user_sr = csv_dao.load_user_stop_regions_centroids(user_id)
 
     if verbose:
