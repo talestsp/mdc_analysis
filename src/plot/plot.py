@@ -16,6 +16,21 @@ def plot_stop_region_with_trajectory(user_data, stop_region_clusters, title, col
 
     return p
 
+def plot_request_circle(request_circle, points=None, title="", color=pick_random_color(), width=600, height=400, p=None, legend=None):
+    if p is None:
+        p = mercator_fig(title=title, width=width, height=height)
+    if color is None:
+        color = pick_random_color()
+
+    centroid = {"latitude": request_circle.center_lat, "longitude": request_circle.center_lon}
+
+    add_calculated_centroid_figure(p, centroid, legend=legend, point_color=color, fill_color=color)
+    if not points is None:
+        mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(points))
+        p.circle(x=mercator_loc_df[0], y=mercator_loc_df[1], size=2, alpha=0.3, color=color)
+
+    return p
+
 def plot_stop_regions(clusters, title, width=800, height=600, plot_points=False, same_color=True):
     p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
 

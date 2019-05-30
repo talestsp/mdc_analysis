@@ -340,6 +340,15 @@ def get_closest_stop_regions(place_stop_regions, stop_regions, radius, search_to
 
     return sr_close_to_place
 
+def slice_geo_data(data, center, search_tolerance):
+    min_lats = center.center_lat - search_tolerance
+    max_lats = center.center_lat + search_tolerance
+    min_lons = center.center_lon - search_tolerance
+    max_lons = center.center_lon + search_tolerance
+
+    return data[(data["latitude"] >= min_lats)  & (data["latitude"] <= max_lats) &
+                (data["longitude"] >= min_lons) & (data["longitude"] <= max_lons)]
+
 
 if __name__ == "__main__":
     from src.dao.dbdao import DBDAO

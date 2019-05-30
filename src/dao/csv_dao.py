@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 import math
+import ast
 import src.utils.geo as geo
 from src.utils.time_utils import local_time
 from src.entity.geo_circle import GeoCircle
@@ -250,7 +251,7 @@ def save_request_circles(request_circle_list, radius, search_tolerance):
         radius_list.append(request_circle.radius_m)
 
         stop_regions_ids = []
-        for sr in request_circle.sr.iterrows():
+        for index, sr in request_circle.sr.iterrows():
             stop_regions_ids.append(sr["sr_id"])
         stop_regions_inside.append(stop_regions_ids)
 
@@ -279,7 +280,13 @@ def load_request_circles(request_radius):
 
 
 def load_request_circles_df(request_radius):
-    return pd.read_csv("outputs/request_circles/rerquest_circles_{}m.csv".format(request_radius))
+    data = pd.read_csv("outputs/request_circles/rerquest_circles_{}m.csv".format(request_radius))
+    if "Unnamed: 0" in data.columns.tolist():
+        del data["Unnamed: 0"]
+
+        data["sr_ids"] = data["sr_ids"].apply(ast.literal_eval)
+    return data
+
 
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)
