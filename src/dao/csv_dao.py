@@ -165,8 +165,8 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
     centroids = pd.DataFrame(centroids)
 
     if not round_lat_lon is None:
-            sr['latitude'] = sr['latitude'].apply(lambda value : round(value, round_lat_lon))
-            sr['longitude'] = sr['longitude'].apply(lambda value : round(value, round_lat_lon))
+        centroids['latitude'] = centroids['latitude'].apply(lambda value : round(value, round_lat_lon))
+        centroids['longitude'] = centroids['longitude'].apply(lambda value : round(value, round_lat_lon))
 
     return centroids
 
@@ -240,12 +240,14 @@ def load_work_inferred_sr(user_id):
     return stop_regions[stop_regions["sr_id"].isin(work_sr_ids)]
 
 def save_request_circles(request_circle_list, radius, search_tolerance):
+    rc_ids = []
     center_lats = []
     center_lons = []
     radius_list = []
     stop_regions_inside = []
 
     for request_circle in request_circle_list:
+        rc_ids.append(request_circle.id)
         center_lats.append(request_circle.center_lat)
         center_lons.append(request_circle.center_lon)
         radius_list.append(request_circle.radius_m)
@@ -256,6 +258,7 @@ def save_request_circles(request_circle_list, radius, search_tolerance):
         stop_regions_inside.append(stop_regions_ids)
 
     request_circles = pd.DataFrame()
+    request_circles["rc_id"] = rc_ids
     request_circles["latitude"] = center_lats
     request_circles["longitude"] = center_lons
     request_circles["radius_m"] = radius_list
@@ -271,8 +274,8 @@ def load_request_circles(request_radius):
     request_circles = []
 
     for index, row in request_df.iterrows():
-        geo_c = GeoCircle(row["latitude"], row["longitude"], row["radius_m"])
-        geo_c.sr = stop_regions[stop_regions["sr_id"].isin(geo_c["sr_ids"])]
+        geo_c = GeoCircle(row["latitude"], row["longitude"], row["radius_m"], id=row["rc_id"])
+        geo_c.put_data(stop_regions[stop_regions["sr_id"].isin(geo_c["sr_ids"])])
 
         request_circles.append(geo_c)
 
