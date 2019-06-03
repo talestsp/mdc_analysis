@@ -349,6 +349,15 @@ def slice_geo_data(data, center, search_tolerance):
     return data[(data["latitude"] >= min_lats)  & (data["latitude"] <= max_lats) &
                 (data["longitude"] >= min_lons) & (data["longitude"] <= max_lons)]
 
+def slice_geo_data2(data, center_lat, center_lon, search_tolerance):
+    min_lats = center_lat - search_tolerance
+    max_lats = center_lat + search_tolerance
+    min_lons = center_lon - search_tolerance
+    max_lons = center_lon + search_tolerance
+
+    return data[(data["latitude"] >= min_lats)  & (data["latitude"] <= max_lats) &
+                (data["longitude"] >= min_lons) & (data["longitude"] <= max_lons)]
+
 
 if __name__ == "__main__":
     from src.dao.dbdao import DBDAO

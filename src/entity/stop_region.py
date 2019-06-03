@@ -5,10 +5,10 @@ class StopRegion:
     '''
           Use EPSG 4326
     '''
-    def __init__(self, centroid_lat, centroid_lon, id=None):
+    def __init__(self, centroid_lat, centroid_lon, sr_id=None):
         self.centroid_lat = centroid_lat
         self.centroid_lon = centroid_lon
-        self.id = id
+        self.sr_id = sr_id
 
         self.close_pois = pd.DataFrame()
 
@@ -21,3 +21,4 @@ class StopRegion:
 
     def get_close_pois(self):
         return self.close_pois
+

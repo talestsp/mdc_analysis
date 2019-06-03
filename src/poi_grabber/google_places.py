@@ -3,6 +3,7 @@ import requests
 import time
 import pandas as pd
 import os
+import ast
 
 URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
 RAW_DATA_REQUESTS_DIR = '../google-places-poi-grabber/data/raw_data_{}/'
@@ -102,9 +103,9 @@ def load_request_result(filename):
 def load_request_result_single_file(radius_m):
     return pd.DataFrame(RAW_DATA_REQUESTS_DIR.format(radius_m))
 
-def load_all_request_circle_data(radius_m=75, verbose=False):
+def load_all_google_places_data(radius_m=75, verbose=False):
     try:
-        return pd.read_csv('../google-places-poi-grabber/data/request_circle_{}.csv'.format(radius_m))
+        results = pd.read_csv('../google-places-poi-grabber/data/request_circle_{}.csv'.format(radius_m))
 
     except:
         results = pd.DataFrame()
@@ -121,4 +122,7 @@ def load_all_request_circle_data(radius_m=75, verbose=False):
 
                 results = results.append(result)
 
-        return results
+    results["latitude"] = results["geometry"].apply(lambda geometry: ast.literal_eval(geometry)['location']['lat'])
+    results["longitude"] = results["geometry"].apply(lambda geometry: ast.literal_eval(geometry)['location']['lng'])
+
+    return results
