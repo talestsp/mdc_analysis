@@ -1,7 +1,7 @@
 import pandas as pd
 from src.utils import geo
 
-class StropRegion:
+class StopRegion:
     '''
           Use EPSG 4326
     '''
