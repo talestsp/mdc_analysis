@@ -185,13 +185,18 @@ def load_sr_distance_to_close_pois(user_id):
 
     return user_srs_knn
 
-def load_hot_osm_pois():
+def filter_valid_amenities(pois):
+    return pois[pois["amenity"].isna() == False]
+
+def load_hot_osm_pois(valid_amenities=False):
     '''
     Return a pandas.DataFrame with all POIs registered
     :return:
     '''
     pois = pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_4326.csv")
 
+    if valid_amenities:
+        pois = filter_valid_amenities(pois)
     return pois
 
 

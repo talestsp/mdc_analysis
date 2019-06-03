@@ -26,7 +26,6 @@ class GeoCircle:
         d = geo.distance_epsg_4326(self.center_lat, self.center_lon, latitude, longitude)
         return d <= self.radius_m
 
-
     def contains_geo_circle(self, another_geo_circle):
         d = geo.distance_epsg_4326(self.center_lat, self.center_lon, another_geo_circle.center_lat, another_geo_circle.center_lon)
         return (d + another_geo_circle.radius_m) <= self.radius_m
