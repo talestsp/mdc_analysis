@@ -188,15 +188,26 @@ def load_sr_distance_to_close_pois(user_id):
 def filter_valid_amenities(pois):
     return pois[pois["amenity"].isna() == False]
 
-def load_hot_osm_pois(valid_amenities=False):
+def filter_valid_pois(pois):
+    columns = ["amenity", "leisure", "tourism", "shop", "historic", "sport", "building", "office",
+               "access", "religion", "bicycle", "public_transport", "power", "natural",
+               "man_made", "railway", "military", "place", "aerialway", "waterway"]
+
+    valid_pois = pois[pois[columns].any(axis=1)]
+
+    valid_pois["building_+_religion"] = valid_pois["building"] + " + " + valid_pois["religion"]
+
+    del valid_pois["religion"]
+
+def load_hot_osm_pois(valid_pois=False):
     '''
     Return a pandas.DataFrame with all POIs registered
     :return:
     '''
-    pois = pd.read_csv("../hot_osm_analysis/outputs/hot_osm_pois_location_mercator_4326.csv")
+    pois = pd.read_csv("../hot_osm_analysis/outputs/planet_osm_point_full.csv")
 
-    if valid_amenities:
-        pois = filter_valid_amenities(pois)
+    if valid_pois:
+        pois = filter_valid_pois(pois)
     return pois
 
 

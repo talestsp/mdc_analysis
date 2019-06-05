@@ -103,7 +103,7 @@ def load_request_result(filename):
 def load_request_result_single_file(radius_m):
     return pd.DataFrame(RAW_DATA_REQUESTS_DIR.format(radius_m))
 
-def load_all_google_places_data(radius_m=75, verbose=False):
+def load_all_google_places_data(radius_m=75, valid_pois=False, verbose=False):
     try:
         results = pd.read_csv('../google-places-poi-grabber/data/request_circle_{}.csv'.format(radius_m))
 
@@ -124,5 +124,15 @@ def load_all_google_places_data(radius_m=75, verbose=False):
 
     results["latitude"] = results["geometry"].apply(lambda geometry: ast.literal_eval(geometry)['location']['lat'])
     results["longitude"] = results["geometry"].apply(lambda geometry: ast.literal_eval(geometry)['location']['lng'])
+    results["types"] = results["types"].apply(ast.literal_eval)
+
+    if valid_pois:
+        results = valid_pois_google(results)
 
     return results
+
+def valid_pois_google(google_places_data):
+    return google_places_data[~(
+                (google_places_data["types"].apply(len) == 2) &
+                (google_places_data["types"].apply(lambda list : "point_of_interest" in list)) &
+                (google_places_data["types"].apply(lambda list : "establishment" in list)) )]
