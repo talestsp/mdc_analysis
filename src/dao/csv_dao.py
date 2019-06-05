@@ -199,6 +199,8 @@ def filter_valid_pois(pois):
 
     del valid_pois["religion"]
 
+    return valid_pois
+
 def load_hot_osm_pois(valid_pois=False):
     '''
     Return a pandas.DataFrame with all POIs registered
