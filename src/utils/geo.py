@@ -151,8 +151,21 @@ def distance_stop_region_pois(s_region, pois):
 
     return pd.DataFrame(distances)
 
+def distance_stop_region_google_places(s_region, pois):
+    distances = []
+    for index, poi in pois.iterrows():
+        d = distance_epsg_4326(s_region["latitude"], s_region["longitude"], poi["lat_4326"], poi["lon_4326"])
+        distances.append({"id": poi["id"], "distance": d})
+
+    return pd.DataFrame(distances)
+
 def knn_stop_region(sr_centroid, valid_pois, k):
     distances = distance_stop_region_pois(sr_centroid, valid_pois)
+    distances = distances.sort_values(by="distance")
+    return distances.head(k)
+
+def knn_stop_region_google_places(sr_centroid, valid_pois, k):
+    distances = distance_stop_region_google_places(sr_centroid, valid_pois)
     distances = distances.sort_values(by="distance")
     return distances.head(k)
 
@@ -160,6 +173,17 @@ def knn_pois(centroids, pois, k):
     user_knn = []
     for index, centroid in centroids.iterrows():
         knn_df = knn_stop_region(centroid, pois, k)
+        knn_df["lat_sr"] = centroid["latitude"]
+        knn_df["lon_sr"] = centroid["longitude"]
+        knn_df["sr_id"] = centroid["sr_id"]
+        user_knn.append(knn_df)
+
+    return user_knn
+
+def knn_pois_google_places(centroids, pois, k):
+    user_knn = []
+    for index, centroid in centroids.iterrows():
+        knn_df = knn_stop_region_google_places(centroid, pois, k)
         knn_df["lat_sr"] = centroid["latitude"]
         knn_df["lon_sr"] = centroid["longitude"]
         knn_df["sr_id"] = centroid["sr_id"]
