@@ -185,6 +185,21 @@ def load_sr_distance_to_close_pois(user_id):
 
     return user_srs_knn
 
+def load_sr_distance_to_close_pois_google_places(user_id):
+    '''
+    Return a single pandas.DataFrame with all nearest POIs for each Stop Region
+    :param user_id:
+    :return:
+    '''
+    user_sr_knn_path = "outputs/google_places_sr_knn/{}/".format(user_id)
+    user_srs_knn = pd.DataFrame()
+    for filename in os.listdir(user_sr_knn_path):
+        sr_knn = pd.read_csv(user_sr_knn_path + filename)
+        sr_knn["position"] = sr_knn.index
+        user_srs_knn = user_srs_knn.append(sr_knn)
+
+    return user_srs_knn
+
 def filter_valid_amenities(pois):
     return pois[pois["amenity"].isna() == False]
 

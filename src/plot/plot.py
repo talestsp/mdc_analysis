@@ -1,6 +1,6 @@
 import pandas as pd
 
-from bokeh.plotting import figure
+from bokeh.plotting import figure, ColumnDataSource
 from bokeh.io import show
 from bokeh.tile_providers import CARTODBPOSITRON
 
@@ -99,11 +99,39 @@ def add_calculated_centroid_figure(figure, centroid, lat_col="latitude", lon_col
     glyph.line_dash = [6, 3]
     glyph.line_width = 1
 
+def add_calculated_centroid_figure_mouseover(figure, centroid, lat_col="latitude", lon_col="longitude", legend=None,
+                                   point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3,
+                                   to_mercator=True):
+
+    if to_mercator:
+        lon, lat = gps_loc_to_web_mercator(lat=centroid[lat_col], lon=centroid[lon_col])
+        centroid_circle = figure.circle(lon, lat)
+    else:
+        centroid_circle = figure.circle(lon=centroid[lon_col], lat=centroid[lat_col])
+
+    centroid_mercator = gps_loc_to_web_mercator(centroid[lat_col], centroid[lon_col])
+
+    sr_source = ColumnDataSource(data=dict(
+        lon=centroid_mercator[0],
+        lat=centroid_mercator[0],
+        sr_id=centroid["sr_id"]
+    ))
+
+    figure.circle("lon", "lat", color=point_color, size=point_size,
+                  legend=legend, source=sr_source)
+
+    glyph = centroid_circle.glyph
+    glyph.size = 20
+    glyph.fill_alpha = cluster_alpha
+    glyph.fill_color = fill_color
+    glyph.line_alpha = cluster_alpha
+    glyph.line_color = "firebrick"
+    glyph.line_dash = [6, 3]
+    glyph.line_width = 1
+
 def add_calculated_centroids_figure(figure, centroids, lat_col="latitude", lon_col="longitude", legend=None,
                                    point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3,
                                    to_mercator=True, mark="circle"):
-
-
     if mark == "circle":
         mark = figure.circle
     elif mark == "square":
@@ -219,3 +247,30 @@ def plot_point(figure, lat, lon, alpha=0.5, color="magenta", conver_to_mercator=
 
     figure.circle(x=lat, y=lon, size=4, alpha=alpha, color=color)
     return figure
+
+def plot_sr_knn_pois(sr_knn_pois_data, width=800, height=600):
+    p = mercator_fig(width=width, height=height)
+
+    pois_locs = gps_loc_to_web_mercator(lat=sr_knn_pois_data["lat_4326"], lon=sr_knn_pois_data["lon_4326"])
+    sr_knn_pois_data["lon_mercator"] = pois_locs.apply(lambda loc: loc[0])
+    sr_knn_pois_data["lat_mercator"] = pois_locs.apply(lambda loc: loc[1])
+
+    centroid = sr_knn_pois_data[["lat_sr", "lon_sr"]].iloc[0]
+
+    centroid_locs = gps_loc_to_web_mercator(lat=sr_knn_pois_data["lat_sr"], lon=sr_knn_pois_data["lon_sr"])
+    centroid["lon_mercator"] = centroid_locs.apply(lambda loc: loc[0])
+    centroid["lat_mercator"] = centroid_locs.apply(lambda loc: loc[1])
+
+
+    add_calculated_centroid_figure(centroid, lat_col="lat_mercator", lon_col="lon_mercator", fill_color="navy", p=p)
+
+    closest = sr_knn_pois_data[sr_knn_pois_data["position"] == 0]
+
+    p.circle(x=sr_knn_pois_data["lon_mercator"], y=sr_knn_pois_data["lat_mercator"], size=2, alpha=0.5, color="red", legend="pois")
+    p.circle(x=closest["lon_mercator"], y=closest["lat_mercator"], size=2, alpha=0.5, color="#005073", legend="pois")
+
+    return p
+
+
+
+
