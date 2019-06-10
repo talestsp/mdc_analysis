@@ -139,3 +139,9 @@ def valid_pois_google(google_places_data):
                 (google_places_data["types"].apply(len) == 2) &
                 (google_places_data["types"].apply(lambda list : "point_of_interest" in list)) &
                 (google_places_data["types"].apply(lambda list : "establishment" in list)) )]
+
+
+# def load_all_google_places_data(radius_m=75):
+#     for filename os.listdir('../google-places-poi-grabber/data/'):
+#         if filename.startswith(request_circle_)
+#         results = pd.read_csv('../google-places-poi-grabber/data/request_circle_{}.csv'.format(radius_m))
