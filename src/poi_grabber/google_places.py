@@ -100,8 +100,11 @@ def load_request_result(filename):
     with open(filename) as json_file:
         return json.load(json_file)
 
-def load_request_result_single_file(radius_m):
-    return pd.DataFrame(RAW_DATA_REQUESTS_DIR.format(radius_m))
+def load_request_result_single_file(radius_m, filename):
+    with open(RAW_DATA_REQUESTS_DIR.format(radius_m) + filename) as json_file:
+        data_json = json.load(json_file)
+
+    return pd.DataFrame(data_json)
 
 def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, verbose=False):
     try:
