@@ -100,8 +100,11 @@ def load_request_result(filename):
     with open(filename) as json_file:
         return json.load(json_file)
 
-def load_request_result_single_file(radius_m):
-    return pd.DataFrame(RAW_DATA_REQUESTS_DIR.format(radius_m))
+def load_request_result_single_file(radius_m, filename):
+    with open(RAW_DATA_REQUESTS_DIR.format(radius_m) + filename) as json_file:
+        data_json = json.load(json_file)
+
+    return pd.DataFrame(data_json)
 
 def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, verbose=False):
     try:
@@ -132,7 +135,16 @@ def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, 
     results["latitude"] = results["latitude"].apply(lambda value: round(value, round_lat_lon))
     results["longitude"] = results["longitude"].apply(lambda value: round(value, round_lat_lon))
 
+    results = remove_google_places_duplicates(results)
+
     return results
+
+def remove_google_places_duplicates(data):
+    del data["photos"]
+    data = data.groupby('id', as_index=False).max()
+    cols = data.columns.tolist()
+    del cols[cols.index("types")]
+    return data.drop_duplicates(subset=cols)
 
 def valid_pois_google(google_places_data):
     return google_places_data[~(
@@ -141,7 +153,3 @@ def valid_pois_google(google_places_data):
                 (google_places_data["types"].apply(lambda list : "establishment" in list)) )]
 
 
-# def load_all_google_places_data(radius_m=75):
-#     for filename os.listdir('../google-places-poi-grabber/data/'):
-#         if filename.startswith(request_circle_)
-#         results = pd.read_csv('../google-places-poi-grabber/data/request_circle_{}.csv'.format(radius_m))
