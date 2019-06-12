@@ -133,7 +133,5 @@ if __name__ == "__main__":
     valid_pois["lat_4326"] = valid_pois["latitude"]
     valid_pois["lon_4326"] = valid_pois["longitude"]
 
-    users = csv_dao.list_stop_region_usernames()[80:110]
-    users.reverse()
-    print(users)
+    users = csv_dao.list_stop_region_usernames()
     match_poi_google_places(valid_pois, users=users)
