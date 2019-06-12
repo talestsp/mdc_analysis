@@ -155,7 +155,7 @@ def distance_stop_region_google_places(s_region, pois):
     distances = []
     for index, poi in pois.iterrows():
         d = distance_epsg_4326(s_region["latitude"], s_region["longitude"], poi["lat_4326"], poi["lon_4326"])
-        distances.append({"id": poi["id"], "distance": d})
+        distances.append({"place_id": poi["place_id"], "distance": d})
 
     return pd.DataFrame(distances)
 

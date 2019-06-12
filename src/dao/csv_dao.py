@@ -9,6 +9,7 @@ from src.entity.geo_circle import GeoCircle
 
 DAY_SECONDS = 86400
 TEN_SECONDS = 10
+ROUND_LAT_LON = 5
 
 def load_user_gps_csv(userid, from_day_n=None, to_day_n=None, fill=False):
     try:
@@ -195,6 +196,7 @@ def load_sr_distance_to_close_pois_google_places(user_id):
     user_srs_knn = pd.DataFrame()
     for filename in os.listdir(user_sr_knn_path):
         sr_knn = pd.read_csv(user_sr_knn_path + filename)
+        sr_knn = sr_knn.sort_values("distance")
         sr_knn["position"] = sr_knn.index
         user_srs_knn = user_srs_knn.append(sr_knn)
 
@@ -323,6 +325,26 @@ def load_request_circles_df(request_radius):
         data["sr_ids"] = data["sr_ids"].apply(ast.literal_eval)
     return data
 
+def load_kkn_pois_by_stop_region(stop_region):
+    try:
+        user_sr_knn_path = "outputs/google_places_sr_knn/{}/".format(stop_region.user_id)
+        sr_knn = pd.read_csv(user_sr_knn_path + "sr_" + stop_region.sr_id + "_knn.csv")
+    except FileNotFoundError as e:
+        sr_knn = load_equivalent_stop_region(stop_region)
+        sr_knn = sr_knn.drop_duplicates(subset="place_id")
+
+    sr_knn = sr_knn.sort_values("distance")
+    sr_knn["position"] = sr_knn.index
+    return sr_knn
+
+
+def load_equivalent_stop_region(stop_region):
+    user_sr_knns = load_sr_distance_to_close_pois_google_places(stop_region.user_id)
+
+    user_sr_knns["lat_sr"] = user_sr_knns["lat_sr"].apply(lambda lat: round(lat, ROUND_LAT_LON))
+    user_sr_knns["lon_sr"] = user_sr_knns["lon_sr"].apply(lambda lon: round(lon, ROUND_LAT_LON))
+
+    return user_sr_knns[(user_sr_knns["lat_sr"] == stop_region.centroid_lat) & (user_sr_knns["lon_sr"] == stop_region.centroid_lon)]
 
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)

@@ -34,7 +34,7 @@ def nearby_search(latitude, longitude, radius_m):
         #         print("REQUEST")
 
         while r['status'] == "INVALID_REQUEST":
-            time.sleep(1)
+            time.sleep(6)
             r = next_page(next_page_token)
             n_requests += 1
         # print("INVALID, NEW REQUEST")
@@ -56,7 +56,7 @@ def group_data_result(data_list):
     return all_data_results
 
 def save_data(data, rc, n_requests):
-    with open('../google-places-poi-grabber/data/raw_data/results_{}.json'.format(rc.id), 'w') as outfile:
+    with open('../google-places-poi-grabber/data/raw_data_{}/results_{}.json'.format(rc.radius_m, rc.id), 'w') as outfile:
         json.dump(data, outfile)
 
     meta_data = {"rc_id": rc.id, "radius_m": rc.radius_m,
