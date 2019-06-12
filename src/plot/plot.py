@@ -1,19 +1,33 @@
 import pandas as pd
 
-from bokeh.plotting import figure
+from bokeh.plotting import figure, ColumnDataSource
 from bokeh.io import show
 from bokeh.tile_providers import CARTODBPOSITRON
 
 from src.utils.geo import cluster_centroid, user_data_gps_to_web_mercator, gps_loc_to_web_mercator
 from src.utils.color_utils import pick_random_color
 from src.dao import csv_dao
-from src.plot import poi_plot
 
 def plot_stop_region_with_trajectory(user_data, stop_region_clusters, title, color="navy", circle_alpha=0.5, cluster_alpha=0.2):
     p = plot_user_loc(user_data=user_data, title=title, color=color, alpha=circle_alpha)
 
     for cluster in stop_region_clusters:
         add_centroid_figure(p, cluster=cluster, cluster_alpha=cluster_alpha)
+
+    return p
+
+def plot_request_circle(request_circle, points=None, title="", color=pick_random_color(), width=600, height=400, p=None, legend=None):
+    if p is None:
+        p = mercator_fig(title=title, width=width, height=height)
+    if color is None:
+        color = pick_random_color()
+
+    centroid = {"latitude": request_circle.center_lat, "longitude": request_circle.center_lon}
+
+    add_calculated_centroid_figure(p, centroid, legend=legend, point_color=color, fill_color=color)
+    if not points is None:
+        mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(points))
+        p.circle(x=mercator_loc_df[0], y=mercator_loc_df[1], size=2, alpha=0.3, color=color)
 
     return p
 
@@ -30,37 +44,46 @@ def plot_stop_regions(clusters, title, width=800, height=600, plot_points=False,
         add_centroid_figure(p, cluster, fill_color=color)
 
         if plot_points:
-            mercator_loc_list = user_data_gps_to_web_mercator(cluster)
-            for loc in mercator_loc_list:
-                p.circle(x=loc[0], y=loc[1], size=2, alpha=0.3, color=color)
+            mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(cluster))
+            p.circle(x=mercator_loc_df[0], y=mercator_loc_df[1], size=2, alpha=0.3, color=color)
 
     return p
 
+def plot_stop_regions_centroids(centroids, title="", lat_col="latitude", lon_col="longitude", width=800, height=600,
+                                fill_color=pick_random_color(), legend=None, p=None, mark="circle"):
+    if p is None:
+        p = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
 
-def plot_poi(data, title, width=800, height=600, color=None, figure=None):
+    return add_calculated_centroids_figure(p, centroids, lat_col=lat_col, lon_col=lon_col, point_color=fill_color,
+                                       point_size=3, fill_color=fill_color, cluster_alpha=0.3, to_mercator=True,
+                                       legend=legend, mark=mark)
+
+def plot_poi(data, title, lat_col="latitude", lon_col="longitude", width=800, height=600, color=pick_random_color(), figure=None):
     if figure is None:
         figure = mercator_fig(title, point_mercator1=None, point_mercator2=None, width=width, height=height)
 
-    if color is None:
-        color = pick_random_color()
-
-    figure.circle(x=data["latitude"], y=data["longitude"], size=5, alpha=0.3, color=color)
+    mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(data, lat_col=lat_col, lon_col=lon_col))
+    figure.circle(x=mercator_loc_df[0], y=mercator_loc_df[1], size=5, alpha=0.3, color=color)
 
     return figure
 
-
-def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
+def add_centroid_figure(figure, cluster, legend=None, point_color="magenta", point_size=3, fill_color="magenta",
+                        cluster_alpha=0.3, to_mercator=True):
     centroid = cluster_centroid(cluster)
-    add_calculated_centroid_figure(figure, centroid, legend, point_color, point_size, fill_color, cluster_alpha, to_mercator)
+    add_calculated_centroid_figure(figure, centroid, legend=legend, point_color=point_color, point_size=point_size,
+                                   fill_color=fill_color, cluster_alpha=cluster_alpha, to_mercator=to_mercator)
 
-def add_calculated_centroid_figure(figure, centroid, legend=None, point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3, to_mercator=True):
+def add_calculated_centroid_figure(figure, centroid, lat_col="latitude", lon_col="longitude", legend=None,
+                                   point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3,
+                                   to_mercator=True):
+
     if to_mercator:
-        lon, lat = gps_loc_to_web_mercator(lat=centroid["latitude"], lon=centroid["longitude"])
+        lon, lat = gps_loc_to_web_mercator(lat=centroid[lat_col], lon=centroid[lon_col])
         centroid_circle = figure.circle(lon, lat)
     else:
-        centroid_circle = figure.circle(lon=centroid["longitude"], lat=centroid["latitude"])
+        centroid_circle = figure.circle(lon=centroid[lon_col], lat=centroid[lat_col])
 
-    centroid_mercator = gps_loc_to_web_mercator(centroid["latitude"], centroid["longitude"])
+    centroid_mercator = gps_loc_to_web_mercator(centroid[lat_col], centroid[lon_col])
 
     if legend is None:
         figure.circle(centroid_mercator[0], centroid_mercator[1], color=point_color, size=point_size)
@@ -76,6 +99,63 @@ def add_calculated_centroid_figure(figure, centroid, legend=None, point_color="m
     glyph.line_dash = [6, 3]
     glyph.line_width = 1
 
+def add_calculated_centroid_figure_mouseover(figure, centroid, lat_col="latitude", lon_col="longitude", legend=None,
+                                   point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3,
+                                   to_mercator=True):
+
+    if to_mercator:
+        lon, lat = gps_loc_to_web_mercator(lat=centroid[lat_col], lon=centroid[lon_col])
+        centroid_circle = figure.circle(lon, lat)
+    else:
+        centroid_circle = figure.circle(lon=centroid[lon_col], lat=centroid[lat_col])
+
+    centroid_mercator = gps_loc_to_web_mercator(centroid[lat_col], centroid[lon_col])
+
+    sr_source = ColumnDataSource(data=dict(
+        lon=centroid_mercator[0],
+        lat=centroid_mercator[0],
+        sr_id=centroid["sr_id"]
+    ))
+
+    figure.circle("lon", "lat", color=point_color, size=point_size,
+                  legend=legend, source=sr_source)
+
+    glyph = centroid_circle.glyph
+    glyph.size = 20
+    glyph.fill_alpha = cluster_alpha
+    glyph.fill_color = fill_color
+    glyph.line_alpha = cluster_alpha
+    glyph.line_color = "firebrick"
+    glyph.line_dash = [6, 3]
+    glyph.line_width = 1
+
+def add_calculated_centroids_figure(figure, centroids, lat_col="latitude", lon_col="longitude", legend=None,
+                                   point_color="magenta", point_size=3, fill_color="magenta", cluster_alpha=0.3,
+                                   to_mercator=True, mark="circle"):
+    if mark == "circle":
+        mark = figure.circle
+    elif mark == "square":
+        mark = figure.square
+    else:
+        mark = figure.circle = figure.circle
+
+    if to_mercator:
+        locs = centroids.apply(lambda centroid : gps_loc_to_web_mercator(lat=centroid[lat_col], lon=centroid[lon_col]), axis=1)
+        lons_mercator = locs.apply(lambda loc: loc[0])
+        lats_mercator = locs.apply(lambda loc: loc[1])
+
+        mark(lons_mercator, lats_mercator, size=20, color=point_color, alpha=cluster_alpha,
+                        fill_color=fill_color, legend=legend)
+        mark(lons_mercator, lats_mercator, color=point_color, size=point_size)
+    else:
+        mark(centroids[lon_col], centroids[lat_col], size=20, color=point_color, alpha=cluster_alpha,
+                        fill_color=fill_color, legend=legend)
+
+        mark(lon=centroids[lon_col], lat=centroids[lat_col])
+
+    return figure
+
+
 def plot_users_stop_region(users, width=1500, height=800):
     p = mercator_fig(title="Users: " + str(users), width=width, height=height)
     for user in users:
@@ -90,7 +170,31 @@ def add_users_stop_region(user, figure):
 
     return figure
 
-def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=800, size=2, p=None, legend=None):
+def plot_user_loc(user_data, lat_col="latitude", lon_col="longitude", title="", color="navy", alpha=0.5, width=1500, height=800, size=2, p=None, legend=None):
+    '''
+    Plots user locations
+    :param user_data:
+    :param title:
+    :param color:
+    :param alpha:
+    :param width:
+    :param height:
+    :return:
+    '''
+
+    p1 = gps_loc_to_web_mercator(lat=user_data[lat_col].min(), lon=user_data[lon_col].min())
+    p2 = gps_loc_to_web_mercator(lat=user_data[lat_col].max(), lon=user_data[lon_col].max())
+
+    if p is None:
+        p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
+
+    mercator_loc_df = pd.DataFrame(user_data_gps_to_web_mercator(user_data, lat_col=lat_col, lon_col=lon_col))
+
+    p.circle(x=mercator_loc_df[0], y=mercator_loc_df[1], size=size, alpha=alpha, color=color, legend=legend)
+
+    return p
+
+def plot_user_loc_bkp(user_data, title, color="navy", alpha=0.5, width=1500, height=800, size=2, p=None, legend=None):
     '''
     Plots user locations
     :param user_data:
@@ -108,6 +212,8 @@ def plot_user_loc(user_data, title, color="navy", alpha=0.5, width=1500, height=
         p = mercator_fig(title=title, point_mercator1=p1, point_mercator2=p2, width=width, height=height)
 
     mercator_loc_list = user_data_gps_to_web_mercator(user_data)
+
+    print(mercator_loc_list)
 
     for loc in mercator_loc_list:
         p.circle(x=loc[0], y=loc[1], size=size, alpha=alpha, color=color, legend=legend)
@@ -142,39 +248,29 @@ def plot_point(figure, lat, lon, alpha=0.5, color="magenta", conver_to_mercator=
     figure.circle(x=lat, y=lon, size=4, alpha=alpha, color=color)
     return figure
 
+def plot_sr_knn_pois(sr_knn_pois_data, width=800, height=600):
+    p = mercator_fig(width=width, height=height)
 
-if __name__ == "__main__":
-    #pd.set_option('display.max_columns', None)
-    #pd.set_option('display.width', 1000)
-    #pd.set_option('display.float_format', lambda x: '%.3f' % x)
+    pois_locs = gps_loc_to_web_mercator(lat=sr_knn_pois_data["lat_4326"], lon=sr_knn_pois_data["lon_4326"])
+    sr_knn_pois_data["lon_mercator"] = pois_locs.apply(lambda loc: loc[0])
+    sr_knn_pois_data["lat_mercator"] = pois_locs.apply(lambda loc: loc[1])
 
-    #p = plot_point(mercator_fig(title=""), lat=45.739885, lon=5.7493075000000005)
-    #p = plot_point(p, lat=47.790615, lon=10.6232425)
+    centroid = sr_knn_pois_data[["lat_sr", "lon_sr"]].iloc[0]
 
-    #p = plot_point(p, lat=47.277932500000006, lon=9.40475875, color="blue")
-    #p = plot_point(p, lat=47.277932500000006, lon=6.96779125, color="blue")
-    #p = plot_point(p, lat=46.2525675, lon=6.96779125, color="blue")
-    #p = plot_point(p, lat=46.2525675, lon=9.40475875, color="blue")
+    centroid_locs = gps_loc_to_web_mercator(lat=sr_knn_pois_data["lat_sr"], lon=sr_knn_pois_data["lon_sr"])
+    centroid["lon_mercator"] = centroid_locs.apply(lambda loc: loc[0])
+    centroid["lat_mercator"] = centroid_locs.apply(lambda loc: loc[1])
 
-    #p = plot_point(p, lat=46.76525, lon=8.186275, color="orange")
 
-    #p = plot_point(p, lat=46.124396875, lon=6.6631703125, color="red")
-    #p = plot_point(p, lat=46.124396875, lon=6.053928437500001, color="red")
-    #p = plot_point(p, lat=45.868055625, lon=6.053928437500001, color="red")
-    #p = plot_point(p, lat=45.868055625, lon=6.6631703125, color="red")
+    add_calculated_centroid_figure(centroid, lat_col="lat_mercator", lon_col="lon_mercator", fill_color="navy", p=p)
 
-    #show(p)
+    closest = sr_knn_pois_data[sr_knn_pois_data["position"] == 0]
 
-    # plot_stop_regions_and_pois()
+    p.circle(x=sr_knn_pois_data["lon_mercator"], y=sr_knn_pois_data["lat_mercator"], size=2, alpha=0.5, color="red", legend="pois")
+    p.circle(x=closest["lon_mercator"], y=closest["lat_mercator"], size=2, alpha=0.5, color="#005073", legend="pois")
 
-    # r = 50
-    # delta_t = 300
-    #
-    #
-    # for userid in [6171]:#[6171, 6033]:
-    #     user_data = csv_dao.load_user_gps_csv(userid, 0, 1)
-    #     stop_region_finder = MovingCentroidStopRegionFinder(region_radius=r, delta_time=delta_t)
-    #     clusters = stop_region_finder.find_clusters(user_data)
-    #     show(plot_stop_region_with_trajectory(user_data, clusters, title="USERID: " + str(userid) + " - n_CLUSTERS: " + str(len(clusters)) + " - " + "d: " + str(r) + ", " + "delta_t: " + str(delta_t)))
+    return p
 
-    pass
+
+
+

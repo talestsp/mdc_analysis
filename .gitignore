@@ -4,6 +4,7 @@ credentials/
 *.pyc
 outputs/*
 *plot.html
+*.html
 
 .pytest_cache/*
 

@@ -7,3 +7,6 @@ def pick_random_color():
 
     return palette[random_n]
 
+def palette(type="bright"):
+    return sns.color_palette(type).as_hex()
+

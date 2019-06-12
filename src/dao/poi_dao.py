@@ -1,8 +1,8 @@
 import json
 import os
 
-FOURSQUARE_POI_DIR = "/home/tales/dev/poi-grabber/out/poi/foursquare/"
-GOOGLE_PLACES_POI_DIR = "/home/tales/dev/poi-grabber/out/poi/google_places/"
+FOURSQUARE_POI_DIR = "/home/tales/dev/poi_grabber/out/poi/foursquare/"
+GOOGLE_PLACES_POI_DIR = "/home/tales/dev/poi_grabber/out/poi/google_places/"
 
 def load_pois(dir):
     pois = []
