@@ -251,6 +251,11 @@ def unique_stop_regions(sr_data, on_cols=['latitude', 'longitude']):
     return sr_data[sr_data["sr_id"].isin(unique_sr)]
 
 def load_home_inferred_sr_ids(user_id):
+    '''
+    Home places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     try:
         data = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}_v2.csv".format(user_id))['sr_id'].tolist()
         return data
@@ -258,6 +263,11 @@ def load_home_inferred_sr_ids(user_id):
         return []
 
 def load_work_inferred_sr_ids(user_id):
+    '''
+    Work places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     try:
         data = pd.read_csv("outputs/work_inferred/work_stop_regions_user_{}_v2.csv".format(user_id))['sr_id'].tolist()
         return data
@@ -265,11 +275,21 @@ def load_work_inferred_sr_ids(user_id):
         return []
 
 def load_home_inferred_sr(user_id):
+    '''
+    Home places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     home_sr_ids = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}_v2.csv".format(user_id))
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(home_sr_ids)]
 
 def load_work_inferred_sr(user_id):
+    '''
+    Work places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     work_sr_ids = pd.read_csv("outputs/home_inferred/work_stop_regions_user_{}_v2.csv".format(user_id))
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(work_sr_ids)]
@@ -325,7 +345,7 @@ def load_request_circles_df(request_radius):
         data["sr_ids"] = data["sr_ids"].apply(ast.literal_eval)
     return data
 
-def load_kkn_pois_by_stop_region(stop_region):
+def load_knn_pois_by_stop_region(stop_region):
     try:
         user_sr_knn_path = "outputs/google_places_sr_knn/{}/".format(stop_region.user_id)
         sr_knn = pd.read_csv(user_sr_knn_path + "sr_" + stop_region.sr_id + "_knn.csv")
