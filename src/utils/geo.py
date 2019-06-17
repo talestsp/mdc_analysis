@@ -64,6 +64,17 @@ def user_data_gps_to_web_mercator(user_df, lat_col="latitude", lon_col="longitud
 def gps_loc_to_web_mercator(lat, lon):
     return transform(Proj(init='epsg:4326'), Proj(init='epsg:3857'), lon, lat)
 
+def convert_3857_4326(lat, lon):
+    inProj  = Proj("+init=EPSG:3857")
+    outProj = Proj("+init=EPSG:4326")
+    return transform(inProj,outProj,lat,lon)
+
+def convert_4326_3857(lat, lon):
+    raise Exception("Use funcion: {}".format("gps_loc_to_web_mercator"))
+    # inProj  = Proj("+init=EPSG:4326")
+    # outProj = Proj("+init=EPSG:3857")
+    # return transform(inProj,outProj,lat,lon)
+
 
 def box_limits(users):
     global_min_lon = 999999999
@@ -273,17 +284,6 @@ def user_bounding_box(user_id, expand=None):
         expanded_box = expanded_box.set_index("point")
 
         return expanded_box
-
-def convert_3857_4326(lat, lon):
-    inProj  = Proj("+init=EPSG:3857")
-    outProj = Proj("+init=EPSG:4326")
-    return transform(inProj,outProj,lat,lon)
-
-def convert_4326_3857(lat, lon):
-    inProj  = Proj("+init=EPSG:4326")
-    outProj = Proj("+init=EPSG:3857")
-    return transform(inProj,outProj,lat,lon)
-
 
 def remove_outliers(data, quantile_threshold=0.05):
     clean_data = data.copy()

@@ -118,10 +118,7 @@ def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, 
     except:
         results = pd.DataFrame()
 
-        counter = 0
         for filename in os.listdir(RAW_DATA_REQUESTS_DIR.format(radius_m)):
-            counter += 1
-            print(counter)
             if filename.startswith("metadata_"):
                 metadata = pd.DataFrame([load_request_metadata(RAW_DATA_REQUESTS_DIR.format(radius_m) + filename)])
                 if metadata["radius_m"].item() != radius_m:

@@ -24,3 +24,19 @@ def diff_between_dates(timestamp0, timestamp1):
     d1 = datetime.datetime.fromtimestamp(timestamp1)
     delta_days = (d1 - d0).days + ((d1 - d0).seconds / (DAY_SECONDS))
     return delta_days
+
+def weekday(timestamp):
+    return calendar.day_name[datetime.datetime.utcfromtimestamp(timestamp).weekday()]
+
+def human_time(centroid):
+    centroid["start_time"] = centroid["local_start_time"].apply(
+        lambda row: datetime.utcfromtimestamp(row).strftime('%Y-%m-%d %H:%M:%S'))
+    centroid["end_time"] = centroid["local_end_time"].apply(
+        lambda row: datetime.utcfromtimestamp(row).strftime('%Y-%m-%d %H:%M:%S'))
+
+    centroid["start_weekday"] = centroid["local_start_time"].apply(
+        lambda row: calendar.day_name[datetime.utcfromtimestamp(row).weekday()])
+    centroid["end_weekday"] = centroid["local_end_time"].apply(
+        lambda row: calendar.day_name[datetime.utcfromtimestamp(row).weekday()])
+
+    return centroid

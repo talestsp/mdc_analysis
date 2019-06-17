@@ -5,6 +5,7 @@ import ast
 import src.utils.geo as geo
 from src.utils.time_utils import local_time
 from src.entity.geo_circle import GeoCircle
+from src.entity.stop_region import sr_row_to_stop_region
 
 
 DAY_SECONDS = 86400
@@ -103,6 +104,9 @@ def list_stop_region_usernames():
 
     return dirnames
 
+def load_stop_region_by_sr_id(user_id, sr_id):
+    return pd.read_csv("outputs/stop_regions/{}/cluster_{}.csv".format(user_id, sr_id.split("_")[1]))
+
 def load_user_stop_regions(user, columns=None):
     '''
     Return a list of pandas.DataFrame
@@ -160,6 +164,10 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
                 centroid['tag'] = centroid['tag'] + "WORK" + ","
 
             centroid['tag'] = centroid['tag'][0 : len(centroid['tag']) - 1]
+
+            if centroid['tag'] == '':
+                centroid['tag'] = None
+
 
         centroids.append(centroid)
 
@@ -365,6 +373,11 @@ def load_equivalent_stop_region(stop_region):
     user_sr_knns["lon_sr"] = user_sr_knns["lon_sr"].apply(lambda lon: round(lon, ROUND_LAT_LON))
 
     return user_sr_knns[(user_sr_knns["lat_sr"] == stop_region.centroid_lat) & (user_sr_knns["lon_sr"] == stop_region.centroid_lon)]
+
+def stop_region_sequence(user_id):
+    sr = load_user_stop_regions_centroids(user_id).sort_values("local_start_time")
+    sr_sequence = sr.apply(sr_row_to_stop_region, axis=1).tolist()
+    return sr_sequence
 
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)
