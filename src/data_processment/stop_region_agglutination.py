@@ -22,6 +22,7 @@ def agglutinate(stop_regions):
         early_time_sr = stop_regions[0]
 
         for sr in stop_regions:
+            print(sr)
             end_times.append(sr.end_time)
             start_times.append(sr.start_time)
             user_ids.append(sr.user_id)
@@ -42,12 +43,12 @@ def agglutinate(stop_regions):
                 'semantics': pd.Series(semantics).drop_duplicates().tolist(),
                 'agglutination': stop_regions}
 
-def agglutinate_consecutive_stop_regions(sr_sequence, agglutination_rule):
-    agglutinate = [[sr_sequence[0]]]
+def agglutinate_consecutive_stop_regions(sr_list, agglutination_rule):
+    agglutinate = [[sr_list[0]]]
     agglutination_report = []
 
-    last_sr = sr_sequence[0]
-    for sr in sr_sequence[1:]:
+    last_sr = sr_list[0]
+    for sr in sr_list[1:]:
         agglutination_report_row = {"distance": round(sr.distance_to_another_sr(last_sr), 1),
                                     "delta_t": sr.delta_time_to_another_sr(last_sr),
                                     "last_sr": last_sr.sr_id, "last_sr_tag": last_sr.tag_closest_poi(),

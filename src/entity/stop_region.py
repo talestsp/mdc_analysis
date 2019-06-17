@@ -3,7 +3,7 @@ from src.utils import geo
 from src.dao import csv_dao
 from src.poi_grabber import google_places
 from src.plot import plot2
-from src.data_processment.stop_region_agglutination import agglutinate
+from src.data_processment.stop_region_agglutination import agglutinate, agglutinate_consecutive_stop_regions, same_closest_poi
 
 class StopRegion:
     '''
@@ -131,6 +131,22 @@ class StopRegionSequence:
 
         cols = ["delta_t", "distance", "last_sr_tag", "sr_tag", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
         return pd.DataFrame(sequence_report)[cols]
+
+    def agglutinate_stop_regions(self):
+        agglutinated = []
+        singles = []
+
+        agglutinated_srs = agglutinate_consecutive_stop_regions(self.stop_region_sequence, same_closest_poi)
+
+        for group in agglutinated_srs:
+            if len(group) == 1:
+                singles.append(group[0])
+            else:
+                agg_sr = agglutinate(group)
+                agglutinated.append(StopRegion(**agg_sr))
+
+        return StopRegionSequence((agglutinated + singles).sort(key=lambda x: x.start_time, reverse=False))
+
 
 def sr_row_to_stop_region(sr_row):
     if sr_row["tag"] is None:
