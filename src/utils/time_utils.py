@@ -28,15 +28,20 @@ def diff_between_dates(timestamp0, timestamp1):
 def weekday(timestamp):
     return calendar.day_name[datetime.datetime.utcfromtimestamp(timestamp).weekday()]
 
-def human_time(centroid):
-    centroid["start_time"] = centroid["local_start_time"].apply(
-        lambda row: datetime.utcfromtimestamp(row).strftime('%Y-%m-%d %H:%M:%S'))
-    centroid["end_time"] = centroid["local_end_time"].apply(
-        lambda row: datetime.utcfromtimestamp(row).strftime('%Y-%m-%d %H:%M:%S'))
+# def human_time(centroid):
+#     centroid["start_time"] = centroid["local_start_time"].apply(
+#         lambda row: datetime.utcfromtimestamp(row).strftime('%Y-%m-%d %H:%M:%S'))
+#     centroid["end_time"] = centroid["local_end_time"].apply(
+#         lambda row: datetime.utcfromtimestamp(row).strftime('%Y-%m-%d %H:%M:%S'))
+#
+#     centroid["start_weekday"] = centroid["local_start_time"].apply(
+#         lambda row: calendar.day_name[datetime.utcfromtimestamp(row).weekday()])
+#     centroid["end_weekday"] = centroid["local_end_time"].apply(
+#         lambda row: calendar.day_name[datetime.utcfromtimestamp(row).weekday()])
+#
+#     return centroid
 
-    centroid["start_weekday"] = centroid["local_start_time"].apply(
-        lambda row: calendar.day_name[datetime.utcfromtimestamp(row).weekday()])
-    centroid["end_weekday"] = centroid["local_end_time"].apply(
-        lambda row: calendar.day_name[datetime.utcfromtimestamp(row).weekday()])
-
-    return centroid
+def human_time(timestamp):
+    datetime_dict = {"datetime": datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}
+    datetime_dict["weekday"] = weekday(timestamp)
+    return datetime_dict

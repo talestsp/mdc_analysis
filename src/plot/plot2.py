@@ -28,10 +28,15 @@ def stop_region_centroid_data_source(stop_regions):
         mercator_lon, mercator_lat = geo.gps_loc_to_web_mercator(lat=sr.centroid_lat, lon=sr.centroid_lon)
         mercator_lats.append(mercator_lat)
         mercator_lons.append(mercator_lon)
-        start_times.append(sr.start_time)
-        end_times.append(sr.end_time)
-        start_weekdays.append(time_utils.weekday(sr.start_time))
-        end_weekdays.append(time_utils.weekday(sr.end_time))
+
+        start_human_datetime = time_utils.human_time(sr.start_time)
+        end_human_datetime = time_utils.human_time(sr.end_time)
+
+        start_times.append(start_human_datetime["datetime"])
+        end_times.append(end_human_datetime["datetime"])
+        start_weekdays.append(start_human_datetime["weekday"])
+        end_weekdays.append(end_human_datetime["weekday"])
+
         ids.append(sr.sr_id)
 
     sr_source = ColumnDataSource(data=dict(

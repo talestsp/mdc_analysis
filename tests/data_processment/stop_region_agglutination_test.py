@@ -3,7 +3,7 @@ os.chdir("/home/tales/dev/master/mdc_analysis/")
 
 import unittest
 from src.dao import csv_dao
-from src.data_processment.stop_region_agglutination import agglutinate_consecutive_stop_regions, same_closest_poi
+from src.entity.stop_region import group_stop_regions_for_agglutination, same_closest_poi
 
 class stop_region_agglutination_test(unittest.TestCase):
 
@@ -30,7 +30,7 @@ class stop_region_agglutination_test(unittest.TestCase):
 
     def test_agglutination_choices(self):
         sr_sequence = csv_dao.stop_region_sequence(6070)
-        agglutinate, agglut_report = agglutinate_consecutive_stop_regions(sr_sequence, same_closest_poi)
+        agglutinate, agglut_report = group_stop_regions_for_agglutination(sr_sequence, same_closest_poi)
 
         sr_ids = []
 
