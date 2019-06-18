@@ -4,7 +4,7 @@ from bokeh.plotting import figure, ColumnDataSource
 from bokeh.tile_providers import CARTODBPOSITRON
 
 from src.utils import geo
-from src.utils.color_utils import pick_random_color
+from src.poi_grabber import google_places
 from src.utils import time_utils
 
 from bokeh.models import HoverTool
@@ -13,8 +13,8 @@ from bokeh.models import HoverTool
 def stop_region_centroid_data_source(stop_regions):
     if str(type(stop_regions).__name__) == "StopRegion":
         stop_regions = [stop_regions]
-    elif str(type(stop_regions).__name__) == "StopRegionSequence":
-        stop_regions = stop_regions.stop_region_sequence
+    elif str(type(stop_regions).__name__) == "StopRegionGroup":
+        stop_regions = stop_regions.stop_region_list
 
     mercator_lats = []
     mercator_lons = []
@@ -52,6 +52,35 @@ def stop_region_centroid_data_source(stop_regions):
     return sr_source
 
 
+def pois_data_source_from_stop_region_group(stop_region_group, n_closest_pois=30):
+    pois = pd.DataFrame()
+    #closest_pois = pd.DataFrame()
+
+    for stop_region in stop_region_group.stop_region_list:
+        if not stop_region.close_pois is None:
+            pois = pois.append(stop_region.close_pois.head(n_closest_pois))
+            #closest_pois = closest_pois.append(stop_region.closest_poi())
+
+    pois_locs = pois.apply(lambda poi : geo.gps_loc_to_web_mercator(lat=poi["latitude"], lon=poi["longitude"]), axis=1)
+    pois["lon_mercator"] = pois_locs.apply(lambda loc: loc[0])
+    pois["lat_mercator"] = pois_locs.apply(lambda loc: loc[1])
+
+    pois["show_types"] = pois["types"].apply(lambda types: str(google_places.useful_types(types)))
+
+    pois_source = ColumnDataSource(data=dict(
+        lon=pois["lon_mercator"].tolist(),
+        lat=pois["lat_mercator"].tolist(),
+        position=pois["position"].tolist(),
+        distance=pois["distance"].tolist(),
+        sr_id=pois["sr_id"].tolist(),
+        show_types=pois["show_types"].tolist(),
+
+    ))
+
+    return pois_source
+
+
+
 def stop_region_tooltips():
     return [
         ("sr_id", "@sr_id"),
@@ -61,20 +90,32 @@ def stop_region_tooltips():
         ("  end_weekday", "@end_weekday")
     ]
 
+def pois_tooltips():
+    return [
+        ("position", "@position"),
+        ("types", "@show_types"),
+        ("distance", "@distance"),
+        ("sr_id", "@sr_id")
+    ]
+
+def hot_osm_pois_tooltips():
+    return [
+        ("types", "@types"),
+        ("name", "@name")
+    ]
+
 def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magenta", mark_type="circle",
                      fill_alpha=0.4, legend=None, tooltips=None):
-
-    print("mark_type", mark_type)
 
     if mark_type == "circle":
         p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
         centroid_mark = p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source)
-        p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
 
     elif mark_type == "square":
         p.square("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
         centroid_mark = p.square("lon", "lat", color=point_color, size=point_size, source=sr_source)
-        p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
+
+    p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
 
     glyph = centroid_mark.glyph
     glyph.size = 20
@@ -87,14 +128,31 @@ def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magent
 
     return p
 
-def centroids_figure_mouseover(stop_region_sequence, p, legend=None, point_color="magenta", mark_type="circle",
+def poi_mark(p, poi_source, point_color="navy", point_size=3, mark_type="circle", alpha=0.7, tooltips=pois_tooltips()):
+
+    if mark_type == "circle":
+        poi_mark = p.circle("lon", "lat", color=point_color, size=point_size, source=poi_source, alpha=alpha, legend="pois_google")
+
+    p.add_tools(HoverTool(renderers=[poi_mark], tooltips=tooltips))
+
+    return p
+
+def centroids_figure_mouseover(stop_region_group, p, legend=None, point_color="magenta", mark_type="circle",
                               point_size=3, fill_color="magenta", fill_alpha=0.3):
 
-    sr_source = stop_region_centroid_data_source(stop_region_sequence)
+    sr_source = stop_region_centroid_data_source(stop_region_group)
     tooltips = stop_region_tooltips()
 
     p = stop_region_mark(p=p, sr_source=sr_source, point_color=point_color, point_size=point_size, mark_type=mark_type,
                          fill_color=fill_color, fill_alpha=fill_alpha, legend=legend, tooltips=tooltips)
+    return p
+
+def pois_figure_mouseover(data_source, color="navy", alpha=0.7, point_size=3, mark_type="circle", p=None):
+    tooltips = pois_tooltips()
+
+    p = poi_mark(p=p, poi_source=data_source, point_color=color, point_size=point_size, mark_type=mark_type,
+                         alpha=alpha, tooltips=tooltips)
+
     return p
 
 def plot_stop_region(stop_region_obj, title="", width=800, height=600, p=None, mark_type="circle"):
@@ -104,12 +162,61 @@ def plot_stop_region(stop_region_obj, title="", width=800, height=600, p=None, m
     p = centroids_figure_mouseover(stop_region_obj, p, mark_type=mark_type)
     return p
 
-def plot_stop_region_sequence(stop_region_sequence, title="", fill_color="magenta", mark_type="circle",
-                              width=800, height=600, p=None):
+def plot_stop_region_group(stop_region_group, title="", fill_color="magenta", mark_type="circle",
+                           width=800, height=600, p=None, plot_n_pois=30, point_size=6):
     if p is None:
         p = mercator_fig(title=title, width=width, height=height)
 
-    p = centroids_figure_mouseover(stop_region_sequence, fill_color=fill_color, p=p, mark_type=mark_type)
+    p = centroids_figure_mouseover(stop_region_group, fill_color=fill_color, p=p, mark_type=mark_type)
+
+    pois_data_source = pois_data_source_from_stop_region_group(stop_region_group, n_closest_pois=plot_n_pois)
+
+    p = pois_figure_mouseover(data_source=pois_data_source, color="navy", alpha=0.7, point_size=point_size, p=p)
+
+    p = hilight_closest_poi(stop_region_group, p=p, point_size=10)
+
+    return p
+
+def hilight_closest_poi(stop_region_group, p, color="red", point_size=8):
+    closests_pois = pd.DataFrame()
+
+    for sr in stop_region_group.stop_region_list:
+        closests_pois = closests_pois.append(sr.closest_poi())
+
+    pois_locs = closests_pois.apply(lambda poi: geo.gps_loc_to_web_mercator(lat=poi["latitude"], lon=poi["longitude"]),axis=1)
+
+    lons_mercator = pois_locs.apply(lambda loc: loc[0])
+    lats_mercator = pois_locs.apply(lambda loc: loc[1])
+
+    p.square(lons_mercator, lats_mercator, color=color, size=point_size, alpha=0.2, legend="closest_pois")
+
+    return p
+
+def add_hot_osm_pois(pois, p, color="orange", alpha=0.7, size=7):
+    data_source = hot_osm_data_source(pois)
+    p = hot_osm_pois_figure_mouseover(data_source=data_source, color=color, alpha=alpha, point_size=size, p=p)
+
+    return p
+
+def hot_osm_data_source(pois):
+    pois = pois.copy(deep=True)
+    pois_locs = pois.apply(lambda poi: geo.gps_loc_to_web_mercator(lat=poi["lat_4326"], lon=poi["lon_4326"]), axis=1)
+    pois["lon_mercator"] = pois_locs.apply(lambda loc: loc[0])
+    pois["lat_mercator"] = pois_locs.apply(lambda loc: loc[1])
+
+    return ColumnDataSource(data=dict(
+        lon=pois["lon_mercator"].tolist(),
+        lat=pois["lat_mercator"].tolist(),
+        name=pois["name"].tolist(),
+        types=pois["types"].tolist(),
+    ))
+
+def hot_osm_pois_figure_mouseover(data_source, color="orange", alpha=0.3, point_size=3, p=None):
+    poi_mark = p.triangle("lon", "lat", color=color, size=point_size, source=data_source, alpha=alpha,
+                          legend="hot_osm_pois")
+
+    p.add_tools(HoverTool(renderers=[poi_mark], tooltips=hot_osm_pois_tooltips()))
+
     return p
 
 

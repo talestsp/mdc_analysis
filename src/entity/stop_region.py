@@ -16,12 +16,14 @@ class StopRegion:
         self.sr_id = sr_id
 
         self.user_id = user_id
-        self.close_pois = pd.DataFrame()
+        # self.close_pois = pd.DataFrame()
         self.close_pois_ids = []
         self.semantics = semantics
         self.agglutination = agglutination
 
         self.close_pois = None
+
+        self.load_close_pois()
 
     def agglutinate_with(self, another_stop_regions):
         agglutination_params = agglutinate([self] + another_stop_regions)
@@ -61,11 +63,15 @@ class StopRegion:
             self.close_pois = self.__merge_agg_pois()
             return self.close_pois
 
-        pois = csv_dao.load_knn_pois_by_stop_region(self)[["distance", "place_id", "position"]]
+        pois = csv_dao.load_knn_pois_by_stop_region(self)[["distance", "place_id", "position", "sr_id"]]
         self.close_pois = google_places.load_all_google_places_data(valid_pois=True).merge(pois, on="place_id", how="inner").sort_values(by="distance")
 
         if verbose:
             print("{} POIs loaded".format(len(self.close_pois)))
+
+        if self.close_pois is None:
+            print("0 pois, sr_id", self.sr_id)
+
         return self.close_pois
 
     def __remove_tags_from_list(self, tags_list, tags_to_be_removed):
@@ -110,9 +116,18 @@ class StopRegionGroup:
         self.stop_region_list = stop_region_list
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
 
-    def plot(self, title="", width=800, height=600, fill_color="magenta", p=None, mark_type="circle"):
-        return plot2.plot_stop_region_sequence(stop_region_sequence=self, title=title, mark_type=mark_type,
-                                               width=width, height=height, fill_color=fill_color, p=p)
+    def plot(self, title="", width=800, height=600, plot_n_pois=4, fill_color="magenta", p=None, mark_type="circle"):
+
+        return plot2.plot_stop_region_group(stop_region_group=self, title=title, mark_type=mark_type,
+                                            width=width, height=height, fill_color=fill_color, p=p,
+                                            plot_n_pois=plot_n_pois)
+
+    def search_stop_region_by_id(self, sr_id):
+        for sr in self.stop_region_list:
+            if sr.sr_id == sr_id:
+                return sr
+        return None
+
     def size(self):
         return len(self.stop_region_list)
 
@@ -150,9 +165,6 @@ class StopRegionGroup:
         srs = agglutinated + singles
         srs.sort(key=lambda x: x.start_time, reverse=False)
 
-        print("srs", len(srs))
-        print("agglutinated", len(agglutinated))
-        print("singles", len(singles))
         return StopRegionGroup(srs)
 
 

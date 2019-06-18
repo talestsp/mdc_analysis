@@ -172,3 +172,13 @@ def valid_pois_google(google_places_data):
                 (google_places_data["types"].apply(lambda list : "establishment" in list)) )]
 
 
+def useful_types(types):
+    if "establishment" in types:
+        del [types[types.index("establishment")]]
+
+    if "point_of_interest" in types:
+        del [types[types.index("point_of_interest")]]
+
+    return types
+
+
