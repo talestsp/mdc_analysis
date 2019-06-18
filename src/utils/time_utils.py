@@ -42,6 +42,6 @@ def weekday(timestamp):
 #     return centroid
 
 def human_time(timestamp):
-    datetime_dict = {"datetime": datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}
+    datetime_dict = {"datetime": datetime.datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')}
     datetime_dict["weekday"] = weekday(timestamp)
     return datetime_dict

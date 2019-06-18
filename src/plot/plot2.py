@@ -61,14 +61,22 @@ def stop_region_tooltips():
         ("  end_weekday", "@end_weekday")
     ]
 
-def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magenta", fill_alpha=0.4, legend=None, tooltips=None):
-    p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
+def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magenta", mark_type="circle",
+                     fill_alpha=0.4, legend=None, tooltips=None):
 
-    centroid_circle = p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source)
+    print("mark_type", mark_type)
 
-    p.add_tools(HoverTool(renderers=[centroid_circle], tooltips=tooltips))
+    if mark_type == "circle":
+        p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
+        centroid_mark = p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source)
+        p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
 
-    glyph = centroid_circle.glyph
+    elif mark_type == "square":
+        p.square("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
+        centroid_mark = p.square("lon", "lat", color=point_color, size=point_size, source=sr_source)
+        p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
+
+    glyph = centroid_mark.glyph
     glyph.size = 20
     glyph.fill_alpha = fill_alpha
     glyph.fill_color = fill_color
@@ -79,28 +87,29 @@ def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magent
 
     return p
 
-def centroids_figure_mouseover(stop_region_sequence, p, legend=None, point_color="magenta",
+def centroids_figure_mouseover(stop_region_sequence, p, legend=None, point_color="magenta", mark_type="circle",
                               point_size=3, fill_color="magenta", fill_alpha=0.3):
 
     sr_source = stop_region_centroid_data_source(stop_region_sequence)
     tooltips = stop_region_tooltips()
 
-    p = stop_region_mark(p=p, sr_source=sr_source, point_color=point_color, point_size=point_size,
+    p = stop_region_mark(p=p, sr_source=sr_source, point_color=point_color, point_size=point_size, mark_type=mark_type,
                          fill_color=fill_color, fill_alpha=fill_alpha, legend=legend, tooltips=tooltips)
     return p
 
-def plot_stop_region(stop_region_obj, title="", width=800, height=600, p=None):
+def plot_stop_region(stop_region_obj, title="", width=800, height=600, p=None, mark_type="circle"):
     if p is None:
         p = mercator_fig(title=title, width=width, height=height)
 
-    p = centroids_figure_mouseover(stop_region_obj, p)
+    p = centroids_figure_mouseover(stop_region_obj, p, mark_type=mark_type)
     return p
 
-def plot_stop_region_sequence(stop_region_sequence, title="", fill_color="magenta", width=800, height=600, p=None):
+def plot_stop_region_sequence(stop_region_sequence, title="", fill_color="magenta", mark_type="circle",
+                              width=800, height=600, p=None):
     if p is None:
         p = mercator_fig(title=title, width=width, height=height)
 
-    p = centroids_figure_mouseover(stop_region_sequence, fill_color=fill_color, p=p)
+    p = centroids_figure_mouseover(stop_region_sequence, fill_color=fill_color, p=p, mark_type=mark_type)
     return p
 
 

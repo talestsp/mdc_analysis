@@ -102,25 +102,26 @@ class StopRegion:
     def plot(self, p=None):
         return plot2.plot_stop_region(self, p=p)
 
-class StopRegionSequence:
+class StopRegionGroup:
     '''
           Use EPSG 4326
     '''
-    def __init__(self, stop_region_sequence):
-        self.stop_region_sequence = stop_region_sequence
+    def __init__(self, stop_region_list):
+        self.stop_region_list = stop_region_list
+        self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
 
-    def plot(self, title="", width=800, height=600, fill_color="magenta", p=None):
-        return plot2.plot_stop_region_sequence(stop_region_sequence=self, title=title,
+    def plot(self, title="", width=800, height=600, fill_color="magenta", p=None, mark_type="circle"):
+        return plot2.plot_stop_region_sequence(stop_region_sequence=self, title=title, mark_type=mark_type,
                                                width=width, height=height, fill_color=fill_color, p=p)
     def size(self):
-        return len(self.stop_region_sequence)
+        return len(self.stop_region_list)
 
     def sequence_report(self):
         sequence_report = []
 
-        last_sr = self.stop_region_sequence[0]
+        last_sr = self.stop_region_list[0]
 
-        for sr in self.stop_region_sequence[1:]:
+        for sr in self.stop_region_list[1:]:
             sequence_row = {"distance": round(sr.distance_to_another_sr(last_sr), 1),
                             "delta_t": sr.delta_time_to_another_sr(last_sr),
                             "last_sr": last_sr.sr_id, "last_sr_tag": last_sr.tag_closest_poi(),
@@ -137,7 +138,7 @@ class StopRegionSequence:
         agglutinated = []
         singles = []
 
-        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_sequence, same_closest_poi)
+        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi)
 
         for group in agglutinated_srs:
             if len(group) == 1:
@@ -148,7 +149,11 @@ class StopRegionSequence:
 
         srs = agglutinated + singles
         srs.sort(key=lambda x: x.start_time, reverse=False)
-        return StopRegionSequence(srs)
+
+        print("srs", len(srs))
+        print("agglutinated", len(agglutinated))
+        print("singles", len(singles))
+        return StopRegionGroup(srs)
 
 
 ####################################################
@@ -230,7 +235,7 @@ def group_stop_regions_for_agglutination(sr_list, agglutination_rule):
         last_sr = sr
 
     return agglutinate, pd.DataFrame(agglutination_report)[
-        ["agglutinate", "delta_t", "distance", "last_sr_tag", "sr_tag", "last_sr_semantics", "sr_semantics"]]
+        ["agglutinate", "delta_t", "distance", "last_sr_tag", "sr_tag", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]]
 
 
 # def agglutinate_stop_regions(self):
