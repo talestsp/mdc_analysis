@@ -106,7 +106,10 @@ class StopRegion:
         geo.gps_loc_to_web_mercator(self.centroid_lat, self.centroid_lon)
 
     def plot(self, p=None):
-        return plot2.plot_stop_region(self, p=p)
+        return plot2.plot_stop_region_mousover(self, p=p)
+
+    def plot_simple(self, p=None, title="", color="magenta", width=800, height=600, legend=None, mark_type="circle"):
+        return plot2.plot_stop_region(self, p=p, title=title, color=color, width=width, height=height, legend=legend, mark_type=mark_type)
 
 class StopRegionGroup:
     '''

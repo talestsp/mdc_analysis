@@ -30,7 +30,7 @@ def filter_valid_pois(pois):
                "access", "religion", "bicycle", "public_transport", "power", "natural",
                "man_made", "railway", "military", "place", "aerialway", "waterway"]
 
-    valid_pois = pois[pois[columns].any(axis=1)]
+    valid_pois = pois[pois[columns].any(axis=1)].copy()
 
     valid_pois["building_+_religion"] = valid_pois["building"] + " + " + valid_pois["religion"]
 

@@ -133,7 +133,7 @@ def load_user_stop_regions(user, columns=None):
 
 def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_lon=5):
     '''
-    Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user
+    Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user.
     :param user_id:
     :return:
     '''
@@ -218,7 +218,7 @@ def filter_valid_pois(pois):
                "access", "religion", "bicycle", "public_transport", "power", "natural",
                "man_made", "railway", "military", "place", "aerialway", "waterway"]
 
-    valid_pois = pois[pois[columns].any(axis=1)]
+    valid_pois = pois[pois[columns].any(axis=1)].copy()
 
     valid_pois["building_+_religion"] = valid_pois["building"] + " + " + valid_pois["religion"]
 
@@ -378,6 +378,7 @@ def stop_region_sequence(user_id):
     sr = load_user_stop_regions_centroids(user_id).sort_values("local_start_time")
     sr_sequence = sr.apply(sr_row_to_stop_region, axis=1).tolist()
     return sr_sequence
+
 
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)

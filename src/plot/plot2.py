@@ -18,6 +18,7 @@ def stop_region_centroid_data_source(stop_regions):
 
     mercator_lats = []
     mercator_lons = []
+    semantics = []
     start_times = []
     end_times = []
     start_weekdays = []
@@ -28,6 +29,8 @@ def stop_region_centroid_data_source(stop_regions):
         mercator_lon, mercator_lat = geo.gps_loc_to_web_mercator(lat=sr.centroid_lat, lon=sr.centroid_lon)
         mercator_lats.append(mercator_lat)
         mercator_lons.append(mercator_lon)
+
+        semantics.append(sr.semantics)
 
         start_human_datetime = time_utils.human_time(sr.start_time)
         end_human_datetime = time_utils.human_time(sr.end_time)
@@ -42,6 +45,7 @@ def stop_region_centroid_data_source(stop_regions):
     sr_source = ColumnDataSource(data=dict(
         lon=mercator_lons,
         lat=mercator_lats,
+        semantics=semantics,
         start_time=start_times,
         end_time=end_times,
         start_weekday=start_weekdays,
@@ -84,6 +88,7 @@ def pois_data_source_from_stop_region_group(stop_region_group, n_closest_pois=30
 def stop_region_tooltips():
     return [
         ("sr_id", "@sr_id"),
+        ("semantics", "@semantics"),
         ("start_time", "@start_time"),
         ("start_weekday", "@start_weekday"),
         ("  end_time", "@end_time"),
@@ -115,7 +120,8 @@ def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magent
         p.square("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
         centroid_mark = p.square("lon", "lat", color=point_color, size=point_size, source=sr_source)
 
-    p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
+    if not tooltips is None:
+        p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
 
     glyph = centroid_mark.glyph
     glyph.size = 20
@@ -137,7 +143,7 @@ def poi_mark(p, poi_source, point_color="navy", point_size=3, mark_type="circle"
 
     return p
 
-def centroids_figure_mouseover(stop_region_group, p, legend=None, point_color="magenta", mark_type="circle",
+def centroids_figure_mouseover(stop_region_group, p, legend="stop region", point_color="magenta", mark_type="circle",
                               point_size=3, fill_color="magenta", fill_alpha=0.3):
 
     sr_source = stop_region_centroid_data_source(stop_region_group)
@@ -155,11 +161,22 @@ def pois_figure_mouseover(data_source, color="navy", alpha=0.7, point_size=3, ma
 
     return p
 
-def plot_stop_region(stop_region_obj, title="", width=800, height=600, p=None, mark_type="circle"):
+def plot_stop_region_mousover(stop_region_obj, title="", width=800, height=600, p=None, mark_type="circle"):
     if p is None:
         p = mercator_fig(title=title, width=width, height=height)
 
     p = centroids_figure_mouseover(stop_region_obj, p, mark_type=mark_type)
+    return p
+
+def plot_stop_region(stop_region_obj, title="", color="magenta", width=800, height=600, legend=None, p=None, mark_type="circle"):
+    if p is None:
+        p = mercator_fig(title=title, width=width, height=height)
+
+    sr_source = stop_region_centroid_data_source(stop_region_obj)
+
+    p = stop_region_mark(p, sr_source, point_color=color, point_size=3, fill_color=color, mark_type=mark_type,
+                     fill_alpha=0.4, legend=legend, tooltips=None)
+
     return p
 
 def plot_stop_region_group(stop_region_group, title="", fill_color="magenta", mark_type="circle",
@@ -177,7 +194,7 @@ def plot_stop_region_group(stop_region_group, title="", fill_color="magenta", ma
 
     return p
 
-def hilight_closest_poi(stop_region_group, p, color="red", point_size=8):
+def hilight_closest_poi(stop_region_group, p, color="red", alpha=0.25, point_size=8):
     closests_pois = pd.DataFrame()
 
     for sr in stop_region_group.stop_region_list:
@@ -188,7 +205,7 @@ def hilight_closest_poi(stop_region_group, p, color="red", point_size=8):
     lons_mercator = pois_locs.apply(lambda loc: loc[0])
     lats_mercator = pois_locs.apply(lambda loc: loc[1])
 
-    p.square(lons_mercator, lats_mercator, color=color, size=point_size, alpha=0.2, legend="closest_pois")
+    p.square(lons_mercator, lats_mercator, color=color, size=point_size, alpha=alpha, legend="closest_pois")
 
     return p
 
