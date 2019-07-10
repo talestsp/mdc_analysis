@@ -54,7 +54,7 @@ class StopRegion:
         del close_pois_agg["distance"]
         close_pois_agg = close_pois_agg.drop_duplicates(subset="place_id")
 
-        return close_pois_agg.set_index("place_id").merge(distances, left_index=True, right_index=True)
+        return close_pois_agg.set_index("place_id", drop=False).merge(distances, left_index=True, right_index=True)
 
     def load_close_pois(self, verbose=False):
         if verbose:
@@ -116,9 +116,12 @@ class StopRegionGroup:
     '''
           Use EPSG 4326
     '''
-    def __init__(self, stop_region_list, agglutinate_stop_regions=True):
+    def __init__(self, stop_region_list, agglutinate_stop_regions=False):
         self.stop_region_list = stop_region_list
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
+
+        if agglutinate_stop_regions:
+            self.stop_region_list = self.agglutinate_stop_regions().stop_region_list
 
     def plot(self, title="", width=800, height=600, plot_n_pois=4, fill_color="magenta", p=None, mark_type="circle"):
 
@@ -163,7 +166,6 @@ class StopRegionGroup:
         By tags undertstand Stop Regions semantics and POIs' type.
 
         If a place has a semantic tag it will replace the POI type in this sequence.
-
         :return:
         '''
 
@@ -177,7 +179,7 @@ class StopRegionGroup:
         agglutinated = []
         singles = []
 
-        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi)
+        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi, same_semantics)
 
         for group in agglutinated_srs:
             if len(group) == 1:
@@ -208,13 +210,14 @@ def sr_row_to_stop_region(sr_row):
                       user_id=sr_row["user_id"], sr_id=sr_row["sr_id"], semantics=semantics)
 
 def same_closest_poi(last_sr, sr):
-    print("---\n\n")
-    print("sr.closest_poi()")
-    print(sr.closest_poi())
-    print(sr.closest_poi().columns)
     set_sr_pois = set(sr.closest_poi()["place_id"].tolist())
     set_last_sr_pois = set(last_sr.closest_poi()["place_id"].tolist())
     return len(set_sr_pois.intersection(set_last_sr_pois)) > 0
+
+def same_semantics(last_sr, sr):
+    set_sr_semantics = set(sr.semantics)
+    set_last_sr_semantics = set(last_sr.semantics)
+    return set_sr_semantics.intersection(set_last_sr_semantics) == set_sr_semantics .union(set_last_sr_semantics)
 
 def close_sr_short_time(last_sr, sr, time_tolerance_secs=600, distance_tolerance_m=5):
     return sr.distance_to_another_sr(last_sr) <= distance_tolerance_m and sr.delta_time_to_another_sr(
@@ -250,7 +253,7 @@ def agglutinate(stop_regions):
                 'semantics': pd.Series(semantics).drop_duplicates().tolist(),
                 'agglutination': stop_regions}
 
-def group_stop_regions_for_agglutination(sr_list, agglutination_rule):
+def group_stop_regions_for_agglutination(sr_list, agglutination_rule_1, agglutination_rule_2):
     agglutinate = [[sr_list[0]]]
     agglutination_report = []
 
@@ -263,7 +266,7 @@ def group_stop_regions_for_agglutination(sr_list, agglutination_rule):
                                     "last_sr_semantics": last_sr.semantics,
                                     "sr_semantics": sr.semantics}
 
-        if agglutination_rule(last_sr, sr):
+        if agglutination_rule_1(last_sr, sr) or agglutination_rule_2(last_sr, sr):
             agglutinate[-1].append(sr)
             agglutination_report_row["agglutinate"] = True
 

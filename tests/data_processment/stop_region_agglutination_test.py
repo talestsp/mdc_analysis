@@ -3,7 +3,7 @@ os.chdir("/home/tales/dev/master/mdc_analysis/")
 
 import unittest
 from src.dao import csv_dao
-from src.entity.stop_region import group_stop_regions_for_agglutination, same_closest_poi
+from src.entity.stop_region import group_stop_regions_for_agglutination, same_closest_poi, same_semantics
 from src.entity.stop_region import StopRegionGroup
 
 class stop_region_agglutination_test(unittest.TestCase):
@@ -31,10 +31,11 @@ class stop_region_agglutination_test(unittest.TestCase):
 
     def test_agglutination_choices(self):
         sr_sequence = csv_dao.stop_region_sequence(6070)
-        agglutinate, agglut_report = group_stop_regions_for_agglutination(sr_sequence, same_closest_poi)
+        agglutinate, agglut_report = group_stop_regions_for_agglutination(sr_sequence, same_closest_poi, same_closest_poi)
+
+        print(agglut_report)
 
         sr_ids = []
-
         for group in agglutinate:
             if group[0].sr_id == "6070_198":
                 for sr in group:
