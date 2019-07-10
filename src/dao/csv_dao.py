@@ -5,6 +5,7 @@ import ast
 import src.utils.geo as geo
 from src.utils.time_utils import local_time
 from src.entity.geo_circle import GeoCircle
+from src.entity.stop_region import sr_row_to_stop_region
 
 
 DAY_SECONDS = 86400
@@ -103,6 +104,9 @@ def list_stop_region_usernames():
 
     return dirnames
 
+def load_stop_region_by_sr_id(user_id, sr_id):
+    return pd.read_csv("outputs/stop_regions/{}/cluster_{}.csv".format(user_id, sr_id.split("_")[1]))
+
 def load_user_stop_regions(user, columns=None):
     '''
     Return a list of pandas.DataFrame
@@ -129,7 +133,7 @@ def load_user_stop_regions(user, columns=None):
 
 def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_lon=5):
     '''
-    Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user
+    Retrurn a single pandas.DataFrame containing all Stop Region centroids for the given user.
     :param user_id:
     :return:
     '''
@@ -160,6 +164,10 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
                 centroid['tag'] = centroid['tag'] + "WORK" + ","
 
             centroid['tag'] = centroid['tag'][0 : len(centroid['tag']) - 1]
+
+            if centroid['tag'] == '':
+                centroid['tag'] = None
+
 
         centroids.append(centroid)
 
@@ -210,7 +218,7 @@ def filter_valid_pois(pois):
                "access", "religion", "bicycle", "public_transport", "power", "natural",
                "man_made", "railway", "military", "place", "aerialway", "waterway"]
 
-    valid_pois = pois[pois[columns].any(axis=1)]
+    valid_pois = pois[pois[columns].any(axis=1)].copy()
 
     valid_pois["building_+_religion"] = valid_pois["building"] + " + " + valid_pois["religion"]
 
@@ -251,6 +259,11 @@ def unique_stop_regions(sr_data, on_cols=['latitude', 'longitude']):
     return sr_data[sr_data["sr_id"].isin(unique_sr)]
 
 def load_home_inferred_sr_ids(user_id):
+    '''
+    Home places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     try:
         data = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}_v2.csv".format(user_id))['sr_id'].tolist()
         return data
@@ -258,6 +271,11 @@ def load_home_inferred_sr_ids(user_id):
         return []
 
 def load_work_inferred_sr_ids(user_id):
+    '''
+    Work places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     try:
         data = pd.read_csv("outputs/work_inferred/work_stop_regions_user_{}_v2.csv".format(user_id))['sr_id'].tolist()
         return data
@@ -265,11 +283,21 @@ def load_work_inferred_sr_ids(user_id):
         return []
 
 def load_home_inferred_sr(user_id):
+    '''
+    Home places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     home_sr_ids = pd.read_csv("outputs/home_inferred/home_stop_regions_user_{}_v2.csv".format(user_id))
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(home_sr_ids)]
 
 def load_work_inferred_sr(user_id):
+    '''
+    Work places using geo.infer_close_sr_as_home
+    :param user_id:
+    :return:
+    '''
     work_sr_ids = pd.read_csv("outputs/home_inferred/work_stop_regions_user_{}_v2.csv".format(user_id))
     stop_regions = load_user_stop_regions_centroids(user_id)
     return stop_regions[stop_regions["sr_id"].isin(work_sr_ids)]
@@ -325,7 +353,7 @@ def load_request_circles_df(request_radius):
         data["sr_ids"] = data["sr_ids"].apply(ast.literal_eval)
     return data
 
-def load_kkn_pois_by_stop_region(stop_region):
+def load_knn_pois_by_stop_region(stop_region):
     try:
         user_sr_knn_path = "outputs/google_places_sr_knn/{}/".format(stop_region.user_id)
         sr_knn = pd.read_csv(user_sr_knn_path + "sr_" + stop_region.sr_id + "_knn.csv")
@@ -345,6 +373,12 @@ def load_equivalent_stop_region(stop_region):
     user_sr_knns["lon_sr"] = user_sr_knns["lon_sr"].apply(lambda lon: round(lon, ROUND_LAT_LON))
 
     return user_sr_knns[(user_sr_knns["lat_sr"] == stop_region.centroid_lat) & (user_sr_knns["lon_sr"] == stop_region.centroid_lon)]
+
+def stop_region_sequence(user_id):
+    sr = load_user_stop_regions_centroids(user_id).sort_values("local_start_time")
+    sr_sequence = sr.apply(sr_row_to_stop_region, axis=1).tolist()
+    return sr_sequence
+
 
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)

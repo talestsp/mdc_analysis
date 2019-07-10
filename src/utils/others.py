@@ -11,3 +11,9 @@ def credentials_db():
 def partitions(points, k_partitions, columns):
     kmeans = KMeans(n_clusters=k_partitions, random_state=0).fit(points[columns])
     return kmeans.labels_
+
+def concat_lists(lists):
+    concat = []
+    for lista in lists:
+        concat = concat + lista
+    return concat

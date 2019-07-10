@@ -270,7 +270,3 @@ def plot_sr_knn_pois(sr_knn_pois_data, width=800, height=600):
     p.circle(x=closest["lon_mercator"], y=closest["lat_mercator"], size=2, alpha=0.5, color="#005073", legend="pois")
 
     return p
-
-
-
-

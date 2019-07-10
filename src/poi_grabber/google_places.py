@@ -7,6 +7,7 @@ import ast
 
 URL = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
 RAW_DATA_REQUESTS_DIR = '../google-places-poi-grabber/data/raw_data_{}/'
+ALL_GOOGLE_PLACES_DATA = {}
 
 def credentials():
     with open('credentials/google_cloud_services.json') as json_file:
@@ -107,8 +108,12 @@ def load_request_result_single_file(radius_m, filename):
     return pd.DataFrame(data_json)
 
 def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, verbose=False):
+
+    if radius_m in ALL_GOOGLE_PLACES_DATA.keys():
+        return ALL_GOOGLE_PLACES_DATA[radius_m]
+
     try:
-        results = pd.read_csv('../google-places-poi-grabber/data/request_circle_{}.csv'.format(radius_m))
+        results = pd.read_csv('../google-places-poi-grabber/data/pois_data_{}.csv'.format(radius_m))
 
     except:
         results = pd.DataFrame()
@@ -125,6 +130,7 @@ def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, 
 
                 results = results.append(result)
 
+
     results["latitude"] = results["geometry"].apply(lambda geometry: ast.literal_eval(geometry)['location']['lat'])
     results["longitude"] = results["geometry"].apply(lambda geometry: ast.literal_eval(geometry)['location']['lng'])
     results["types"] = results["types"].apply(ast.literal_eval)
@@ -136,6 +142,19 @@ def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, 
     results["longitude"] = results["longitude"].apply(lambda value: round(value, round_lat_lon))
 
     results = remove_google_places_duplicates(results)
+    results = results.set_index("place_id", drop=False)
+
+    cols = results.columns.tolist()
+    del cols[cols.index("id")]
+    del cols[cols.index("geometry")]
+    del cols[cols.index("icon")]
+    del cols[cols.index("opening_hours")]
+    del cols[cols.index("reference")]
+    del cols[cols.index("scope")]
+
+    results = results[cols]
+
+    ALL_GOOGLE_PLACES_DATA[radius_m] = results
 
     return results
 
@@ -151,5 +170,15 @@ def valid_pois_google(google_places_data):
                 (google_places_data["types"].apply(len) == 2) &
                 (google_places_data["types"].apply(lambda list : "point_of_interest" in list)) &
                 (google_places_data["types"].apply(lambda list : "establishment" in list)) )]
+
+
+def useful_types(types):
+    if "establishment" in types:
+        del [types[types.index("establishment")]]
+
+    if "point_of_interest" in types:
+        del [types[types.index("point_of_interest")]]
+
+    return types
 
 
