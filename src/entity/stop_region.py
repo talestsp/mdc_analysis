@@ -3,6 +3,7 @@ from src.utils import geo
 from src.dao import csv_dao
 from src.poi_grabber import google_places
 from src.plot import plot2
+from src.utils.others import concat_lists
 
 class StopRegion:
     '''
@@ -115,7 +116,7 @@ class StopRegionGroup:
     '''
           Use EPSG 4326
     '''
-    def __init__(self, stop_region_list):
+    def __init__(self, stop_region_list, agglutinate_stop_regions=True):
         self.stop_region_list = stop_region_list
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
 
@@ -135,6 +136,7 @@ class StopRegionGroup:
         return len(self.stop_region_list)
 
     def sequence_report(self):
+        self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
         sequence_report = []
 
         last_sr = self.stop_region_list[0]
@@ -142,15 +144,34 @@ class StopRegionGroup:
         for sr in self.stop_region_list[1:]:
             sequence_row = {"distance": round(sr.distance_to_another_sr(last_sr), 1),
                             "delta_t": sr.delta_time_to_another_sr(last_sr),
-                            "last_sr": last_sr.sr_id, "last_sr_tag": last_sr.tag_closest_poi(),
-                            "sr": sr.sr_id, "sr_tag": sr.tag_closest_poi(),
+                            "last_sr": last_sr.sr_id, "last_sr_type": last_sr.tag_closest_poi(),
+                            "sr": sr.sr_id, "sr_type": sr.tag_closest_poi(),
                             "last_sr_semantics": last_sr.semantics,
                             "sr_semantics": sr.semantics}
             sequence_report.append(sequence_row)
             last_sr = sr
 
-        cols = ["delta_t", "distance", "last_sr_tag", "sr_tag", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
+        cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
         return pd.DataFrame(sequence_report)[cols]
+
+    def sequence_pois_type(self):
+        return self.sequence_report["last_sr_tag"].tolist()
+
+    def sequence_stop_region_tags(self):
+        '''
+        The tags of the Stop Regions sequence sorted by time.
+        By tags undertstand Stop Regions semantics and POIs' type.
+
+        If a place has a semantic tag it will replace the POI type in this sequence.
+
+        :return:
+        '''
+
+        tags = self.sequence_report().apply(
+            lambda row: {"semantics": row["sr_semantics"], "types": row["sr_type"]}, axis=1)
+
+        return tags.apply(
+            lambda tag_dict: concat_lists(tag_dict["types"]) if len(tag_dict["semantics"]) == 0 else tag_dict["semantics"])
 
     def agglutinate_stop_regions(self):
         agglutinated = []
@@ -187,6 +208,10 @@ def sr_row_to_stop_region(sr_row):
                       user_id=sr_row["user_id"], sr_id=sr_row["sr_id"], semantics=semantics)
 
 def same_closest_poi(last_sr, sr):
+    print("---\n\n")
+    print("sr.closest_poi()")
+    print(sr.closest_poi())
+    print(sr.closest_poi().columns)
     set_sr_pois = set(sr.closest_poi()["place_id"].tolist())
     set_last_sr_pois = set(last_sr.closest_poi()["place_id"].tolist())
     return len(set_sr_pois.intersection(set_last_sr_pois)) > 0
