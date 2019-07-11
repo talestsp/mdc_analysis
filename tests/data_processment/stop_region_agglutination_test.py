@@ -3,7 +3,7 @@ os.chdir("/home/tales/dev/master/mdc_analysis/")
 
 import unittest
 from src.dao import csv_dao
-from src.entity.stop_region import group_stop_regions_for_agglutination, same_closest_poi, same_semantics
+from src.entity.stop_region import group_stop_regions_for_agglutination, same_closest_poi, same_not_null_semantics
 from src.entity.stop_region import StopRegionGroup
 
 class stop_region_agglutination_test(unittest.TestCase):
@@ -107,5 +107,6 @@ class stop_region_agglutination_test(unittest.TestCase):
         self.assertEqual(3, group_agglutinated.size())
 
         self.assertEqual(10, len(sr_ids_inside_agglutination))
+
 
 

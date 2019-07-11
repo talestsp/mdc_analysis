@@ -4,6 +4,7 @@ from src.dao import csv_dao
 from src.poi_grabber import google_places
 from src.plot import plot2
 from src.utils.others import concat_lists
+from src.exceptions import exceptions
 
 class StopRegion:
     '''
@@ -140,6 +141,10 @@ class StopRegionGroup:
 
     def sequence_report(self):
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
+
+        if self.size() <= 1:
+            raise exceptions.TransitionsNeedAtLeastTwoStates()
+
         sequence_report = []
 
         last_sr = self.stop_region_list[0]
@@ -169,17 +174,15 @@ class StopRegionGroup:
         :return:
         '''
 
-        tags = self.sequence_report().apply(
-            lambda row: {"semantics": row["sr_semantics"], "types": row["sr_type"]}, axis=1)
+        tags = self.sequence_report().apply(lambda row: {"semantics": row["sr_semantics"], "types": row["sr_type"]}, axis=1)
 
-        return tags.apply(
-            lambda tag_dict: concat_lists(tag_dict["types"]) if len(tag_dict["semantics"]) == 0 else tag_dict["semantics"])
+        return tags.apply(lambda tag_dict : concat_lists(tag_dict["types"]) if len(tag_dict["semantics"]) == 0 else tag_dict["semantics"])
 
     def agglutinate_stop_regions(self):
         agglutinated = []
         singles = []
 
-        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi, same_semantics)
+        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi, same_not_null_semantics)
 
         for group in agglutinated_srs:
             if len(group) == 1:
@@ -205,7 +208,7 @@ def sr_row_to_stop_region(sr_row):
     else:
         semantics = sr_row["tag"].split(",")
 
-    return StopRegion(centroid_lat = sr_row["latitude"], centroid_lon=sr_row["longitude"],
+    return StopRegion(centroid_lat=sr_row["latitude"], centroid_lon=sr_row["longitude"],
                       start_time=sr_row["local_start_time"], end_time=sr_row["local_end_time"],
                       user_id=sr_row["user_id"], sr_id=sr_row["sr_id"], semantics=semantics)
 
@@ -214,7 +217,12 @@ def same_closest_poi(last_sr, sr):
     set_last_sr_pois = set(last_sr.closest_poi()["place_id"].tolist())
     return len(set_sr_pois.intersection(set_last_sr_pois)) > 0
 
-def same_semantics(last_sr, sr):
+def same_not_null_semantics(last_sr, sr):
+    if not type(last_sr.semantics) is list:
+        raise Exception("Malformed semantics")
+    elif len(last_sr.semantics) == 0 or len(sr.semantics) == 0:
+        return False
+
     set_sr_semantics = set(sr.semantics)
     set_last_sr_semantics = set(last_sr.semantics)
     return set_sr_semantics.intersection(set_last_sr_semantics) == set_sr_semantics .union(set_last_sr_semantics)
