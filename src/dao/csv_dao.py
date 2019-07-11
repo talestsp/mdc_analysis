@@ -109,7 +109,7 @@ def load_stop_region_by_sr_id(user_id, sr_id):
 
 def load_user_stop_regions(user, columns=None):
     '''
-    Return a list of pandas.DataFrame
+    Return user stop regions as list of pandas.DataFrame
     :param user:
     :param columns:
     :return:
@@ -137,45 +137,52 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
     :param user_id:
     :return:
     '''
-    centroids = []
-    stop_regions = load_user_stop_regions(user_id)
 
-    if tag_stop_regions:
-        home_sr_ids = load_home_inferred_sr_ids(user_id)
-        work_sr_ids = load_work_inferred_sr_ids(user_id)
+    try:
+        centroids = pd.read_csv("outputs/centroids/{}_centroids.csv".format(user_id))
+        centroids["tag"] = centroids["tag"].where((pd.notnull(centroids["tag"])), None)
 
-    for sr in stop_regions:
-        if len(sr) == 0:
-            continue
-        sr_id = sr["sr_id"].drop_duplicates().item()
-        start_time = sr["local_time"].min()
-        end_time = sr["local_time"].max()
-        centroid = geo.cluster_centroid(sr)
-        centroid["sr_id"] = sr_id
-        centroid["user_id"] = user_id
-        centroid["local_start_time"] = start_time
-        centroid["local_end_time"] = end_time
+    except FileNotFoundError:
+
+        centroids = []
+        stop_regions = load_user_stop_regions(user_id)
 
         if tag_stop_regions:
-            centroid['tag'] = ''
-            if sr_id in (home_sr_ids):
-                centroid['tag'] = "HOME" + ","
-            if sr_id in (work_sr_ids):
-                centroid['tag'] = centroid['tag'] + "WORK" + ","
+            home_sr_ids = load_home_inferred_sr_ids(user_id)
+            work_sr_ids = load_work_inferred_sr_ids(user_id)
 
-            centroid['tag'] = centroid['tag'][0 : len(centroid['tag']) - 1]
+        for sr in stop_regions:
+            if len(sr) == 0:
+                continue
+            sr_id = sr["sr_id"].drop_duplicates().item()
+            start_time = sr["local_time"].min()
+            end_time = sr["local_time"].max()
+            centroid = geo.cluster_centroid(sr)
+            centroid["sr_id"] = sr_id
+            centroid["user_id"] = user_id
+            centroid["local_start_time"] = start_time
+            centroid["local_end_time"] = end_time
 
-            if centroid['tag'] == '':
-                centroid['tag'] = None
+            if tag_stop_regions:
+                centroid['tag'] = ''
+                if sr_id in (home_sr_ids):
+                    centroid['tag'] = "HOME" + ","
+                if sr_id in (work_sr_ids):
+                    centroid['tag'] = centroid['tag'] + "WORK" + ","
+
+                centroid['tag'] = centroid['tag'][0 : len(centroid['tag']) - 1]
+
+                if centroid['tag'] == '':
+                    centroid['tag'] = None
 
 
-        centroids.append(centroid)
+            centroids.append(centroid)
 
-    centroids = pd.DataFrame(centroids)
+        centroids = pd.DataFrame(centroids)
 
-    if not round_lat_lon is None:
-        centroids['latitude'] = centroids['latitude'].apply(lambda value : round(value, round_lat_lon))
-        centroids['longitude'] = centroids['longitude'].apply(lambda value : round(value, round_lat_lon))
+        if not round_lat_lon is None:
+            centroids['latitude'] = centroids['latitude'].apply(lambda value : round(value, round_lat_lon))
+            centroids['longitude'] = centroids['longitude'].apply(lambda value : round(value, round_lat_lon))
 
     return centroids
 
@@ -344,7 +351,6 @@ def load_request_circles(request_radius):
 
     return request_circles
 
-
 def load_request_circles_df(request_radius):
     data = pd.read_csv("outputs/request_circles/rerquest_circles_{}m.csv".format(request_radius))
     if "Unnamed: 0" in data.columns.tolist():
@@ -378,7 +384,6 @@ def stop_region_sequence(user_id):
     sr = load_user_stop_regions_centroids(user_id).sort_values("local_start_time")
     sr_sequence = sr.apply(sr_row_to_stop_region, axis=1).tolist()
     return sr_sequence
-
 
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)
