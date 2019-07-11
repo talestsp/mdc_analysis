@@ -139,7 +139,7 @@ class StopRegionGroup:
     def size(self):
         return len(self.stop_region_list)
 
-    def sequence_report(self):
+    def sequence_report(self, only_simple_cols=True):
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
 
         if self.size() <= 1:
@@ -155,17 +155,26 @@ class StopRegionGroup:
                             "last_sr": last_sr.sr_id, "last_sr_type": last_sr.tag_closest_poi(),
                             "sr": sr.sr_id, "sr_type": sr.tag_closest_poi(),
                             "last_sr_semantics": last_sr.semantics,
-                            "sr_semantics": sr.semantics}
+                            "sr_semantics": sr.semantics,
+                            "sr_start_time": sr.start_time,
+                            "sr_end_time": sr.end_time}
             sequence_report.append(sequence_row)
             last_sr = sr
 
-        cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
-        return pd.DataFrame(sequence_report)[cols]
+        report = pd.DataFrame(sequence_report)
+
+        if only_simple_cols:
+            simpĺe_cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
+            report = report[simpĺe_cols]
+
+        return report
+
+
 
     def sequence_pois_type(self):
         return self.sequence_report["last_sr_tag"].tolist()
 
-    def sequence_stop_region_tags(self):
+    def sequence_stop_region_tags(group):
         '''
         The tags of the Stop Regions sequence sorted by time.
         By tags undertstand Stop Regions semantics and POIs' type.
@@ -174,9 +183,15 @@ class StopRegionGroup:
         :return:
         '''
 
-        tags = self.sequence_report().apply(lambda row: {"semantics": row["sr_semantics"], "types": row["sr_type"]}, axis=1)
+        tags = group.sequence_report(only_simple_cols=False).apply(
+            lambda row: {"semantics": row["sr_semantics"], "types": row["sr_type"], "start_time": row["sr_start_time"]},
+            axis=1)
+        tags_df = pd.DataFrame(tags.tolist())
 
-        return tags.apply(lambda tag_dict : concat_lists(tag_dict["types"]) if len(tag_dict["semantics"]) == 0 else tag_dict["semantics"])
+        tags_df["tag"] = tags.apply(
+            lambda tag_dict: concat_lists(tag_dict["types"]) if len(tag_dict["semantics"]) == 0 else tag_dict[
+                "semantics"])
+        return tags_df[["start_time", "tag"]]
 
     def agglutinate_stop_regions(self):
         agglutinated = []
