@@ -139,6 +139,9 @@ class StopRegionGroup:
     def size(self):
         return len(self.stop_region_list)
 
+    def delta_time(self):
+        return self.stop_region_list[-1].end_time - self.stop_region_list[0].start_time
+
     def sequence_report(self, only_simple_cols=True):
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
 
@@ -174,7 +177,9 @@ class StopRegionGroup:
     def sequence_pois_type(self):
         return self.sequence_report["last_sr_tag"].tolist()
 
-    def sequence_stop_region_tags(group):
+    from src.utils.others import concat_lists
+
+    def sequence_stop_region_tags(self):
         '''
         The tags of the Stop Regions sequence sorted by time.
         By tags undertstand Stop Regions semantics and POIs' type.
@@ -183,15 +188,22 @@ class StopRegionGroup:
         :return:
         '''
 
-        tags = group.sequence_report(only_simple_cols=False).apply(
-            lambda row: {"semantics": row["sr_semantics"], "types": row["sr_type"], "start_time": row["sr_start_time"]},
-            axis=1)
-        tags_df = pd.DataFrame(tags.tolist())
+        tags = []
 
-        tags_df["tag"] = tags.apply(
-            lambda tag_dict: concat_lists(tag_dict["types"]) if len(tag_dict["semantics"]) == 0 else tag_dict[
-                "semantics"])
-        return tags_df[["start_time", "tag"]]
+        for sr in self.stop_region_list:
+            sequence_row = {"sr": sr.sr_id, "sr_types": sr.tag_closest_poi(),
+                            "sr_semantics": sr.semantics,
+                            "sr_start_time": sr.start_time,
+                            "sr_end_time": sr.end_time}
+            tags.append(sequence_row)
+
+        tags_df = pd.DataFrame(tags)
+
+        tags_df["tag"] = tags_df.apply(
+            lambda tag_dict: concat_lists(tag_dict["sr_types"]) if len(tag_dict["sr_semantics"]) == 0 else tag_dict[
+                "sr_semantics"], axis=1)
+
+        return tags_df[["sr_start_time", "tag"]]
 
     def agglutinate_stop_regions(self):
         agglutinated = []

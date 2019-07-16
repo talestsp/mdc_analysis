@@ -371,7 +371,6 @@ def load_knn_pois_by_stop_region(stop_region):
     sr_knn["position"] = sr_knn.index
     return sr_knn
 
-
 def load_equivalent_stop_region(stop_region):
     user_sr_knns = load_sr_distance_to_close_pois_google_places(stop_region.user_id)
 

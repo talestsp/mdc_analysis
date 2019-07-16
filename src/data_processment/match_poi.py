@@ -6,7 +6,7 @@ from src.utils import others
 
 
 def knn_by_clusters(centroids, pois, k_neighbors, k_partitions=4):
-    centroids["cluster"] = others.partitions(centroids, k_partitions=k_partitions, columns=["latitude", "longitude"])
+    centroids["cluster"] = others.partitions_k_means(centroids, k_partitions=k_partitions, columns=["latitude", "longitude"])
 
     user_knn_pois = []
 
@@ -31,7 +31,7 @@ def knn_by_clusters(centroids, pois, k_neighbors, k_partitions=4):
 
 
 def knn_by_clusters_google_places(centroids, pois, k_neighbors, k_partitions=4):
-    centroids["cluster"] = others.partitions(centroids, k_partitions=k_partitions, columns=["latitude", "longitude"])
+    centroids["cluster"] = others.partitions_k_means(centroids, k_partitions=k_partitions, columns=["latitude", "longitude"])
 
     user_knn_pois = []
 

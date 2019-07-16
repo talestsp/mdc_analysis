@@ -3,6 +3,7 @@ import numpy as np
 import src.exceptions.exceptions as exceptions
 
 
+
 class MarkovPredictor:
     def __init__(self):
         self.markov_chain = None
@@ -15,9 +16,14 @@ class MarkovPredictor:
     def get_markov_chain(self):
         if self.markov_chain is None:
             raise exceptions.ModelNotTrained()
+        return self.markov_chain
 
     def next_state(self, current_state):
-        return self.get_markov_chain().next_state(current_state)
+        try:
+            return self.get_markov_chain().next_state(current_state)
+        except KeyError:
+            raise exceptions.StateNotPresentInTrainAsOrigin()
+
 
     def generate_states(self, current_state, no=10):
         return self.get_markov_chain().generate_states(current_state, no=no)
@@ -73,6 +79,7 @@ def transition_probabilities(sequence_states, round_proba=4):
 
     return trans_proba_df
 
+
 class MarkovChain(object):
     #MarkovChain class code from https://medium.com/@__amol__/markov-chains-with-python-1109663f3678
     def __init__(self, transition_prob):
@@ -101,6 +108,7 @@ class MarkovChain(object):
         current_state: str
             The current state of the system.
         """
+
         return np.random.choice(
             self.states,
             p=[self.transition_prob[current_state][next_state]
