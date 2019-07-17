@@ -73,9 +73,9 @@ def evaluation_markov_k_fold(sr_group, k=5, save_result=True):
 
 
 def all_users_vs_one(user_stop_region_group, save_result=True):
-    execution_id = str(uuid.uuid4())
     for test_user in user_stop_region_group.keys():
         print(test_user)
+        execution_id = str(uuid.uuid4())
         train_tags = []
 
         for train_user in user_stop_region_group.keys():

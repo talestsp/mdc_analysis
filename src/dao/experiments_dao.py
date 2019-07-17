@@ -11,7 +11,7 @@ def load_execution_test_data(filename):
     with open('{}/{}.json'.format(TEST_DIR, filename)) as json_file:
         return json.load(json_file)
 
-def laod_execution_test_data_by_model(model):
+def load_execution_test_data_by_model(model):
     model_dir = "{}/{}/".format(TEST_DIR, model)
 
     executions_data = []
