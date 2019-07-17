@@ -48,7 +48,12 @@ def evaluation_markov_k_fold(sr_group, k=5, save_result=True):
 
     tags_sequence = sr_group.sequence_stop_region_tags()["tag"].tolist()
 
-    for partition in k_fold_iteration(tags_sequence, k):
+    k_fold_partitions = k_fold_iteration(tags_sequence, k)
+
+    execution_id = str(uuid.uuid4())
+
+    for i in range(len(k_fold_partitions)):
+        partition = k_fold_partitions[i]
         train = partition["train"]
         test = partition["test"]
 
@@ -56,9 +61,10 @@ def evaluation_markov_k_fold(sr_group, k=5, save_result=True):
         test_data["trained_with"] = "same_user"
         test_data["method"] = "k_fold"
         test_data["k"] = k
+        test_data["iteration"] = i
         test_data["user_id"] = sr_group.stop_region_list[0].user_id
         test_data["input_data_version"] = "markov-0.0"
-        test_data["test_id"] = str(uuid.uuid4())
+        test_data["test_id"] = execution_id
 
         if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data, filename=test_data["test_id"])
+            experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model/" + test_data["test_id"] + "_i_{}".format(i))
