@@ -86,7 +86,7 @@ def transition_probabilities(sequence_states):
 
     del trans_proba_df["index"]
     del trans_proba_df["level_1"]
-    
+
     return trans_proba_df[["origin", "destination", "transition_freq"]]
 
 
@@ -119,7 +119,7 @@ class MarkovChain(object):
             The current state of the system.
         """
 
-        np.random.choice(
+        return np.random.choice(
             list(self.transition_prob[current_state].keys()),
             p=[self.transition_prob[current_state][next_state]
                for next_state in self.transition_prob[current_state].keys()]
