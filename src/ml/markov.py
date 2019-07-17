@@ -68,16 +68,27 @@ def transition_probabilities(sequence_states, round_proba=4):
     trans_proba_df = trans_proba_df.set_index(trans_proba_df["transition"], drop=False)
 
     trans_freq_df = trans_proba_df["transition"].value_counts().to_frame()
+
     trans_freq_df = trans_freq_df.rename(index=str, columns={"transition": "transition_freq"})
 
     trans_proba_df = trans_proba_df.merge(trans_freq_df, left_index=True, right_index=True).reset_index(
         drop=True).drop_duplicates()
     del trans_proba_df["transition"]
 
-    trans_proba_df["transition_freq"] = trans_proba_df["transition_freq"] / trans_proba_df["transition_freq"].sum()
-    trans_proba_df["transition_freq"] = trans_proba_df["transition_freq"].round(round_proba)
+    freq_grouped_by_origin = trans_proba_df.groupby("origin").apply(
+        lambda group: group["transition_freq"] / group["transition_freq"].sum())
 
-    return trans_proba_df
+    del trans_proba_df["transition_freq"]
+    del trans_proba_df["origin"]
+
+    trans_proba_df = freq_grouped_by_origin.to_frame().reset_index().merge(trans_proba_df.reset_index(), how="inner",
+                                                                           left_on="level_1", right_on="index")
+
+    del trans_proba_df["index"]
+    del trans_proba_df["level_1"]
+
+    trans_proba_df["transition_freq"] = trans_proba_df["transition_freq"].round(round_proba)
+    return trans_proba_df[["origin", "destination", "transition_freq"]]
 
 
 class MarkovChain(object):
@@ -108,6 +119,25 @@ class MarkovChain(object):
         current_state: str
             The current state of the system.
         """
+
+        np.random.choice(
+            list(self.transition_prob["['WORK']"].keys()),
+            p=[self.transition_prob["['WORK']"][next_state]
+               for next_state in self.transition_prob["['WORK']"].keys()]
+        )
+
+    def next_state_deprecated(self, current_state):
+        """
+        Returns the state of the random variable at the next time
+        instance.
+
+        Parameters
+        ----------
+        current_state: str
+            The current state of the system.
+        """
+
+        raise Exception("THIS METHOD IS DEPRECATED BECAUSE IT NEED A COMPLETE GRAPH OF STATES")
 
         return np.random.choice(
             self.states,
