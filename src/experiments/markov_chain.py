@@ -58,7 +58,7 @@ def evaluation_markov_k_fold(sr_group, k=5, save_result=True):
         test_data["k"] = k
         test_data["user_id"] = sr_group.stop_region_list[0].user_id
         test_data["input_data_version"] = "markov-0.0"
-        test_data["test_id"] = uuid.uuid4()
+        test_data["test_id"] = str(uuid.uuid4())
 
         if save_result:
             experiments_dao.save_execution_test_data(result_dict=test_data, filename=test_data["test_id"])
