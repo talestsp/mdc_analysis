@@ -51,7 +51,7 @@ def __add_value(row, trans_proba_dict):
     return trans_proba_dict
 
 
-def transition_probabilities(sequence_states, round_proba=4):
+def transition_probabilities(sequence_states):
     trans_proba_df = pd.DataFrame()
 
     if type(sequence_states) is pd.Series:
@@ -86,8 +86,7 @@ def transition_probabilities(sequence_states, round_proba=4):
 
     del trans_proba_df["index"]
     del trans_proba_df["level_1"]
-
-    trans_proba_df["transition_freq"] = trans_proba_df["transition_freq"].round(round_proba)
+    
     return trans_proba_df[["origin", "destination", "transition_freq"]]
 
 
@@ -121,9 +120,9 @@ class MarkovChain(object):
         """
 
         np.random.choice(
-            list(self.transition_prob["['WORK']"].keys()),
-            p=[self.transition_prob["['WORK']"][next_state]
-               for next_state in self.transition_prob["['WORK']"].keys()]
+            list(self.transition_prob[current_state].keys()),
+            p=[self.transition_prob[current_state][next_state]
+               for next_state in self.transition_prob[current_state].keys()]
         )
 
     def next_state_deprecated(self, current_state):
