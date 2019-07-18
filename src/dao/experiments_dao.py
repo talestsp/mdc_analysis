@@ -7,6 +7,9 @@ def save_execution_test_data(result_dict, filename):
     with open('{}/{}.json'.format(TEST_DIR, filename), 'w') as outfile:
         json.dump(result_dict, outfile)
 
+def execution_file_exists(filename, model):
+    return filename in os.listdir(TEST_DIR + "/" + model)
+
 def load_execution_test_data(filename):
     with open('{}/{}.json'.format(TEST_DIR, filename)) as json_file:
         return json.load(json_file)

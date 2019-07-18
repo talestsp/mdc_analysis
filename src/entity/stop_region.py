@@ -87,7 +87,7 @@ class StopRegion:
         return use_pois_tags
 
     def tag_closest_poi(self, remove_tags=["establishment", "point_of_interest"]):
-        pois_tags = self.closest_poi()["types"]
+        pois_tags = self.closest_poi()["types"].apply(lambda types_list : pd.Series(types_list).drop_duplicates().tolist())
         return self.__remove_tags_from_list(pois_tags.tolist(), remove_tags)
 
     def closest_poi(self):
@@ -96,7 +96,7 @@ class StopRegion:
         return self.close_pois[self.close_pois["distance"] == self.close_pois["distance"].min()]
 
     def tag_radius_pois(self, radius, remove_tags=["establishment", "point_of_interest"]):
-        pois_tags = self.radius_pois(radius)["types"]
+        pois_tags = self.radius_pois(radius)["types"].apply(lambda types_list : pd.Series(types_list).drop_duplicates().tolist())
         return self.__remove_tags_from_list(pois_tags.tolist(), remove_tags)
 
     def radius_pois(self, radius):

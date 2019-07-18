@@ -63,9 +63,31 @@ def transition_probabilities(sequence_states):
     trans_proba_df["destination"] = sequence_states[1:]
     trans_proba_df["destination"] = trans_proba_df["destination"].astype(str)
 
-    trans_proba_df["transition"] = trans_proba_df["origin"].astype(str) + " > " + trans_proba_df[
+    return calculate_proba_per_origin(trans_proba_df)[["origin", "destination", "transition_freq"]]
+
+def distributive_transition_probabilities(tags_sequence):
+    transitions = []
+
+    last_tags = tags_sequence[0]
+    for tags in tags_sequence[1:]:
+        tags = list(set(tags))
+
+        for origin_tag in last_tags:
+            for destination_tag in tags:
+                transitions.append({"origin": origin_tag, "destination": destination_tag})
+
+        last_tags = tags
+
+    transition_df = pd.DataFrame(transitions)[["origin", "destination"]]
+    transition_df["origin"] = transition_df["origin"].astype(str)
+    transition_df["destination"] = transition_df["destination"].astype(str)
+
+    return calculate_proba_per_origin(transition_df)[["origin", "destination", "transition_freq"]]
+
+def calculate_proba_per_origin(transitions_df):
+    transitions_df["transition"] = transitions_df["origin"].astype(str) + " > " + transitions_df[
         "destination"].astype(str)
-    trans_proba_df = trans_proba_df.set_index(trans_proba_df["transition"], drop=False)
+    trans_proba_df = transitions_df.set_index(transitions_df["transition"], drop=False)
 
     trans_freq_df = trans_proba_df["transition"].value_counts().to_frame()
 
