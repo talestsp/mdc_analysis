@@ -7,6 +7,19 @@ from src.dao import experiments_dao
 from src.entity.stop_region import StopRegionGroup
 from ast import literal_eval
 
+def is_valid_state(state):
+    if state == "[]" or state == []:
+        return False
+    else:
+        return True
+#
+# def remove_invalid_states(state_list):
+#     valid_states = []
+#     for state in state_list:
+#         if is_valid_state(state):
+#             valid_states.append(state)
+#
+#     return valid_states
 
 def test_markov(train, test, distributive_tags):
     if distributive_tags:
@@ -14,35 +27,55 @@ def test_markov(train, test, distributive_tags):
     else:
         trans_proba_dict = mk.to_dict(mk.transition_probabilities(train))
 
+    print("*-*-*")
+    print(mk.transition_probabilities(train))
+
     predictor = mk.MarkovPredictor().fit(trans_proba_dict)
 
-    states_trained_as_origin = []
+    print("markov states")
+    print(predictor.get_states())
+    print()
+
     states_not_trained_as_origin = []
     hits = []
     misses = []
     partial_hits = []
 
+    # test = remove_invalid_states(test)
+
     for test_i in range(len(test[0:-1])):
         current_state_list = test[test_i]
         next_state_real_list = test[test_i + 1]
 
+        if not is_valid_state(current_state_list) or not is_valid_state(next_state_real_list):
+            continue
+
         current_state = str(current_state_list)
         next_state_real = str(next_state_real_list)
-        try:
 
-            if distributive_tags:
-                next_state_pred_list = []
-                for state in literal_eval(current_state):
-                    next_state_pred_list.append(predictor.next_state(state))
+        if distributive_tags:
+            next_state_pred_list = []
+            print("MULTIPLE TAGS", literal_eval(current_state))
 
-            else:
+            for state in literal_eval(current_state):
+                print("state:", state)
+                try:
+                    next_state = predictor.next_state(state)
+                    print("next_state:", next_state)
+                    next_state_pred_list.append(next_state)
+
+                except exceptions.StateNotPresentInTrainAsOrigin:
+                    states_not_trained_as_origin.append(current_state)
+                    continue
+
+        else:
+            try:
                 next_state_pred_list = literal_eval(predictor.next_state(current_state))
 
-            states_trained_as_origin.append(current_state)
+            except exceptions.StateNotPresentInTrainAsOrigin:
+                states_not_trained_as_origin.append(current_state)
+                continue
 
-        except exceptions.StateNotPresentInTrainAsOrigin:
-            states_not_trained_as_origin.append(current_state)
-            continue
 
         print("current_state:", current_state)
         print("next_state_real_list:", next_state_real_list)
@@ -60,9 +93,7 @@ def test_markov(train, test, distributive_tags):
             "partial_hits": partial_hits,
             "hits": hits,
             "misses": misses,
-            "total_states_trained_as_origin": len(states_trained_as_origin),
             "total_states_not_trained_as_origin": len(states_not_trained_as_origin),
-            "states_trained_as_origin": states_trained_as_origin,
             "states_not_trained_as_origin": states_not_trained_as_origin}
 
 def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, save_result=True):

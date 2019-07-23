@@ -85,6 +85,8 @@ def distributive_transition_probabilities(tags_sequence):
     return calculate_proba_per_origin(transition_df)[["origin", "destination", "transition_freq"]]
 
 def calculate_proba_per_origin(transitions_df):
+    transitions_df = remove_transitions_with_empty_tags(transitions_df)
+
     transitions_df["transition"] = transitions_df["origin"].astype(str) + " > " + transitions_df[
         "destination"].astype(str)
     trans_proba_df = transitions_df.set_index(transitions_df["transition"], drop=False)
@@ -111,6 +113,8 @@ def calculate_proba_per_origin(transitions_df):
 
     return trans_proba_df[["origin", "destination", "transition_freq"]]
 
+def remove_transitions_with_empty_tags(transitions):
+    return transitions[(transitions["origin"].astype(str) != "[]") & (transitions["destination"].astype(str) != "[]")]
 
 class MarkovChain(object):
     #MarkovChain class code from https://medium.com/@__amol__/markov-chains-with-python-1109663f3678
