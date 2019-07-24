@@ -172,12 +172,18 @@ class StopRegionGroup:
 
         return report
 
-
-
     def sequence_pois_type(self):
         return self.sequence_report["last_sr_tag"].tolist()
 
-    from src.utils.others import concat_lists
+    def sequence_stop_region_types(self):
+        types_list = []
+        for sr in self.stop_region_list:
+            sr_types_list = sr.tag_closest_poi()
+
+            for sr_types in sr_types_list:
+                types_list.append(sr_types)
+
+        return types_list
 
     def sequence_stop_region_tags(self):
         '''

@@ -110,6 +110,10 @@ def load_request_result_single_file(radius_m, filename):
 def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, verbose=False):
 
     if radius_m in ALL_GOOGLE_PLACES_DATA.keys():
+        if valid_pois:
+            print("valids")
+            return valid_pois_google(ALL_GOOGLE_PLACES_DATA[radius_m])
+
         return ALL_GOOGLE_PLACES_DATA[radius_m]
 
     try:

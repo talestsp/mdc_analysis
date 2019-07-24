@@ -12,14 +12,25 @@ def is_valid_state(state):
         return False
     else:
         return True
-#
-# def remove_invalid_states(state_list):
-#     valid_states = []
-#     for state in state_list:
-#         if is_valid_state(state):
-#             valid_states.append(state)
-#
-#     return valid_states
+
+def predict_distributive_tags(predictor, current_state_list):
+    next_state_pred_list = []
+
+    for state in current_state_list:
+        try:
+            next_state = predictor.next_state(state)
+            next_state_pred_list.append(next_state)
+
+        except exceptions.StateNotPresentInTrainAsOrigin:
+            pass
+
+    if len(next_state_pred_list) == 0:
+        raise exceptions.StateNotPresentInTrainAsOrigin()
+
+    return next_state_pred_list
+
+def predict_tags(predictor, current_state):
+    return literal_eval(predictor.next_state(current_state))
 
 def test_markov(train, test, distributive_tags):
     if distributive_tags:
@@ -27,21 +38,12 @@ def test_markov(train, test, distributive_tags):
     else:
         trans_proba_dict = mk.to_dict(mk.transition_probabilities(train))
 
-    print("*-*-*")
-    print(mk.transition_probabilities(train))
-
     predictor = mk.MarkovPredictor().fit(trans_proba_dict)
 
-    print("markov states")
-    print(predictor.get_states())
-    print()
-
-    states_not_trained_as_origin = []
     hits = []
     misses = []
+    states_not_trained_as_origin = []
     partial_hits = []
-
-    # test = remove_invalid_states(test)
 
     for test_i in range(len(test[0:-1])):
         current_state_list = test[test_i]
@@ -50,37 +52,19 @@ def test_markov(train, test, distributive_tags):
         if not is_valid_state(current_state_list) or not is_valid_state(next_state_real_list):
             continue
 
-        current_state = str(current_state_list)
         next_state_real = str(next_state_real_list)
 
-        if distributive_tags:
-            next_state_pred_list = []
-            print("MULTIPLE TAGS", literal_eval(current_state))
+        try:
+            if distributive_tags:
+                next_state_pred_list = predict_distributive_tags(predictor, current_state_list)
 
-            for state in literal_eval(current_state):
-                print("state:", state)
-                try:
-                    next_state = predictor.next_state(state)
-                    print("next_state:", next_state)
-                    next_state_pred_list.append(next_state)
+            else:
+                next_state_pred_list = predict_tags(predictor, str(current_state_list))
 
-                except exceptions.StateNotPresentInTrainAsOrigin:
-                    states_not_trained_as_origin.append(current_state)
-                    continue
+        except exceptions.StateNotPresentInTrainAsOrigin:
+            states_not_trained_as_origin.append(str(current_state_list))
+            continue
 
-        else:
-            try:
-                next_state_pred_list = literal_eval(predictor.next_state(current_state))
-
-            except exceptions.StateNotPresentInTrainAsOrigin:
-                states_not_trained_as_origin.append(current_state)
-                continue
-
-
-        print("current_state:", current_state)
-        print("next_state_real_list:", next_state_real_list)
-        print("next_state_pred_list:", next_state_pred_list)
-        print()
         partial_hits.append(jaccard(next_state_real_list, next_state_pred_list))
 
         if set(next_state_real_list) == set(next_state_pred_list):
@@ -90,11 +74,12 @@ def test_markov(train, test, distributive_tags):
 
     return {"total_hits": len(hits),
             "total_misses": len(misses),
-            "partial_hits": partial_hits,
+            "total_states_not_trained_as_origin": len(states_not_trained_as_origin),
             "hits": hits,
             "misses": misses,
-            "total_states_not_trained_as_origin": len(states_not_trained_as_origin),
-            "states_not_trained_as_origin": states_not_trained_as_origin}
+            "states_not_trained_as_origin": states_not_trained_as_origin,
+            "partial_hits": partial_hits
+            }
 
 def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, save_result=True):
     if sr_group.size() <= 1:
@@ -133,6 +118,41 @@ def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, save_result
             experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model2/" + test_data["test_id"] + "_i_{}".format(i))
 
 
+def evaluation_markov_k_fold2(tags_sequence, user_id, k=5, distributive_tags=False, save_result=True):
+    if len(tags_sequence) <= 1:
+        print("sr_group size: {} \n skipping".format(len(tags_sequence)))
+        raise exceptions.TooShortStopRegionGroup()
+
+    k_fold_partitions = k_fold_iteration(tags_sequence, k)
+
+    execution_id = str(uuid.uuid4())
+
+    for i in range(len(k_fold_partitions)):
+        partition = k_fold_partitions[i]
+        train = partition["train"]
+        test = partition["test"]
+
+        test_data = test_markov(train, test, distributive_tags=distributive_tags)
+
+        test_data["trained_with"] = "same_user"
+        test_data["train_size"] = len(train)
+        test_data["test_size"] = len(test)
+        test_data["method"] = "k_fold"
+        test_data["k"] = k
+        test_data["iteration"] = i
+        test_data["user_id"] = user_id
+
+        if distributive_tags:
+            test_data["input_data_version"] = "markov-0.0.d"
+        else:
+            test_data["input_data_version"] = "markov-0.0"
+
+        test_data["test_id"] = execution_id
+
+        if save_result:
+            experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model2/" + test_data["test_id"] + "_i_{}".format(i))
+
+
 def all_users_vs_one(user_stop_region_group, distributive_tags=False, save_result=True):
     lista = list(user_stop_region_group.keys())
     for test_user in lista:
@@ -157,6 +177,41 @@ def all_users_vs_one(user_stop_region_group, distributive_tags=False, save_resul
         test_data["test_size"] = len(test_tags)
         test_data["method"] = "all_users_vs_one"
         test_data["user_id"] = sr_group_test.stop_region_list[0].user_id
+
+        if distributive_tags:
+            test_data["input_data_version"] = "markov-0.0.d"
+        else:
+            test_data["input_data_version"] = "markov-0.0"
+
+        test_data["test_id"] = execution_id
+
+        if save_result:
+            experiments_dao.save_execution_test_data(result_dict=test_data,
+                                                     filename="markov_model2/" + test_data["test_id"])
+
+def all_users_vs_one2(users_tags_sequence, distributive_tags=False, save_result=True):
+    lista = list(users_tags_sequence.keys())
+    for test_user in lista:
+
+        print(test_user)
+        execution_id = str(uuid.uuid4())
+        train_tags = []
+
+        for train_user in users_tags_sequence.keys():
+
+            if train_user != test_user:
+                train_tags = train_tags + users_tags_sequence[train_user]
+
+
+        test_tags = users_tags_sequence[test_user]
+
+        test_data = test_markov(train_tags, test_tags, distributive_tags=distributive_tags)
+
+        test_data["trained_with"] = "all_other_users"
+        test_data["train_size"] = len(train_tags)
+        test_data["test_size"] = len(test_tags)
+        test_data["method"] = "all_users_vs_one"
+        test_data["user_id"] = test_user
 
         if distributive_tags:
             test_data["input_data_version"] = "markov-0.0.d"
