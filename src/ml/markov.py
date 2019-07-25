@@ -105,7 +105,20 @@ def calculate_proba_per_origin(transitions_df):
     del trans_proba_df["transition_freq"]
     del trans_proba_df["origin"]
 
-    trans_proba_df = freq_grouped_by_origin.to_frame().reset_index().merge(trans_proba_df.reset_index(), how="inner",
+    try:
+        freq_grouped_by_origin = freq_grouped_by_origin.to_frame()
+    except AttributeError:
+        freq_grouped_by_origin_dict = freq_grouped_by_origin.to_dict()
+
+        index = list(freq_grouped_by_origin_dict.keys())[0]
+        origin_value = list(freq_grouped_by_origin_dict[index].keys())[0]
+        transition_freq_value = freq_grouped_by_origin_dict[index][list(freq_grouped_by_origin_dict[index].keys())[0]]
+
+        freq_grouped_by_origin = pd.DataFrame.from_dict({"transition_freq": {(origin_value, index): transition_freq_value}})
+
+        freq_grouped_by_origin = freq_grouped_by_origin.set_index(freq_grouped_by_origin.index.rename(['origin', None]))
+
+    trans_proba_df = freq_grouped_by_origin.reset_index().merge(trans_proba_df.reset_index(), how="inner",
                                                                            left_on="level_1", right_on="index")
 
     del trans_proba_df["index"]

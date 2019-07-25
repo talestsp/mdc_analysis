@@ -204,10 +204,36 @@ class StopRegionGroup:
             tags.append(sequence_row)
 
         tags_df = pd.DataFrame(tags)
+        # print(tags_df)
 
-        tags_df["tag"] = tags_df.apply(
-            lambda tag_dict: concat_lists(tag_dict["sr_types"]) if len(tag_dict["sr_semantics"]) == 0 else tag_dict[
-                "sr_semantics"], axis=1)
+        # if len(tags_df.iloc[0]["sr_semantics"]) == 0:
+        #     print("concat_lists(tags_df.iloc[0]['sr_types'])")
+        #     print(concat_lists(tags_df.iloc[0]["sr_types"]))
+        # else:
+        #     print("else 0")
+        #     print(tags_df.iloc[0]["sr_semantics"])
+        #
+        # if len(tags_df.iloc[1]["sr_semantics"]) == 0:
+        #     print("concat_lists(tags_df.iloc[1]['sr_types'])")
+        #     print(concat_lists(tags_df.iloc[1]["sr_types"]))
+        # else:
+        #     print("else 1")
+        #     print(tags_df.iloc[1]["sr_semantics"])
+
+
+        try:
+            tags = tags_df.apply(
+                lambda tag_dict: concat_lists(tag_dict["sr_types"]) if len(tag_dict["sr_semantics"]) == 0 else tag_dict[
+                    "sr_semantics"], axis=1)
+        except ValueError:
+            tags = []
+            for index, row in tags_df.iterrows():
+                if len(row["sr_semantics"]) == 0:
+                    tags.append(concat_lists(row["sr_types"]))
+                else:
+                    tags.append(row["sr_semantics"])
+
+        tags_df["tag"] = tags
 
         return tags_df[["sr_start_time", "tag"]]
 
