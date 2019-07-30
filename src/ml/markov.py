@@ -65,6 +65,25 @@ def transition_probabilities(sequence_states):
 
     return calculate_proba_per_origin(trans_proba_df)[["origin", "destination", "transition_freq"]]
 
+def transition_probabilities_equal(sequence_states):
+    trans_proba_df = pd.DataFrame()
+
+    if type(sequence_states) is pd.Series:
+        sequence_states = sequence_states.tolist()
+
+    trans_proba_df["origin"] = sequence_states[0:-1]
+    trans_proba_df["origin"] = trans_proba_df["origin"].astype(str)
+
+    trans_proba_df["destination"] = sequence_states[1:]
+    trans_proba_df["destination"] = trans_proba_df["destination"].astype(str)
+
+    same_proba = trans_proba_df.groupby("origin").apply(lambda group: 100 / len(group))
+
+    trans_proba_df = trans_proba_df.merge(same_proba.to_frame(), how='left', left_on="origin", right_index=True).rename(
+        columns={0: "transition_freq"})
+
+    return trans_proba_df
+
 def distributive_transition_probabilities(tags_sequence):
     transitions = []
 

@@ -4,7 +4,7 @@ os.chdir("/home/tales/dev/master/mdc_analysis/")
 import ast
 
 import unittest
-from src.ml.markov import transition_probabilities, distributive_transition_probabilities
+from src.ml.markov import transition_probabilities, distributive_transition_probabilities, transition_probabilities_equal
 
 class transition_prob_test(unittest.TestCase):
 
@@ -29,6 +29,18 @@ class transition_prob_test(unittest.TestCase):
             "transition_freq"].item())
         self.assertEqual(0.8, trans_proba[(trans_proba["origin"] == "B") & (trans_proba["destination"] == "C")][
             "transition_freq"].item())
+
+    def test_transition_equal_proba(self):
+        sequence = ["A", "B", "A", "C", "A", "D", "B", "C", "B", "C", "A", "Z", "B", "C", "B", "C", "X", "C", "A"]
+
+        trans_proba = transition_probabilities_equal(sequence)
+
+        for origin in trans_proba["origin"]:
+            print("origin:", origin)
+            origin_df = trans_proba[trans_proba["origin"] == origin]
+
+            for transition_freq in origin_df["transition_freq"]:
+                self.assertAlmostEqual(origin_df["transition_freq"].mean(), transition_freq, delta=0.01)
 
     def test_distributive_transition_prob_df(self):
         sequence = [["A"], ["B"], ["X", "Y", "Z"], "B", "Y", "B"]

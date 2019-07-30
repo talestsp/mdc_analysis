@@ -81,44 +81,18 @@ def test_markov(train, test, distributive_tags):
             "partial_hits": partial_hits
             }
 
-def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, save_result=True):
+def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, dummy_mode=None, save_result=True):
     if sr_group.size() <= 1:
         print("sr_group size: {} \n skipping".format(sr_group.size()))
         raise exceptions.TooShortStopRegionGroup()
 
     tags_sequence = sr_group.sequence_stop_region_tags()["tag"].tolist()
 
-    k_fold_partitions = k_fold_iteration(tags_sequence, k)
-
-    execution_id = str(uuid.uuid4())
-
-    for i in range(len(k_fold_partitions)):
-        partition = k_fold_partitions[i]
-        train = partition["train"]
-        test = partition["test"]
-
-        test_data = test_markov(train, test, distributive_tags=distributive_tags)
-
-        test_data["trained_with"] = "same_user"
-        test_data["train_size"] = len(train)
-        test_data["test_size"] = len(test)
-        test_data["method"] = "k_fold"
-        test_data["k"] = k
-        test_data["iteration"] = i
-        test_data["user_id"] = sr_group.stop_region_list[0].user_id
-
-        if distributive_tags:
-            test_data["input_data_version"] = "markov-0.0.d"
-        else:
-            test_data["input_data_version"] = "markov-0.0"
-
-        test_data["test_id"] = execution_id
-
-        if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model2/" + test_data["test_id"] + "_i_{}".format(i))
+    evaluation_markov_k_fold_light_mem(tags_sequence, sr_group.stop_region_list[0].user_id, k=k, distributive_tags=distributive_tags,
+                              save_result=save_result)
 
 
-def evaluation_markov_k_fold2(tags_sequence, user_id, k=5, distributive_tags=False, save_result=True):
+def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, k=5, distributive_tags=False, dummy_mode=None, save_result=True):
     if len(tags_sequence) <= 1:
         print("sr_group size: {} \n skipping".format(len(tags_sequence)))
         raise exceptions.TooShortStopRegionGroup()
@@ -170,26 +144,35 @@ def all_users_vs_one(user_stop_region_group, distributive_tags=False, save_resul
         sr_group_test = StopRegionGroup(user_stop_region_group[test_user], agglutinate_stop_regions=True)
         test_tags = sr_group_test.sequence_stop_region_tags()["tag"].tolist()
 
-        test_data = test_markov(train_tags, test_tags, distributive_tags=distributive_tags)
+        user_id = sr_group_test.stop_region_list[0].user_id
 
-        test_data["trained_with"] = "all_other_users"
-        test_data["train_size"] = len(train_tags)
-        test_data["test_size"] = len(test_tags)
-        test_data["method"] = "all_users_vs_one"
-        test_data["user_id"] = sr_group_test.stop_region_list[0].user_id
+        execute_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=user_id, execution_id=execution_id,
+                                 distributive_tags=distributive_tags, save_result=save_result)
 
-        if distributive_tags:
-            test_data["input_data_version"] = "markov-0.0.d"
-        else:
-            test_data["input_data_version"] = "markov-0.0"
 
-        test_data["test_id"] = execution_id
+def execute_all_users_vs_one(train_tags, test_tags, user_id, execution_id, distributive_tags, save_result):
 
-        if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data,
-                                                     filename="markov_model2/" + test_data["test_id"])
+    test_data = test_markov(train_tags, test_tags, distributive_tags=distributive_tags)
 
-def all_users_vs_one2(users_tags_sequence, distributive_tags=False, save_result=True):
+    test_data["trained_with"] = "all_other_users"
+    test_data["train_size"] = len(train_tags)
+    test_data["test_size"] = len(test_tags)
+    test_data["method"] = "all_users_vs_one"
+    test_data["user_id"] = user_id
+
+    if distributive_tags:
+        test_data["input_data_version"] = "markov-0.0.d"
+    else:
+        test_data["input_data_version"] = "markov-0.0"
+
+    test_data["test_id"] = execution_id
+
+    if save_result:
+        experiments_dao.save_execution_test_data(result_dict=test_data,
+                                                 filename="markov_model2/" + test_data["test_id"])
+
+
+def all_users_vs_one_light_mem(users_tags_sequence, distributive_tags=False, save_result=True):
     lista = list(users_tags_sequence.keys())
     for test_user in lista:
 
@@ -202,25 +185,8 @@ def all_users_vs_one2(users_tags_sequence, distributive_tags=False, save_result=
             if train_user != test_user:
                 train_tags = train_tags + users_tags_sequence[train_user]
 
-
         test_tags = users_tags_sequence[test_user]
 
-        test_data = test_markov(train_tags, test_tags, distributive_tags=distributive_tags)
-
-        test_data["trained_with"] = "all_other_users"
-        test_data["train_size"] = len(train_tags)
-        test_data["test_size"] = len(test_tags)
-        test_data["method"] = "all_users_vs_one"
-        test_data["user_id"] = test_user
-
-        if distributive_tags:
-            test_data["input_data_version"] = "markov-0.0.d"
-        else:
-            test_data["input_data_version"] = "markov-0.0"
-
-        test_data["test_id"] = execution_id
-
-        if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data,
-                                                     filename="markov_model2/" + test_data["test_id"])
+        execute_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=test_user, execution_id=execution_id,
+                                 distributive_tags=distributive_tags, save_result=save_result)
 
