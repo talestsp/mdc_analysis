@@ -7,6 +7,8 @@ from src.dao import experiments_dao
 from src.entity.stop_region import StopRegionGroup
 from ast import literal_eval
 
+EQUAL_DESTINATION_PROBA = "EQUAL_DESTINATION_PROBA"
+
 def is_valid_state(state):
     if state == "[]" or state == []:
         return False
@@ -32,11 +34,16 @@ def predict_distributive_tags(predictor, current_state_list):
 def predict_tags(predictor, current_state):
     return literal_eval(predictor.next_state(current_state))
 
-def test_markov(train, test, distributive_tags):
+def test_markov(train, test, distributive_tags, random_dummy_mode=None):
     if distributive_tags:
-        trans_proba_dict = mk.to_dict(mk.distributive_transition_probabilities(train))
+        trans_proba = mk.distributive_transition_probabilities(train)
     else:
-        trans_proba_dict = mk.to_dict(mk.transition_probabilities(train))
+        trans_proba = mk.transition_probabilities(train)
+
+    if random_dummy_mode == EQUAL_DESTINATION_PROBA:
+        trans_proba = mk.equalize_transition_prob(trans_proba)
+
+    trans_proba_dict = mk.to_dict(trans_proba)
 
     predictor = mk.MarkovPredictor().fit(trans_proba_dict)
 
@@ -81,7 +88,7 @@ def test_markov(train, test, distributive_tags):
             "partial_hits": partial_hits
             }
 
-def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, dummy_mode=None, save_result=True):
+def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, random_dummy_mode=None, save_result=True):
     if sr_group.size() <= 1:
         print("sr_group size: {} \n skipping".format(sr_group.size()))
         raise exceptions.TooShortStopRegionGroup()
@@ -89,10 +96,10 @@ def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, dummy_mode=
     tags_sequence = sr_group.sequence_stop_region_tags()["tag"].tolist()
 
     evaluation_markov_k_fold_light_mem(tags_sequence, sr_group.stop_region_list[0].user_id, k=k, distributive_tags=distributive_tags,
-                              save_result=save_result)
+                                       random_dummy_mode = random_dummy_mode, save_result=save_result)
 
 
-def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, k=5, distributive_tags=False, dummy_mode=None, save_result=True):
+def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, k=5, distributive_tags=False, random_dummy_mode=None, save_result=True):
     if len(tags_sequence) <= 1:
         print("sr_group size: {} \n skipping".format(len(tags_sequence)))
         raise exceptions.TooShortStopRegionGroup()
@@ -106,12 +113,17 @@ def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, k=5, distributive
         train = partition["train"]
         test = partition["test"]
 
-        test_data = test_markov(train, test, distributive_tags=distributive_tags)
+        test_data = test_markov(train, test, distributive_tags=distributive_tags, random_dummy_mode=random_dummy_mode)
 
         test_data["trained_with"] = "same_user"
         test_data["train_size"] = len(train)
         test_data["test_size"] = len(test)
-        test_data["method"] = "k_fold"
+
+        if random_dummy_mode is None:
+            test_data["method"] = "k_fold"
+        else:
+            test_data["method"] = "k_fold-{}".format(random_dummy_mode)
+
         test_data["k"] = k
         test_data["iteration"] = i
         test_data["user_id"] = user_id
@@ -124,10 +136,10 @@ def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, k=5, distributive
         test_data["test_id"] = execution_id
 
         if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model2/" + test_data["test_id"] + "_i_{}".format(i))
+            experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model3/" + test_data["test_id"] + "_i_{}".format(i))
 
 
-def all_users_vs_one(user_stop_region_group, distributive_tags=False, save_result=True):
+def all_users_vs_one(user_stop_region_group, distributive_tags=False, random_dummy_mode=None, save_result=True):
     lista = list(user_stop_region_group.keys())
     for test_user in lista:
 
@@ -147,32 +159,10 @@ def all_users_vs_one(user_stop_region_group, distributive_tags=False, save_resul
         user_id = sr_group_test.stop_region_list[0].user_id
 
         execute_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=user_id, execution_id=execution_id,
-                                 distributive_tags=distributive_tags, save_result=save_result)
+                                 distributive_tags=distributive_tags, random_dummy_mode=random_dummy_mode,
+                                 save_result=save_result)
 
-
-def execute_all_users_vs_one(train_tags, test_tags, user_id, execution_id, distributive_tags, save_result):
-
-    test_data = test_markov(train_tags, test_tags, distributive_tags=distributive_tags)
-
-    test_data["trained_with"] = "all_other_users"
-    test_data["train_size"] = len(train_tags)
-    test_data["test_size"] = len(test_tags)
-    test_data["method"] = "all_users_vs_one"
-    test_data["user_id"] = user_id
-
-    if distributive_tags:
-        test_data["input_data_version"] = "markov-0.0.d"
-    else:
-        test_data["input_data_version"] = "markov-0.0"
-
-    test_data["test_id"] = execution_id
-
-    if save_result:
-        experiments_dao.save_execution_test_data(result_dict=test_data,
-                                                 filename="markov_model2/" + test_data["test_id"])
-
-
-def all_users_vs_one_light_mem(users_tags_sequence, distributive_tags=False, save_result=True):
+def all_users_vs_one_light_mem(users_tags_sequence, distributive_tags=False, random_dummy_mode=None, save_result=True):
     lista = list(users_tags_sequence.keys())
     for test_user in lista:
 
@@ -188,5 +178,31 @@ def all_users_vs_one_light_mem(users_tags_sequence, distributive_tags=False, sav
         test_tags = users_tags_sequence[test_user]
 
         execute_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=test_user, execution_id=execution_id,
-                                 distributive_tags=distributive_tags, save_result=save_result)
+                                 distributive_tags=distributive_tags, random_dummy_mode=random_dummy_mode,
+                                 save_result=save_result)
 
+def execute_all_users_vs_one(train_tags, test_tags, user_id, execution_id, distributive_tags, random_dummy_mode, save_result):
+
+    test_data = test_markov(train_tags, test_tags, distributive_tags=distributive_tags, random_dummy_mode=random_dummy_mode)
+
+    test_data["trained_with"] = "all_other_users"
+    test_data["train_size"] = len(train_tags)
+    test_data["test_size"] = len(test_tags)
+
+    if random_dummy_mode is None:
+        test_data["method"] = "all_users_vs_one"
+    else:
+        test_data["method"] = "all_users_vs_one-{}".format(random_dummy_mode)
+
+    test_data["user_id"] = user_id
+
+    if distributive_tags:
+        test_data["input_data_version"] = "markov-0.0.d"
+    else:
+        test_data["input_data_version"] = "markov-0.0"
+
+    test_data["test_id"] = execution_id
+
+    if save_result:
+        experiments_dao.save_execution_test_data(result_dict=test_data,
+                                                 filename="markov_model3/" + test_data["test_id"])

@@ -50,7 +50,6 @@ def __add_value(row, trans_proba_dict):
 
     return trans_proba_dict
 
-
 def transition_probabilities(sequence_states):
     trans_proba_df = pd.DataFrame()
 
@@ -77,12 +76,23 @@ def transition_probabilities_equal(sequence_states):
     trans_proba_df["destination"] = sequence_states[1:]
     trans_proba_df["destination"] = trans_proba_df["destination"].astype(str)
 
-    same_proba = trans_proba_df.groupby("origin").apply(lambda group: 100 / len(group))
+    same_proba = trans_proba_df.groupby("origin").apply(lambda group: 1 / len(group))
 
     trans_proba_df = trans_proba_df.merge(same_proba.to_frame(), how='left', left_on="origin", right_index=True).rename(
         columns={0: "transition_freq"})
 
     return trans_proba_df
+
+def equalize_transition_prob(trans_proba_df):
+    del trans_proba_df["transition_freq"]
+
+    same_proba = trans_proba_df.groupby("origin").apply(lambda group: 1 / len(group))
+
+    trans_proba_df = trans_proba_df.merge(same_proba.to_frame(), how='left', left_on="origin", right_index=True).rename(
+        columns={0: "transition_freq"})
+
+    return trans_proba_df
+
 
 def distributive_transition_probabilities(tags_sequence):
     transitions = []
