@@ -176,6 +176,11 @@ def valid_pois_google(google_places_data):
 
 
 def useful_types(types):
+    '''
+    Removes the default POI types: establishment and point_of_interest
+    :param types:
+    :return:
+    '''
     if "establishment" in types:
         del [types[types.index("establishment")]]
 
