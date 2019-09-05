@@ -96,7 +96,7 @@ def evaluation_markov_k_fold(sr_group, k=5, distributive_tags=False, random_dumm
     tags_sequence = sr_group.sequence_stop_region_tags()["tag"].tolist()
 
     evaluation_markov_k_fold_light_mem(tags_sequence, sr_group.stop_region_list[0].user_id, k=k, distributive_tags=distributive_tags,
-                                       random_dummy_mode = random_dummy_mode, save_result=save_result)
+                                       random_dummy_mode=random_dummy_mode, save_result=save_result)
 
 
 def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, k=5, distributive_tags=False, random_dummy_mode=None, save_result=True):
@@ -136,7 +136,7 @@ def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, k=5, distributive
         test_data["test_id"] = execution_id
 
         if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model3/" + test_data["test_id"] + "_i_{}".format(i))
+            experiments_dao.save_execution_test_data(result_dict=test_data, filename="markov_model_categ/" + test_data["test_id"] + "_i_{}".format(i))
 
 
 def all_users_vs_one(user_stop_region_group, distributive_tags=False, random_dummy_mode=None, save_result=True):
@@ -205,4 +205,4 @@ def execute_all_users_vs_one(train_tags, test_tags, user_id, execution_id, distr
 
     if save_result:
         experiments_dao.save_execution_test_data(result_dict=test_data,
-                                                 filename="markov_model3/" + test_data["test_id"])
+                                                 filename="markov_model_categ/" + test_data["test_id"])
