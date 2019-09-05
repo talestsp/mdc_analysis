@@ -384,6 +384,9 @@ def stop_region_sequence(user_id):
     sr_sequence = sr.apply(sr_row_to_stop_region, axis=1).tolist()
     return sr_sequence
 
+def load_google_places_pois_categories():
+    return pd.read_csv("outputs/taxonomy/google_places/taxonomy_v1.csv")
+
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)
 

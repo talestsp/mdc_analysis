@@ -12,3 +12,9 @@ class TooShortStopRegionGroup(Exception):
 
 class StateNotPresentInTrainAsOrigin(Exception):
     pass
+
+class TopParentNotCategory(Exception):
+    pass
+
+class NoCategoryMatched(Exception):
+    pass

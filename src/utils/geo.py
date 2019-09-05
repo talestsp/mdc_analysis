@@ -76,39 +76,40 @@ def convert_4326_3857(lat, lon):
     # return transform(inProj,outProj,lat,lon)
 
 
-def box_limits(users):
-    global_min_lon = 999999999
-    global_min_lat = 999999999
-    global_max_lat = -999999999
-    global_max_lon = -999999999
+# def box_limits(users):
+#     global_min_lon = 999999999
+#     global_min_lat = 999999999
+#     global_max_lat = -999999999
+#     global_max_lon = -999999999
+#
+#     for userid in users:
+#         user_gps_data = csv_dao.load_user_gps_csv(userid=userid)
+#         if len(user_gps_data) == 0:
+#             continue
+#
+#         user_min_lat = user_gps_data["latitude"].min()
+#         user_min_lon = user_gps_data["longitude"].min()
+#         user_max_lat = user_gps_data["latitude"].max()
+#         user_max_lon = user_gps_data["longitude"].max()
+#
+#         if user_min_lat < global_min_lat:
+#             global_min_lat = user_min_lat
+#
+#         if user_max_lat > global_max_lat:
+#             global_max_lat = user_max_lat
+#
+#         if user_min_lon < global_min_lon:
+#             global_min_lon = user_min_lon
+#
+#         if user_max_lon > global_max_lon:
+#             global_max_lon = user_max_lon
+#
+#     return {"min_lon": global_min_lon, "max_lon": global_max_lon,
+#             "min_lat": global_min_lat, "max_lat": global_max_lat}
 
-    for userid in users:
-        user_gps_data = csv_dao.load_user_gps_csv(userid=userid)
-        if len(user_gps_data) == 0:
-            continue
 
-        user_min_lat = user_gps_data["latitude"].min()
-        user_min_lon = user_gps_data["longitude"].min()
-        user_max_lat = user_gps_data["latitude"].max()
-        user_max_lon = user_gps_data["longitude"].max()
-
-        if user_min_lat < global_min_lat:
-            global_min_lat = user_min_lat
-
-        if user_max_lat > global_max_lat:
-            global_max_lat = user_max_lat
-
-        if user_min_lon < global_min_lon:
-            global_min_lon = user_min_lon
-
-        if user_max_lon > global_max_lon:
-            global_max_lon = user_max_lon
-
-    return {"min_lon": global_min_lon, "max_lon": global_max_lon,
-            "min_lat": global_min_lat, "max_lat": global_max_lat}
-
-
-def box_limits(users):
+def box_limits(users, csv_dao):
+    #receiving csv_dao to avoid circular imports
     global_min_lon = 999999999
     global_min_lat = 999999999
     global_max_lat = -999999999
