@@ -51,3 +51,10 @@ def concat_lists(lists):
     for lista in lists:
         concat = concat + lista
     return concat
+
+
+def remove_list_elements(list, elements):
+    for el in elements:
+        if el in list:
+            list.remove(el)
+    return list

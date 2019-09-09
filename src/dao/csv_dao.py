@@ -6,6 +6,7 @@ import src.utils.geo as geo
 from src.utils.time_utils import local_time
 from src.entity.geo_circle import GeoCircle
 from src.entity.stop_region import sr_row_to_stop_region
+from src.utils.others import remove_list_elements
 
 
 DAY_SECONDS = 86400
@@ -384,8 +385,11 @@ def stop_region_sequence(user_id):
     sr_sequence = sr.apply(sr_row_to_stop_region, axis=1).tolist()
     return sr_sequence
 
-def load_google_places_pois_categories():
-    return pd.read_csv("outputs/taxonomy/google_places/taxonomy_v1.csv")
+def load_google_places_pois_categories(remove_types=['point_of_interest', 'establishment']):
+    categories = pd.read_csv("outputs/taxonomy/google_places/taxonomy_v1.csv")
+    categories["types"] = categories["types"].apply(lambda types : remove_list_elements(ast.literal_eval(types) , remove_types))
+
+    return categories
 
 if __name__ == "__main__":
     d200 = load_request_circles_df(200)

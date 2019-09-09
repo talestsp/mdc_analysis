@@ -1,4 +1,5 @@
 import pandas as pd
+import copy
 
 def term_list_index(term, lista):
     if term in lista:
@@ -6,13 +7,11 @@ def term_list_index(term, lista):
     else:
         return -1
 
-
 def term_index_len(term, types_series):
     term_index = types_series.apply(lambda lista: term_list_index(term, lista))
     term_types_len = types_series.apply(lambda lista: len(lista))
 
     return pd.DataFrame({"index": term_index, "len": term_types_len})
-
 
 def left_right_term(term, types_series):
     lefts = []
@@ -34,7 +33,6 @@ def left_right_term(term, types_series):
                                                right_index=True)
 
     return lr.sort_values(by=["0_x", "0_y"], ascending=False).rename({"0_x": "left", "0_y": "right"}, axis=1)
-
 
 def term_placement_analisis(lr, show=True):
     '''
@@ -65,3 +63,49 @@ def term_placement_analisis(lr, show=True):
         print("---")
         print()
     return {"right": right, "left": left, "both": both_valid}
+
+def children(category, relations_freq):
+    children_df = relations_freq[relations_freq["parent"] == category].sort_values("freq", ascending=False)
+    children_df["prop"] = children_df["freq"] / children_df["freq"].sum()
+    return children_df.sort_values("freq", ascending=False)
+
+def parent(category, relations_freq):
+    parent_df = copy.deepcopy(relations_freq[relations_freq["category"] == category])
+    parent_df["prop"] = parent_df["freq"] / parent_df["freq"].sum()
+    return parent_df.sort_values("freq", ascending=False)
+
+
+def len_categs(categories):
+    total = 0
+    for key in categories.keys():
+        total += len(categories[key])
+    return total
+
+def categ_relations(types):
+    relations = []
+
+    relations.append(("NULL", types[0]))
+
+    for i in range(len(types) - 1):
+        relation = (types[i], types[i + 1])
+        relations.append(relation)
+
+    relations.append((types[-1], "."))
+
+    return relations
+
+def relations_df(google_places_pois):
+    relations = []
+
+    for types in google_places_pois["types"]:
+        for relation in categ_relations(types):
+            row = {"category": relation[0], "parent": relation[1]}
+            relations.append(row)
+
+    return pd.DataFrame(relations)
+
+def relations_freq(google_places_pois):
+    relations_freq = relations_df(google_places_pois).groupby("parent")["category"].value_counts().to_frame().rename({'category': 'freq'},
+                                                                                                 axis=1).reset_index().sort_values(
+        "freq", ascending=False)
+    return relations_freq
