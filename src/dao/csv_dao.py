@@ -2,7 +2,7 @@ import pandas as pd
 import os
 import math
 import ast
-import src.utils.geo as geo
+from src.utils.geo import cluster_centroid
 from src.utils.time_utils import local_time
 from src.entity.geo_circle import GeoCircle
 from src.entity.stop_region import sr_row_to_stop_region
@@ -158,7 +158,7 @@ def load_user_stop_regions_centroids(user_id, tag_stop_regions=True, round_lat_l
             sr_id = sr["sr_id"].drop_duplicates().item()
             start_time = sr["local_time"].min()
             end_time = sr["local_time"].max()
-            centroid = geo.cluster_centroid(sr)
+            centroid = cluster_centroid(sr)
             centroid["sr_id"] = sr_id
             centroid["user_id"] = user_id
             centroid["local_start_time"] = start_time

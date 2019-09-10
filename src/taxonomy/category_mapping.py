@@ -4,6 +4,8 @@ import json
 from src.exceptions.exceptions import TopParentNotCategory, NoCategoryMatched
 from src.utils.type_hierarchy_analysis import parent, relations_freq
 from src.poi_grabber import google_places
+from src.utils.others import remove_list_elements
+from src.exceptions.exceptions import NotValidTypes
 
 class CategoryMapper:
 
@@ -84,7 +86,15 @@ class CategoryMapper:
     def _most_specific(self, categories):
         return categories[0]
 
+    def _valid_types(self, types):
+        clean_types = remove_list_elements(types, elements=['premise', 'point_of_interest', 'establishment'])
+        if len(clean_types) == 0:
+            raise NotValidTypes
+
+        return clean_types
+
     def map_categ(self, types, logs=False):
+        types = self._valid_types(types)
         mapped = self._map_types_to_categ(types, self.categories)
 
         mapped_categs = pd.Series(mapped).value_counts()

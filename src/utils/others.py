@@ -1,4 +1,5 @@
 import json
+import copy
 
 from sklearn.cluster import KMeans
 from src.exceptions import exceptions
@@ -54,6 +55,7 @@ def concat_lists(lists):
 
 
 def remove_list_elements(list, elements):
+    list = copy.deepcopy(list)
     for el in elements:
         if el in list:
             list.remove(el)

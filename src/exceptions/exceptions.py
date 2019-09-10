@@ -18,3 +18,6 @@ class TopParentNotCategory(Exception):
 
 class NoCategoryMatched(Exception):
     pass
+
+class NotValidTypes(Exception):
+    pass

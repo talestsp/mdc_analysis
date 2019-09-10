@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import geopy.distance as gp
 from pyproj import Proj, transform
-from src.dao import csv_dao
+#from src.dao import csv_dao
 
 def haversine_vectorized(lon1, lat1, lon2, lat2):
     """
