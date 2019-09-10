@@ -169,11 +169,20 @@ def remove_google_places_duplicates(data):
     return data.drop_duplicates(subset=cols)
 
 def valid_pois_google(google_places_data):
-    return google_places_data[~(
-                (google_places_data["types"].apply(len) == 2) &
-                (google_places_data["types"].apply(lambda list : "point_of_interest" in list)) &
-                (google_places_data["types"].apply(lambda list : "establishment" in list)) )]
+    valids = google_places_data[~(
+            (google_places_data["types"].apply(len) == 2) &
+            (google_places_data["types"].apply(lambda list: "point_of_interest" in list)) &
+            (google_places_data["types"].apply(lambda list: "establishment" in list))
+    )]
 
+    valids = valids[~(
+            (valids["types"].apply(len) == 3) &
+            (valids["types"].apply(lambda list: "premise" in list)) &
+            (valids["types"].apply(lambda list: "point_of_interest" in list)) &
+            (valids["types"].apply(lambda list: "establishment" in list))
+    )]
+
+    return valids
 
 def useful_types(types):
     '''
