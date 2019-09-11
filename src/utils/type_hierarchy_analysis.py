@@ -109,3 +109,36 @@ def relations_freq(google_places_pois):
                                                                                                  axis=1).reset_index().sort_values(
         "freq", ascending=False)
     return relations_freq
+
+
+def occurrences_in_all_pois(term, pois_types, round_n=3):
+    occurrences = pois_types.apply(lambda types: term in types).value_counts()
+    try:
+        freq = occurrences.loc[True]
+    except KeyError:
+        freq = 0
+
+    prop = freq / len(pois_types)
+
+    if round_n:
+        prop = round(prop, round_n)
+
+    return {"freq": freq, "prop": prop}
+
+
+def occurrences_in_visited_pois(term, user_tags_sequence, round_n=3):
+    freq = 0
+    n_pois = 0
+
+    for user_id in user_tags_sequence.keys():
+        n_pois += len(user_tags_sequence[user_id])
+        for types in user_tags_sequence[user_id]:
+            if term in types:
+                freq += 1
+
+    prop = freq / n_pois
+
+    if round_n:
+        prop = round(prop, round_n)
+
+    return {"freq": freq, "prop": prop}

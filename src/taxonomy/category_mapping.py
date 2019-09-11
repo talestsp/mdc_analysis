@@ -9,12 +9,13 @@ from src.exceptions.exceptions import NotValidTypes
 
 class CategoryMapper:
 
-    def __init__(self):
-        self.categories = self._load_categories()
+    def __init__(self, categories_version="v1"):
+        self.categories = self._load_categories(categories_version=categories_version)
         self.relations_freq = relations_freq(google_places.load_all_google_places_data(valid_pois=True))
 
-    def _load_categories(self):
-        with open('outputs/taxonomy/google_places/categories.csv') as json_file:
+    def _load_categories(self, categories_version):
+        filename = "categories_{}.csv".format(categories_version)
+        with open('outputs/taxonomy/google_places/{}'.format(filename)) as json_file:
             return json.load(json_file)
 
     def _map_type_categ(self, a_type, categs):
