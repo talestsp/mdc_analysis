@@ -82,6 +82,9 @@ class CategoryMapper:
             except TopParentNotCategory:
                 continue
 
+        if len(mapped_categs) == 0:
+            raise NoCategoryMatched()
+
         return mapped_categs
 
     def _most_specific(self, categories):
@@ -94,27 +97,41 @@ class CategoryMapper:
 
         return clean_types
 
-    def map_categ(self, types, logs=False):
+    def map_categ(self, types, method="most_specific", logs=False):
+        '''
+
+        :param types:
+        :param method: 'most_specific' or 'most_frequent'
+        :param logs:
+        :return:
+        '''
         types = self._valid_types(types)
         mapped = self._map_types_to_categ(types, self.categories)
 
         mapped_categs = pd.Series(mapped).value_counts()
         most_frequent = mapped_categs[mapped_categs == mapped_categs.max()].index.tolist()
+        most_specific = self._most_specific(mapped)
 
         if logs:
             print("\n---")
             print("TYPES :", types)
             print("\nMAPPED:", mapped)
             print("most_frequent:", most_frequent)
+            print("most_specific:", most_specific)
+            print("chosen method:", method)
 
-        if len(most_frequent) == 0:
-            raise NoCategoryMatched()
+        if method == "most_specific":
+            return most_specific
 
-        if len(most_frequent) > 1:
-            return self._most_specific(mapped)
+        elif method == "most_frequent":
+            if len(most_frequent) == 0:
+                raise NoCategoryMatched()
 
-        else:
-            return most_frequent[0]
+            if len(most_frequent) > 1:
+                return self._most_specific(mapped)
+
+            else:
+                return most_frequent[0]
 
 
 if __name__ == "__main__":
@@ -138,7 +155,7 @@ if __name__ == "__main__":
                 print(poi["types"])
 
         except NoCategoryMatched:
-            categs.append("NoCategoryMatched")
+            categs.append(["NoCategoryMatched"])
             not_found.append(poi["types"])
 
     print(not_found)

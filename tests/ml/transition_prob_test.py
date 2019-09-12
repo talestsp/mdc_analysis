@@ -84,7 +84,6 @@ class transition_prob_test(unittest.TestCase):
         for tags in dist_trans_proba["origin"].tolist():
             self.assertEqual(type(tags), str)
 
-
     def test_clean_data(self):
         dist_trans_proba = distributive_transition_probabilities(self.agg_6074_0_tags)
         trans_proba = transition_probabilities(self.agg_6074_0_tags)

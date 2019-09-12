@@ -1,2 +1,4 @@
 markov-0.0 : Only places tags used as states for a Markov Chain. The tags used are Google Places types or, in case of place semantics, the semantic tag
 markov-0.0.d : Applying Distributive property to transitions with multiple tags. The distributive transitions of [A, B] ~> [C, D] is A ~> B, A ~> D, B ~> C, B ~> D
+
+markov-0.0.categ_v1: Using Category Taxonomy version 1

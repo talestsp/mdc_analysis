@@ -134,11 +134,14 @@ def calculate_proba_per_origin(transitions_df):
     del trans_proba_df["transition_freq"]
     del trans_proba_df["origin"]
 
+    # print(freq_grouped_by_origin)
+
     try:
         freq_grouped_by_origin = freq_grouped_by_origin.to_frame()
     except AttributeError:
         freq_grouped_by_origin_dict = freq_grouped_by_origin.to_dict()
 
+        print(freq_grouped_by_origin_dict)
         index = list(freq_grouped_by_origin_dict.keys())[0]
         origin_value = list(freq_grouped_by_origin_dict[index].keys())[0]
         transition_freq_value = freq_grouped_by_origin_dict[index][list(freq_grouped_by_origin_dict[index].keys())[0]]

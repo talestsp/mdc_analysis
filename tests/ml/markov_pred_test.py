@@ -19,7 +19,7 @@ class markov_pred_test(unittest.TestCase):
 
 
     def test_prediction_not_distributive(self):
-        for i in range(10):
+        for i in range(20):
             k_fold_partitions = k_fold_iteration(self.tags_sequence, k=5)
 
             for i in range(len(k_fold_partitions)):
@@ -63,7 +63,7 @@ class markov_pred_test(unittest.TestCase):
 
 
     def test_prediction_distributive(self):
-        for i in range(10):
+        for i in range(20):
             k_fold_partitions = k_fold_iteration(self.tags_sequence, k=5)
 
             for i in range(len(k_fold_partitions)):
@@ -72,6 +72,10 @@ class markov_pred_test(unittest.TestCase):
                 test = partition["test"]
 
                 trans_proba_dict = mk.to_dict(mk.distributive_transition_probabilities(train))
+
+                print("trans_proba_dict")
+                print(trans_proba_dict)
+
 
                 predictor = mk.MarkovPredictor().fit(trans_proba_dict)
 
@@ -94,6 +98,7 @@ class markov_pred_test(unittest.TestCase):
 
                         except exceptions.StateNotPresentInTrainAsOrigin:
                             print("state <{}> not present in training".format(state))
+                            next_state_pred_list.append("StateNotPresentInTrainAsOrigin")
                             continue
                     print("-----")
                     print("curr", current_state_list, type(current_state_list))
