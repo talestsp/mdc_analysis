@@ -127,6 +127,8 @@ def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, input_data_versio
 
         test_data["k"] = k
         test_data["iteration"] = i
+        print()
+
         test_data["user_id"] = user_id
 
         test_data["is_distributive"] = is_distributive
