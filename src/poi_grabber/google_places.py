@@ -110,6 +110,9 @@ def load_request_result_single_file(radius_m, filename):
 def load_all_google_places_data(radius_m=75, valid_pois=False, round_lat_lon=6, verbose=False):
 
     if radius_m in ALL_GOOGLE_PLACES_DATA.keys():
+        if valid_pois:
+            return valid_pois_google(ALL_GOOGLE_PLACES_DATA[radius_m])
+
         return ALL_GOOGLE_PLACES_DATA[radius_m]
 
     try:
@@ -166,13 +169,27 @@ def remove_google_places_duplicates(data):
     return data.drop_duplicates(subset=cols)
 
 def valid_pois_google(google_places_data):
-    return google_places_data[~(
-                (google_places_data["types"].apply(len) == 2) &
-                (google_places_data["types"].apply(lambda list : "point_of_interest" in list)) &
-                (google_places_data["types"].apply(lambda list : "establishment" in list)) )]
+    valids = google_places_data[~(
+            (google_places_data["types"].apply(len) == 2) &
+            (google_places_data["types"].apply(lambda list: "point_of_interest" in list)) &
+            (google_places_data["types"].apply(lambda list: "establishment" in list))
+    )]
 
+    valids = valids[~(
+            (valids["types"].apply(len) == 3) &
+            (valids["types"].apply(lambda list: "premise" in list)) &
+            (valids["types"].apply(lambda list: "point_of_interest" in list)) &
+            (valids["types"].apply(lambda list: "establishment" in list))
+    )]
+
+    return valids
 
 def useful_types(types):
+    '''
+    Removes the default POI types: establishment and point_of_interest
+    :param types:
+    :return:
+    '''
     if "establishment" in types:
         del [types[types.index("establishment")]]
 

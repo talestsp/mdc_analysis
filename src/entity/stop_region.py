@@ -4,6 +4,7 @@ from src.dao import csv_dao
 from src.poi_grabber import google_places
 from src.plot import plot2
 from src.utils.others import concat_lists
+from src.exceptions import exceptions
 
 class StopRegion:
     '''
@@ -86,7 +87,7 @@ class StopRegion:
         return use_pois_tags
 
     def tag_closest_poi(self, remove_tags=["establishment", "point_of_interest"]):
-        pois_tags = self.closest_poi()["types"]
+        pois_tags = self.closest_poi()["types"].apply(lambda types_list : pd.Series(types_list).drop_duplicates().tolist())
         return self.__remove_tags_from_list(pois_tags.tolist(), remove_tags)
 
     def closest_poi(self):
@@ -95,7 +96,7 @@ class StopRegion:
         return self.close_pois[self.close_pois["distance"] == self.close_pois["distance"].min()]
 
     def tag_radius_pois(self, radius, remove_tags=["establishment", "point_of_interest"]):
-        pois_tags = self.radius_pois(radius)["types"]
+        pois_tags = self.radius_pois(radius)["types"].apply(lambda types_list : pd.Series(types_list).drop_duplicates().tolist())
         return self.__remove_tags_from_list(pois_tags.tolist(), remove_tags)
 
     def radius_pois(self, radius):
@@ -138,8 +139,15 @@ class StopRegionGroup:
     def size(self):
         return len(self.stop_region_list)
 
-    def sequence_report(self):
+    def delta_time(self):
+        return self.stop_region_list[-1].end_time - self.stop_region_list[0].start_time
+
+    def sequence_report(self, only_simple_cols=True):
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
+
+        if self.size() <= 1:
+            raise exceptions.TransitionsNeedAtLeastTwoStates()
+
         sequence_report = []
 
         last_sr = self.stop_region_list[0]
@@ -150,15 +158,32 @@ class StopRegionGroup:
                             "last_sr": last_sr.sr_id, "last_sr_type": last_sr.tag_closest_poi(),
                             "sr": sr.sr_id, "sr_type": sr.tag_closest_poi(),
                             "last_sr_semantics": last_sr.semantics,
-                            "sr_semantics": sr.semantics}
+                            "sr_semantics": sr.semantics,
+                            "sr_start_time": sr.start_time,
+                            "sr_end_time": sr.end_time}
             sequence_report.append(sequence_row)
             last_sr = sr
 
-        cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
-        return pd.DataFrame(sequence_report)[cols]
+        report = pd.DataFrame(sequence_report)
+
+        if only_simple_cols:
+            simpĺe_cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
+            report = report[simpĺe_cols]
+
+        return report
 
     def sequence_pois_type(self):
         return self.sequence_report["last_sr_tag"].tolist()
+
+    def sequence_stop_region_types(self):
+        types_list = []
+        for sr in self.stop_region_list:
+            sr_types_list = sr.tag_closest_poi()
+
+            for sr_types in sr_types_list:
+                types_list.append(sr_types)
+
+        return types_list
 
     def sequence_stop_region_tags(self):
         '''
@@ -169,17 +194,54 @@ class StopRegionGroup:
         :return:
         '''
 
-        tags = self.sequence_report().apply(
-            lambda row: {"semantics": row["sr_semantics"], "types": row["sr_type"]}, axis=1)
+        tags = []
 
-        return tags.apply(
-            lambda tag_dict: concat_lists(tag_dict["types"]) if len(tag_dict["semantics"]) == 0 else tag_dict["semantics"])
+        for sr in self.stop_region_list:
+            sequence_row = {"sr": sr.sr_id, "sr_types": sr.tag_closest_poi(),
+                            "sr_semantics": sr.semantics,
+                            "sr_start_time": sr.start_time,
+                            "sr_end_time": sr.end_time}
+            tags.append(sequence_row)
+
+        tags_df = pd.DataFrame(tags)
+        # print(tags_df)
+
+        # if len(tags_df.iloc[0]["sr_semantics"]) == 0:
+        #     print("concat_lists(tags_df.iloc[0]['sr_types'])")
+        #     print(concat_lists(tags_df.iloc[0]["sr_types"]))
+        # else:
+        #     print("else 0")
+        #     print(tags_df.iloc[0]["sr_semantics"])
+        #
+        # if len(tags_df.iloc[1]["sr_semantics"]) == 0:
+        #     print("concat_lists(tags_df.iloc[1]['sr_types'])")
+        #     print(concat_lists(tags_df.iloc[1]["sr_types"]))
+        # else:
+        #     print("else 1")
+        #     print(tags_df.iloc[1]["sr_semantics"])
+
+
+        try:
+            tags = tags_df.apply(
+                lambda tag_dict: concat_lists(tag_dict["sr_types"]) if len(tag_dict["sr_semantics"]) == 0 else tag_dict[
+                    "sr_semantics"], axis=1)
+        except ValueError:
+            tags = []
+            for index, row in tags_df.iterrows():
+                if len(row["sr_semantics"]) == 0:
+                    tags.append(concat_lists(row["sr_types"]))
+                else:
+                    tags.append(row["sr_semantics"])
+
+        tags_df["tag"] = tags
+
+        return tags_df[["sr_start_time", "tag"]]
 
     def agglutinate_stop_regions(self):
         agglutinated = []
         singles = []
 
-        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi, same_semantics)
+        agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi, same_not_null_semantics)
 
         for group in agglutinated_srs:
             if len(group) == 1:
@@ -205,7 +267,7 @@ def sr_row_to_stop_region(sr_row):
     else:
         semantics = sr_row["tag"].split(",")
 
-    return StopRegion(centroid_lat = sr_row["latitude"], centroid_lon=sr_row["longitude"],
+    return StopRegion(centroid_lat=sr_row["latitude"], centroid_lon=sr_row["longitude"],
                       start_time=sr_row["local_start_time"], end_time=sr_row["local_end_time"],
                       user_id=sr_row["user_id"], sr_id=sr_row["sr_id"], semantics=semantics)
 
@@ -214,7 +276,12 @@ def same_closest_poi(last_sr, sr):
     set_last_sr_pois = set(last_sr.closest_poi()["place_id"].tolist())
     return len(set_sr_pois.intersection(set_last_sr_pois)) > 0
 
-def same_semantics(last_sr, sr):
+def same_not_null_semantics(last_sr, sr):
+    if not type(last_sr.semantics) is list:
+        raise Exception("Malformed semantics")
+    elif len(last_sr.semantics) == 0 or len(sr.semantics) == 0:
+        return False
+
     set_sr_semantics = set(sr.semantics)
     set_last_sr_semantics = set(last_sr.semantics)
     return set_sr_semantics.intersection(set_last_sr_semantics) == set_sr_semantics .union(set_last_sr_semantics)

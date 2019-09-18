@@ -1,15 +1,16 @@
 import unittest
-import pandas as pd
-from src.dao import csv_dao
-from src.entity.stop_region import StopRegion, sr_row_to_stop_region
+from src.poi_grabber import google_places
 
 
 class csv_dao_test(unittest.TestCase):
 
     def setUp(self):
-        pass
+        self.google_pois = google_places.load_all_google_places_data(valid_pois=True)
 
-    def test_load_knn_pois_by_stop_region(self):
-        pass
+    def test_load_valids(self):
+        for types in self.google_pois["types"]:
+            if len(types) == 2:
+                self.assertNotEquals(set(["point_of_interest", "establishment"]), set(types))
 
-
+            if len(types) == 3:
+                self.assertNotEquals(set(["point_of_interest", "establishment", "premise"]), set(types))
