@@ -13,16 +13,17 @@ def test_ctw(user_id, sequence, depth, predict_choice_method, method, input_data
 
     comparison_real_pred = pd.Series(pxs) == pd.Series(sequence[depth:])
 
-    hits_freq = comparison_real_pred.value_counts()
+    hits = pd.Series(sequence[depth:])[comparison_real_pred == True].tolist()
+    misses = pd.Series(sequence[depth:])[comparison_real_pred == False].tolist()
 
     test_data = {"user_id": user_id,
                  "method": method,
                  "input_data_version": input_data_version,
                  "test_id": str(uuid.uuid4()),
-                 "hits": pd.Series(sequence[depth:])[comparison_real_pred == True],
-                 "misses": pd.Series(sequence[depth:])[comparison_real_pred == False],
-                 "total_hits": hits_freq[True],
-                 "total_misses": hits_freq[True],
+                 "hits": hits,
+                 "misses": misses,
+                 "total_hits": len(hits),
+                 "total_misses": len(misses),
                  "train_size": len(sequence),
                  "test_size": len(pxs),
                  "is_distributive": False,
