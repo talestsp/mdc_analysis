@@ -5,12 +5,17 @@ from src.ml.context_tree_weighting.ctw import CTW
 
 class MyCTW:
 
-    def __init__(self, depth, symbols):
-        self.ctw = CTW(depth=depth, symbols=symbols)
+    def __init__(self, depth, symbols, sidesymbols=None):
+        if sidesymbols is None:
+            self.ctw = CTW(depth=depth, symbols=symbols)
+        else:
+            self.ctw = CTW(depth=depth, symbols=symbols, sidesymbols=sidesymbols)
 
     def prediction_proba(self, seq, sideseq=None):
-
-        return self.ctw.predict_sequence(seq=seq, sideseq=sideseq)
+        if sideseq is None:
+            return self.ctw.predict_sequence(seq=seq)
+        else:
+            return self.ctw.predict_sequence(seq=seq, sideseq=sideseq)
 
     def prediction(self, seq, sideseq=None, method="most_likely"):
         '''
