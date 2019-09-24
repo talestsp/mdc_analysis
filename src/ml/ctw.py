@@ -12,6 +12,12 @@ class MyCTW:
             self.ctw = CTW(depth=depth, symbols=symbols, sidesymbols=sidesymbols)
 
     def prediction_proba(self, seq, sideseq=None):
+        print("seq")
+        print(seq)
+        print("sideseq")
+        print(sideseq)
+        print()
+
         if sideseq is None:
             return self.ctw.predict_sequence(seq=seq)
         else:
