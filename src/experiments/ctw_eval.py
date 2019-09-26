@@ -16,7 +16,6 @@ def is_same_sequence(seq_a, seq_b):
     return True
 
 def test_ctw(train_sequence, test_sequence, depth, predict_choice_method):
-
     ctw = MyCTW(depth=depth, symbols=len(set(test_sequence)), sidesymbols=len(set(train_sequence)))
 
     pxs = ctw.prediction(seq=test_sequence, sideseq=train_sequence, method=predict_choice_method)
