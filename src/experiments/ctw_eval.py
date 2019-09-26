@@ -20,6 +20,7 @@ def test_ctw(train_sequence, test_sequence, depth, predict_choice_method):
     ctw = MyCTW(depth=depth, symbols=len(set(test_sequence)), sidesymbols=len(set(train_sequence)))
 
     pxs = ctw.prediction(seq=test_sequence, sideseq=train_sequence, method=predict_choice_method)
+    # print("pxs", len(pxs))
 
     comparison_real_pred = pd.Series(pxs) == pd.Series(test_sequence[depth:])
 
@@ -54,18 +55,22 @@ def evaluation_ctw_k_fold_light_mem(tags_sequence, user_id, input_data_version, 
         train = partition["train"]
         test = partition["test"]
 
+        # print("train", len(train))
+        # print("test", len(test))
         test_data = test_ctw(train, test, depth=depth, predict_choice_method=predict_choice_method)
 
-        test_data["algorithm "]= "ctw"
+        test_data["algorithm"] = "ctw"
         test_data["trained_with"] = "same_user"
         test_data["train_size"] = len(train)
         test_data["test_size"] = len(test)
 
-        if predict_choice_method.lower() == "dummy":
-            test_data["method"] = "k_fold-{}".format("DUMMY")
-
+        if predict_choice_method == "random_dummy":
+            test_data["is_dummy"] = True
         else:
-            test_data["method"] = "k_fold"
+            test_data["is_dummy"] = False
+
+
+        test_data["method"] = "k_fold"
 
         test_data["k"] = k
         test_data["iteration"] = i

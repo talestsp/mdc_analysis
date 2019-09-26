@@ -21,3 +21,6 @@ class NoCategoryMatched(Exception):
 
 class NotValidTypes(Exception):
     pass
+
+class ContextNotFoundInLeavesMapKeys(Exception):
+    pass

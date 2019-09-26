@@ -12,12 +12,6 @@ class MyCTW:
             self.ctw = CTW(depth=depth, symbols=symbols, sidesymbols=sidesymbols)
 
     def prediction_proba(self, seq, sideseq=None):
-        print("seq")
-        print(seq)
-        print("sideseq")
-        print(sideseq)
-        print()
-
         if sideseq is None:
             return self.ctw.predict_sequence(seq=seq)
         else:
@@ -31,33 +25,40 @@ class MyCTW:
         :return:
         '''
 
-        mapped_tags, tags_map = self._tag_to_numeric(seq)
-
-        pred_proba = self.prediction_proba(mapped_tags, sideseq)
+        if sideseq is None:
+            tag_map = self._map_tags(seq)
+            pred_proba = self.prediction_proba(seq=self._map_tag_to_numeric(seq, tag_map))
+        else:
+            tag_map = self._map_tags(list(seq) + list(sideseq))
+            pred_proba = self.prediction_proba(seq=self._map_tag_to_numeric(seq, tag_map),
+                                               sideseq=self._map_tag_to_numeric(sideseq, tag_map))
 
         if method == "most_likely":
-            pred = pd.DataFrame(pred_proba).apply(lambda column: column.sample(len(column)).idxmax(), axis=0)
+            pred = pd.DataFrame(pred_proba).apply(lambda column: column.sample(len(column)).idxmax(), axis=0) #if you don'rt
 
         elif method == "random_choice":
             pred = pd.DataFrame(pred_proba).apply(
                 lambda column: np.random.choice(a=column.index.tolist(), p=column.tolist()))
 
         elif method == "random_dummy":
-            pred = pd.DataFrame(pred_proba).apply(lambda column: column.loc[random.randint(column.index.min(), column.index.max())], axis=0)
+            pred = pd.DataFrame(pred_proba).apply(lambda column: random.randint(column.index.min(), column.index.max()), axis=0)
 
-        return self._numeric_back_to_tag(pred, tags_map)
+        return self._numeric_back_to_tag(pred, tag_map)
 
-    def _tag_to_numeric(self, sequence):
+    def _map_tags(self, sequence):
         tag_map = pd.Series(sequence).drop_duplicates().reset_index(drop=True).reset_index().set_index(0).to_dict()[
             "index"]
-        mapped_sequence = pd.Series(sequence).replace(tag_map)
-        return mapped_sequence, tag_map
+        #mapped_sequence = pd.Series(sequence).replace(tag_map)
+        return tag_map
 
     def _reverse_map(self, a_map):
         reversed_map = {}
         for key in a_map:
             reversed_map[a_map[key]] = key
         return reversed_map
+
+    def _map_tag_to_numeric(self, sequence, tag_map):
+        return pd.Series(sequence).replace(tag_map)
 
     def _numeric_back_to_tag(self, numeric_sequence, tags_map):
         tags_sequence = []

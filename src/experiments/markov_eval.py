@@ -70,6 +70,8 @@ def test_markov(train, test, is_distributive, random_dummy_mode=None):
 
         except exceptions.StateNotPresentInTrainAsOrigin:
             states_not_trained_as_origin.append(str(current_state_list))
+            partial_hits.append(0)
+            misses.append({"real": next_state_real, "pred": None})
             continue
 
         partial_hits.append(jaccard(next_state_real_list, next_state_pred_list))
@@ -116,15 +118,17 @@ def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, input_data_versio
 
         test_data = test_markov(train, test, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
 
-        test_data["algorithm "] = "markov"
+        test_data["algorithm"] = "markov"
         test_data["trained_with"] = "same_user"
         test_data["train_size"] = len(train)
         test_data["test_size"] = len(test)
 
         if random_dummy_mode is None:
-            test_data["method"] = "k_fold"
+            test_data["is_dummy"] = True
         else:
-            test_data["method"] = "k_fold-{}".format(random_dummy_mode)
+            test_data["is_dummy"] = False
+
+        test_data["method"] = "k_fold"
 
         test_data["k"] = k
         test_data["iteration"] = i
@@ -186,16 +190,17 @@ def evaluation_execute_all_users_vs_one(train_tags, test_tags, user_id, executio
 
     test_data = test_markov(train_tags, test_tags, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
 
-    test_data["algorithm "] = "markov"
+    test_data["algorithm"] = "markov"
     test_data["trained_with"] = "all_other_users"
     test_data["train_size"] = len(train_tags)
     test_data["test_size"] = len(test_tags)
 
     if random_dummy_mode is None:
-        test_data["method"] = "all_users_vs_one"
+        test_data["is_dummy"] = True
     else:
-        test_data["method"] = "all_users_vs_one-{}".format(random_dummy_mode)
+        test_data["is_dummy"] = False
 
+    test_data["method"] = "all_users_vs_one"
     test_data["user_id"] = user_id
 
     test_data["is_distributive"] = is_distributive
