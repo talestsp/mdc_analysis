@@ -84,3 +84,58 @@ def evaluation_ctw_k_fold_light_mem(tags_sequence, user_id, input_data_version, 
 
         if save_result:
             experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(i))
+
+
+def evaluation_ctw_all_users_vs_one_light_mem(users_tags_sequence, input_data_version, predict_choice_method, dir_name,
+                                              depth, save_result=True):
+    lista = list(users_tags_sequence.keys())
+
+    n=0
+    for test_user in lista:
+        n += 1
+        print("n:", n, "-", "test_user:", test_user)
+
+        print(test_user)
+        execution_id = str(uuid.uuid4())
+        train_tags = []
+
+        for train_user in users_tags_sequence.keys():
+
+            if train_user != test_user:
+                train_tags = train_tags + users_tags_sequence[train_user]
+
+        test_tags = users_tags_sequence[test_user]
+
+        evaluation_ctw_execute_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=test_user,
+                                                execution_id=execution_id, input_data_version=input_data_version,
+                                                predict_choice_method=predict_choice_method, depth=depth,
+                                                dir_name=dir_name, save_result=save_result)
+
+
+def evaluation_ctw_execute_all_users_vs_one(train_tags, test_tags, user_id, execution_id, input_data_version,
+                                            predict_choice_method, depth, dir_name, save_result):
+
+    test_data = test_ctw(train_tags, test_tags, depth, predict_choice_method)
+
+    test_data["algorithm"] = "ctw"
+    test_data["trained_with"] = "all_other_users"
+    test_data["train_size"] = len(train_tags)
+    test_data["test_size"] = len(test_tags)
+
+    if predict_choice_method == "random_dummy":
+        test_data["is_dummy"] = True
+    else:
+        test_data["is_dummy"] = False
+
+    test_data["method"] = "all_users_vs_one"
+    test_data["user_id"] = user_id
+
+    test_data["is_distributive"] = False
+    test_data["input_data_version"] = input_data_version
+
+    test_data["test_id"] = execution_id
+
+    if save_result:
+        experiments_dao.save_execution_test_data(result_dict=test_data,
+                                                 filename=dir_name + "/" + test_data["test_id"])
+

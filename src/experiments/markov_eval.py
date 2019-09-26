@@ -144,7 +144,7 @@ def evaluation_markov_k_fold_light_mem(tags_sequence, user_id, input_data_versio
             experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(i))
 
 
-def evaluation_all_users_vs_one(user_stop_region_group, input_data_version, dir_name, is_distributive=False, random_dummy_mode=None, save_result=True):
+def evaluation_markov_all_users_vs_one(user_stop_region_group, input_data_version, dir_name, is_distributive=False, random_dummy_mode=None, save_result=True):
     lista = list(user_stop_region_group.keys())
     for test_user in lista:
 
@@ -163,15 +163,17 @@ def evaluation_all_users_vs_one(user_stop_region_group, input_data_version, dir_
 
         user_id = sr_group_test.stop_region_list[0].user_id
 
-        evaluation_execute_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=user_id, execution_id=execution_id,
-                                 input_data_version=input_data_version, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode,
-                                 dir_name=dir_name, save_result=save_result)
+        execute_evaluation_markov_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=user_id, execution_id=execution_id,
+                                                   input_data_version=input_data_version, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode,
+                                                   dir_name=dir_name, save_result=save_result)
 
-def evaluation_all_users_vs_one_light_mem(users_tags_sequence, input_data_version, dir_name, is_distributive=False, random_dummy_mode=None, save_result=True):
+def evaluation_markov_all_users_vs_one_light_mem(users_tags_sequence, input_data_version, dir_name, is_distributive=False, random_dummy_mode=None, save_result=True):
     lista = list(users_tags_sequence.keys())
+    n=0
     for test_user in lista:
+        n += 1
+        print("n:", n, "-", "test_user:", test_user)
 
-        print(test_user)
         execution_id = str(uuid.uuid4())
         train_tags = []
 
@@ -182,11 +184,11 @@ def evaluation_all_users_vs_one_light_mem(users_tags_sequence, input_data_versio
 
         test_tags = users_tags_sequence[test_user]
 
-        evaluation_execute_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=test_user, execution_id=execution_id,
-                                 input_data_version=input_data_version, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode,
-                                 dir_name=dir_name, save_result=save_result)
+        execute_evaluation_markov_all_users_vs_one(train_tags=train_tags, test_tags=test_tags, user_id=test_user, execution_id=execution_id,
+                                                   input_data_version=input_data_version, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode,
+                                                   dir_name=dir_name, save_result=save_result)
 
-def evaluation_execute_all_users_vs_one(train_tags, test_tags, user_id, execution_id, input_data_version, is_distributive, random_dummy_mode, dir_name, save_result):
+def execute_evaluation_markov_all_users_vs_one(train_tags, test_tags, user_id, execution_id, input_data_version, is_distributive, random_dummy_mode, dir_name, save_result):
 
     test_data = test_markov(train_tags, test_tags, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
 
