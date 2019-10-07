@@ -1,5 +1,10 @@
+import pandas as pd
 import os
 import json
+import math
+import copy
+import gc
+
 TEST_DIR = "outputs/experiments/"
 
 def save_execution_test_data(result_dict, filename):
@@ -30,3 +35,42 @@ def create_experiments_dir():
         os.mkdir(TEST_DIR)
     except OSError as e:
         pass
+
+def round_up_list(num_list):
+    rounded = [math.ceil(i) for i in num_list]
+    return rounded
+
+def hits_contain(df):
+    df = copy.deepcopy(df)
+    df["hits_contain"] = df["partial_hits"].apply(lambda lista : round_up_list(lista))
+    df["hits_contain_mean"] = df["partial_hits"].apply(lambda lista : pd.Series(round_up_list(lista)).mean())
+    return df
+
+def json_to_dataframe(json_list, simple_cols=True):
+    df = pd.DataFrame(json_list)
+
+    df["iteration"] = df["iteration"].astype(str)
+    df["k"] = df["k"].astype(str)
+
+    df["acc"] = df["total_hits"] / df["test_size"]
+
+    #df["partial_hits_mean"] = df["partial_hits"].apply(lambda lista: pd.Series(lista).mean())
+
+    df_markov = df[df["algorithm"] == "markov"]
+    df_rest = df[df["algorithm"] != "markov"]
+
+    #df_markov = hits_contain(df_markov)
+
+    df = df_markov.append(df_rest)
+
+    df_markov = None
+    df_rest = None
+
+    gc.collect()
+
+    if simple_cols:
+        del df["states_not_trained_as_origin"]
+        del df["hits"]
+        del df["misses"]
+
+    return df

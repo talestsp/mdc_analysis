@@ -34,7 +34,7 @@ class MyCTW:
                                                sideseq=self._map_tag_to_numeric(sideseq, tag_map))
 
         if method == "most_likely":
-            pred = pd.DataFrame(pred_proba).apply(lambda column: column.sample(len(column)).idxmax(), axis=0) #if you don'rt
+            pred = pd.DataFrame(pred_proba).apply(lambda column: column.sample(len(column)).idxmax(), axis=0)
 
         elif method == "random_choice":
             pred = pd.DataFrame(pred_proba).apply(
