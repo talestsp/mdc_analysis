@@ -19,7 +19,8 @@ def test_ctw(train_sequence, test_sequence, depth, predict_choice_method):
     ctw = MyCTW(depth=depth, symbols=len(set(test_sequence)), sidesymbols=len(set(train_sequence)))
 
     pxs = ctw.prediction(seq=test_sequence, sideseq=train_sequence, method=predict_choice_method)
-    # print("pxs", len(pxs))
+
+    print("len(pxs)", len(pxs))
 
     comparison_real_pred = pd.Series(pxs) == pd.Series(test_sequence[depth:])
 
@@ -150,7 +151,7 @@ def evaluation_ctw_execute_all_users_vs_one(train_tags, test_tags, user_id, exec
 ########################################################
 ########################################################
 
-def evaluation_ctw_light_mem(tags_sequence, user_id, input_data_version, predict_choice_method,
+def evaluation_ctw_single_partition_light_mem(tags_sequence, user_id, input_data_version, predict_choice_method,
                                     dir_name, depth, repeats_n=3, save_result=True):
 
     if len(tags_sequence) <= 1:

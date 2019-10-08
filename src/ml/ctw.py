@@ -15,6 +15,9 @@ class MyCTW:
         if sideseq is None:
             return self.ctw.predict_sequence(seq=seq)
         else:
+            print("train tags:", sideseq.tolist())
+            print("test tags:", seq.tolist())
+
             return self.ctw.predict_sequence(seq=seq, sideseq=sideseq)
 
     def prediction(self, seq, sideseq=None, method="most_likely"):
@@ -29,6 +32,9 @@ class MyCTW:
             tag_map = self._map_tags(seq)
             pred_proba = self.prediction_proba(seq=self._map_tag_to_numeric(seq, tag_map))
         else:
+            print("TAG MAP")
+            print(self._reverse_map(self._map_tags(list(seq) + list(sideseq))))
+
             tag_map = self._map_tags(list(seq) + list(sideseq))
             pred_proba = self.prediction_proba(seq=self._map_tag_to_numeric(seq, tag_map),
                                                sideseq=self._map_tag_to_numeric(sideseq, tag_map))
