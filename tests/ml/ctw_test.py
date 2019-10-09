@@ -102,4 +102,3 @@ class markov_pred_test(unittest.TestCase):
                 print()
 
 
-        kkkk

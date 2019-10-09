@@ -90,6 +90,48 @@ def test_markov(train, test, is_distributive, random_dummy_mode=None):
             "partial_hits": partial_hits
             }
 
+
+def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_data_version, dir_name, k=5,
+                                                 is_distributive=False, random_dummy_mode=None, save_result=True):
+
+    if len(tags_sequence) <= 1:
+        print("sr_group size: {} \n skipping".format(len(tags_sequence)))
+        raise exceptions.TooShortStopRegionGroup()
+
+    execution_id = str(uuid.uuid4())
+
+    for repeat_i in range(repeats_n):
+
+        test_data = test_ctw(tags_sequence, depth=depth, predict_choice_method=predict_choice_method)
+
+        test_data["algorithm"] = "ctw"
+        test_data["trained_with"] = "same_user"
+        test_data["train_size"] = len(tags_sequence)
+        test_data["test_size"] = len(tags_sequence)
+
+        if predict_choice_method == "random_dummy":
+            test_data["is_dummy"] = True
+        else:
+            test_data["is_dummy"] = False
+
+        test_data["pred_choice_method"] = predict_choice_method
+
+        test_data["method"] = "single_partition"
+
+        test_data["k"] = None
+        test_data["iteration"] = repeat_i
+
+        test_data["user_id"] = user_id
+
+        test_data["is_distributive"] = False
+        test_data["input_data_version"] = input_data_version
+
+        test_data["test_id"] = execution_id
+
+        if save_result:
+            experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
+
+
 def evaluation_markov_k_fold(sr_group, input_data_version, dir_name, k=5, is_distributive=False, random_dummy_mode=None, save_result=True):
     if sr_group.size() <= 1:
         print("sr_group size: {} \n skipping".format(sr_group.size()))
