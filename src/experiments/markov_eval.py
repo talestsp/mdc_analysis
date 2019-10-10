@@ -91,8 +91,8 @@ def test_markov(train, test, is_distributive, random_dummy_mode=None):
             }
 
 
-def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_data_version, dir_name, k=5,
-                                                 is_distributive=False, random_dummy_mode=None, save_result=True):
+def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_data_version,
+                                                 dir_name, repeats_n=3, is_distributive=False, random_dummy_mode=None, save_result=True):
 
     if len(tags_sequence) <= 1:
         print("sr_group size: {} \n skipping".format(len(tags_sequence)))
@@ -102,19 +102,17 @@ def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_d
 
     for repeat_i in range(repeats_n):
 
-        test_data = test_ctw(tags_sequence, depth=depth, predict_choice_method=predict_choice_method)
+        test_data = test_markov(train=tags_sequence, test=tags_sequence, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
 
-        test_data["algorithm"] = "ctw"
+        test_data["algorithm"] = "markov"
         test_data["trained_with"] = "same_user"
         test_data["train_size"] = len(tags_sequence)
         test_data["test_size"] = len(tags_sequence)
 
-        if predict_choice_method == "random_dummy":
-            test_data["is_dummy"] = True
-        else:
+        if random_dummy_mode is None:
             test_data["is_dummy"] = False
-
-        test_data["pred_choice_method"] = predict_choice_method
+        else:
+            test_data["is_dummy"] = True
 
         test_data["method"] = "single_partition"
 
@@ -123,7 +121,7 @@ def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_d
 
         test_data["user_id"] = user_id
 
-        test_data["is_distributive"] = False
+        test_data["is_distributive"] = is_distributive
         test_data["input_data_version"] = input_data_version
 
         test_data["test_id"] = execution_id

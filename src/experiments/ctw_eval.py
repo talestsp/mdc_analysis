@@ -20,8 +20,6 @@ def test_ctw(sequence, depth, predict_choice_method, side_sequence=None):
 
     pxs = ctw.prediction(seq=sequence, sideseq=side_sequence, method=predict_choice_method)
 
-    print("len(pxs)", len(pxs))
-
     comparison_real_pred = pd.Series(pxs) == pd.Series(sequence[depth:])
 
     hits = pd.Series(sequence[depth:])[comparison_real_pred == True].tolist()
