@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import os
 import json
 import math
@@ -54,17 +55,10 @@ def json_to_dataframe(json_list, simple_cols=True):
 
     df["acc"] = df["total_hits"] / df["test_size"]
 
-    #df["partial_hits_mean"] = df["partial_hits"].apply(lambda lista: pd.Series(lista).mean())
-
-    df_markov = df[df["algorithm"] == "markov"]
-    df_rest = df[df["algorithm"] != "markov"]
-
-    #df_markov = hits_contain(df_markov)
-
-    df = df_markov.append(df_rest)
-
-    df_markov = None
-    df_rest = None
+    try:
+        df["partial_hits_mean"] = df["partial_hits"].apply(lambda lista: pd.Series(lista).mean())
+    except KeyError:
+        df["partial_hits_mean"] = [np.NaN] * len(df)
 
     gc.collect()
 

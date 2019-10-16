@@ -129,6 +129,41 @@ def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_d
         if save_result:
             experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
 
+def evaluation_markov_cluster_light_mem(cluster_tags, user_tags, user_id, input_data_version,
+                                                 dir_name, repeats_n=3, is_distributive=False, random_dummy_mode=None, save_result=True):
+
+    execution_id = str(uuid.uuid4())
+
+    for repeat_i in range(repeats_n):
+
+        test_data = test_markov(train=cluster_tags, test=user_tags, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
+
+        test_data["algorithm"] = "markov"
+        test_data["trained_with"] = "cluster"
+        test_data["train_size"] = len(cluster_tags)
+        test_data["test_size"] = len(user_tags)
+
+        if random_dummy_mode is None:
+            test_data["is_dummy"] = False
+        else:
+            test_data["is_dummy"] = True
+
+        test_data["method"] = "cluster"
+
+        test_data["k"] = None
+        test_data["iteration"] = repeat_i
+
+        test_data["user_id"] = user_id
+
+        test_data["is_distributive"] = is_distributive
+        test_data["input_data_version"] = input_data_version
+
+        test_data["test_id"] = execution_id
+
+        if save_result:
+            experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
+
+
 
 def evaluation_markov_k_fold(sr_group, input_data_version, dir_name, k=5, is_distributive=False, random_dummy_mode=None, save_result=True):
     if sr_group.size() <= 1:

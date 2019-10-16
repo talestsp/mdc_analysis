@@ -17,11 +17,11 @@ class MyCTW:
         else:
             return self.ctw.predict_sequence(seq=seq, sideseq=sideseq)
 
-    def prediction(self, seq, sideseq=None, method="most_likely"):
+    def prediction(self, seq, sideseq=None, choice_method="most_likely"):
         '''
 
         :param pred_proba:
-        :param method: either "most_likely" or "random_choice" or "random_dummy"
+        :param choice_method: either "most_likely" or "random_choice" or "random_dummy"
         :return:
         '''
 
@@ -33,14 +33,14 @@ class MyCTW:
             pred_proba = self.prediction_proba(seq=self._map_tag_to_numeric(seq, tag_map),
                                                sideseq=self._map_tag_to_numeric(sideseq, tag_map))
 
-        if method == "most_likely":
+        if choice_method == "most_likely":
             pred = pd.DataFrame(pred_proba).apply(lambda column: column.sample(len(column)).idxmax(), axis=0)
 
-        elif method == "random_choice":
+        elif choice_method == "random_choice":
             pred = pd.DataFrame(pred_proba).apply(
                 lambda column: np.random.choice(a=column.index.tolist(), p=column.tolist()))
 
-        elif method == "random_dummy":
+        elif choice_method == "random_dummy":
             pred = pd.DataFrame(pred_proba).apply(lambda column: random.randint(column.index.min(), column.index.max()), axis=0)
 
         return self._numeric_back_to_tag(pred, tag_map)

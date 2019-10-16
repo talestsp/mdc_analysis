@@ -18,7 +18,7 @@ def is_same_sequence(seq_a, seq_b):
 def test_ctw(sequence, depth, predict_choice_method, side_sequence=None):
     ctw = MyCTW(depth=depth, symbols=len(set(sequence)))
 
-    pxs = ctw.prediction(seq=sequence, sideseq=side_sequence, method=predict_choice_method)
+    pxs = ctw.prediction(seq=sequence, sideseq=side_sequence, choice_method=predict_choice_method)
 
     comparison_real_pred = pd.Series(pxs) == pd.Series(sequence[depth:])
 
