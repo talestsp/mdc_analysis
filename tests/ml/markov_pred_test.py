@@ -31,8 +31,8 @@ class markov_pred_test(unittest.TestCase):
 
                 predictor = mk.MarkovPredictor().fit(trans_proba_dict)
 
-                print("markov states")
-                print(predictor.get_states())
+                # print("markov states")
+                # print(predictor.get_states())
 
                 for test_i in range(len(test[0:-1])):
                     current_state_list = test[test_i]
@@ -49,11 +49,11 @@ class markov_pred_test(unittest.TestCase):
                     except exceptions.StateNotPresentInTrainAsOrigin:
                         continue
 
-                    print()
-                    print("curr", current_state_list, type(current_state_list))
-                    print("real", next_state_real_list, type(next_state_real_list))
-                    print("pred", next_state_pred_list, type(next_state_pred_list))
-                    print(set(next_state_real_list) == set(next_state_pred_list))
+                    # print()
+                    # print("curr", current_state_list, type(current_state_list))
+                    # print("real", next_state_real_list, type(next_state_real_list))
+                    # print("pred", next_state_pred_list, type(next_state_pred_list))
+                    # print(set(next_state_real_list) == set(next_state_pred_list))
 
                     self.assertNotIn([], next_state_pred_list)
                     self.assertNotIn("[]", next_state_pred_list)
@@ -73,8 +73,8 @@ class markov_pred_test(unittest.TestCase):
 
                 trans_proba_dict = mk.to_dict(mk.distributive_transition_probabilities(train))
 
-                print("trans_proba_dict")
-                print(trans_proba_dict)
+                # print("trans_proba_dict")
+                # print(trans_proba_dict)
 
 
                 predictor = mk.MarkovPredictor().fit(trans_proba_dict)
@@ -90,21 +90,21 @@ class markov_pred_test(unittest.TestCase):
 
                     next_state_pred_list = []
                     for state in literal_eval(current_state):
-                        print("state:", state)
+                        # print("state:", state)
                         try:
                             next_state = predictor.next_state(state)
-                            print("next_state:", next_state)
+                            # print("next_state:", next_state)
                             next_state_pred_list.append(next_state)
 
                         except exceptions.StateNotPresentInTrainAsOrigin:
-                            print("state <{}> not present in training".format(state))
+                            # print("state <{}> not present in training".format(state))
                             next_state_pred_list.append("StateNotPresentInTrainAsOrigin")
                             continue
-                    print("-----")
-                    print("curr", current_state_list, type(current_state_list))
-                    print("real", next_state_real_list, type(next_state_real_list))
-                    print("pred", next_state_pred_list, type(next_state_pred_list))
-                    print(set(next_state_real_list) == set(next_state_pred_list))
+                    # print("-----")
+                    # print("curr", current_state_list, type(current_state_list))
+                    # print("real", next_state_real_list, type(next_state_real_list))
+                    # print("pred", next_state_pred_list, type(next_state_pred_list))
+                    # print(set(next_state_real_list) == set(next_state_pred_list))
 
                     self.assertNotIn([], next_state_pred_list)
                     self.assertNotIn("[]", next_state_pred_list)

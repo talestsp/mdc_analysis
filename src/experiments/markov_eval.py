@@ -34,6 +34,28 @@ def predict_distributive_tags(predictor, current_state_list):
 def predict_tags(predictor, current_state):
     return literal_eval(predictor.next_state(current_state))
 
+def markov_transition_probabilities(train, is_distributive, random_dummy_mode=None):
+    if is_distributive:
+        trans_proba = mk.distributive_transition_probabilities(train)
+    else:
+        trans_proba = mk.transition_probabilities(train)
+
+    if not random_dummy_mode is None:
+        trans_proba = mk.equalize_transition_prob(trans_proba)
+
+    return mk.to_dict(trans_proba)
+
+def markov_cluster_transition_probabilities(train, is_distributive, random_dummy_mode=None):
+    if is_distributive:
+        trans_proba = mk.distributive_transition_probabilities(train)
+    else:
+        trans_proba = mk.transition_probabilities(train)
+
+    if not random_dummy_mode is None:
+        trans_proba = mk.equalize_transition_prob(trans_proba)
+
+    return mk.to_dict(trans_proba)
+
 def test_markov(train, test, is_distributive, random_dummy_mode=None):
     if is_distributive:
         trans_proba = mk.distributive_transition_probabilities(train)
@@ -129,7 +151,7 @@ def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_d
         if save_result:
             experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
 
-def evaluation_markov_cluster_light_mem(cluster_tags, user_tags, user_id, input_data_version,
+def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_version,
                                                  dir_name, repeats_n=3, is_distributive=False, random_dummy_mode=None, save_result=True):
 
     execution_id = str(uuid.uuid4())

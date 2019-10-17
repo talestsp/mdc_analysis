@@ -4,7 +4,7 @@ os.chdir("/home/tales/dev/master/mdc_analysis/")
 import ast
 
 import unittest
-from src.ml.markov import transition_probabilities, distributive_transition_probabilities, transition_probabilities_equal, equalize_transition_prob
+from src.ml.markov import transition_probabilities, distributive_transition_probabilities, equalize_transition_prob, cluster_transition_probabilities
 
 class transition_prob_test(unittest.TestCase):
 
@@ -49,7 +49,6 @@ class transition_prob_test(unittest.TestCase):
         trans_proba = equalize_transition_prob(transition_probabilities(sequence))
 
         for origin in trans_proba["origin"]:
-            print("origin:", origin)
             origin_df = trans_proba[trans_proba["origin"] == origin]
 
             for transition_freq in origin_df["transition_freq"]:
@@ -122,6 +121,18 @@ class transition_prob_test(unittest.TestCase):
 
             for tag in ast.literal_eval(tags):
                 self.assertIn(tag, dist_trans_proba["destination"].tolist())
+
+
+    def test_transitions_origins_and_destinations(self):
+        tags_1 = ["A", "B", "A", "C", "A", "D"]
+        tags_2 = ["A", "X", "A", "C", "A", "D", "X"]
+        tags_3 = ["A", "Y", "A", "Y", "C", "A", "D", "Y"]
+
+        for tags in [tags_1, tags_2, tags_3]:
+            print(transition_probabilities(tags))
+
+        cluster_transition_probabilities
+
 
 
 

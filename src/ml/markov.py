@@ -64,6 +64,10 @@ def transition_probabilities(sequence_states):
 
     return calculate_proba_per_origin(trans_proba_df)[["origin", "destination", "transition_freq"]]
 
+def cluster_transition_probabilities(list_of_tags):
+    pass
+
+
 def transition_probabilities_equal(sequence_states):
     trans_proba_df = pd.DataFrame()
 
@@ -122,19 +126,16 @@ def calculate_proba_per_origin(transitions_df):
 
     trans_freq_df = trans_proba_df["transition"].value_counts().to_frame()
 
-    trans_freq_df = trans_freq_df.rename(index=str, columns={"transition": "transition_freq"})
+    trans_freq_df = trans_freq_df.rename(index=str, columns={"transition": "transition_count"})
 
     trans_proba_df = trans_proba_df.merge(trans_freq_df, left_index=True, right_index=True).reset_index(
         drop=True).drop_duplicates()
     del trans_proba_df["transition"]
 
-    freq_grouped_by_origin = trans_proba_df.groupby("origin").apply(
-        lambda group: group["transition_freq"] / group["transition_freq"].sum())
+    freq_grouped_by_origin = trans_proba_df.groupby("origin").apply(lambda group: group["transition_count"] / group["transition_count"].sum())
 
-    del trans_proba_df["transition_freq"]
+    #del trans_proba_df["transition_freq"]
     del trans_proba_df["origin"]
-
-    # print(freq_grouped_by_origin)
 
     try:
         freq_grouped_by_origin = freq_grouped_by_origin.to_frame()
@@ -146,17 +147,20 @@ def calculate_proba_per_origin(transitions_df):
         origin_value = list(freq_grouped_by_origin_dict[index].keys())[0]
         transition_freq_value = freq_grouped_by_origin_dict[index][list(freq_grouped_by_origin_dict[index].keys())[0]]
 
-        freq_grouped_by_origin = pd.DataFrame.from_dict({"transition_freq": {(origin_value, index): transition_freq_value}})
+        freq_grouped_by_origin = pd.DataFrame.from_dict({"transition_count": {(origin_value, index): transition_freq_value}})
 
         freq_grouped_by_origin = freq_grouped_by_origin.set_index(freq_grouped_by_origin.index.rename(['origin', None]))
 
+
+    freq_grouped_by_origin = freq_grouped_by_origin.rename(columns={"transition_count": "transition_freq"})
     trans_proba_df = freq_grouped_by_origin.reset_index().merge(trans_proba_df.reset_index(), how="inner",
                                                                            left_on="level_1", right_on="index")
+
 
     del trans_proba_df["index"]
     del trans_proba_df["level_1"]
 
-    return trans_proba_df[["origin", "destination", "transition_freq"]]
+    return trans_proba_df[["origin", "destination", "transition_freq", "transition_count"]]
 
 def remove_transitions_with_empty_tags(transitions):
     return transitions[(transitions["origin"].astype(str) != "[]") & (transitions["destination"].astype(str) != "[]")]
