@@ -69,6 +69,27 @@ def test_markov(train, test, is_distributive, random_dummy_mode=None):
 
     trans_proba_dict = mk.to_dict(trans_proba)
 
+    return do_markov_test(trans_proba_dict=trans_proba_dict,
+                           test=test,
+                           is_distributive=is_distributive)
+
+def test_markov_cluster(train_cluster, test, is_distributive, random_dummy_mode=None):
+    if is_distributive:
+        trans_proba = mk.cluster_transition_probabilities(train_cluster)
+    else:
+        trans_proba = mk.cluster_transition_probabilities(train_cluster)
+
+    if not random_dummy_mode is None:
+        trans_proba = mk.equalize_transition_prob(trans_proba)
+
+    trans_proba_dict = mk.to_dict(trans_proba)
+
+    return do_markov_test(trans_proba_dict=trans_proba_dict,
+                           test=test,
+                           is_distributive=is_distributive)
+
+def do_markov_test(trans_proba_dict, test, is_distributive,):
+
     predictor = mk.MarkovPredictor().fit(trans_proba_dict)
 
     hits = []
@@ -151,18 +172,26 @@ def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_d
         test_data["test_id"] = execution_id
 
         if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
+            experiments_dao.save_execution_test_data(result_dict=test_data,
+                                                     filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
 
 def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_version,
-                                                 dir_name, repeats_n=3, is_distributive=False, random_dummy_mode=None, save_result=True):
+                                        dir_name, repeats_n=3, is_distributive=False,
+                                        random_dummy_mode=None, save_result=True):
 
     execution_id = str(uuid.uuid4())
+
+    if len(cluster) <= 1:
+        raise exceptions.ClusterSizeInadequate
 
     user_tags, rest_cluster = partition_dict_by_keys_one_vs_all(a_dict=cluster, split_key=test_user_id)
 
     for repeat_i in range(repeats_n):
 
-        test_data = test_markov(train=rest_cluster, test=user_tags, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
+        test_data = test_markov_cluster(train_cluster=[rest_cluster[user_id] for user_id in rest_cluster.keys()],
+                                        test=user_tags,
+                                        is_distributive=is_distributive,
+                                        random_dummy_mode=random_dummy_mode)
 
         test_data["algorithm"] = "markov"
         test_data["trained_with"] = "cluster"
@@ -187,7 +216,8 @@ def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_versio
         test_data["test_id"] = execution_id
 
         if save_result:
-            experiments_dao.save_execution_test_data(result_dict=test_data, filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
+            experiments_dao.save_execution_test_data(result_dict=test_data,
+                                                     filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
 
 
 

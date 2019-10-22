@@ -24,3 +24,6 @@ class NotValidTypes(Exception):
 
 class ContextNotFoundInLeavesMapKeys(Exception):
     pass
+
+class ClusterSizeInadequate(Exception):
+    pass

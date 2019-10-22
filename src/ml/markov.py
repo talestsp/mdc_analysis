@@ -34,6 +34,7 @@ class MarkovPredictor:
 def to_dict(trans_proba_df):
     # maybe using pandas pivot table improve time execution
     trans_proba_dict = {}
+    print(trans_proba_df)
     trans_proba_df.apply(lambda row: __add_value(row, trans_proba_dict), axis=1)
 
     return trans_proba_dict
