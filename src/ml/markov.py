@@ -62,11 +62,16 @@ def transition_probabilities(sequence_states):
     trans_proba_df["destination"] = sequence_states[1:]
     trans_proba_df["destination"] = trans_proba_df["destination"].astype(str)
 
-    return calculate_proba_per_origin(trans_proba_df)[["origin", "destination", "transition_freq"]]
+    return calculate_proba_per_origin(trans_proba_df)[["origin", "destination", "transition_freq", "transition_count"]]
 
 def cluster_transition_probabilities(list_of_tags):
-    pass
+    cluster_transitions = pd.DataFrame()
 
+    for tags in list_of_tags:
+        transitions = transition_probabilities(tags)
+        cluster_transitions = cluster_transitions.append(transitions)
+
+    return cluster_transitions.groupby(["origin", "destination"])["transition_count"].sum().to_frame().reset_index()
 
 def transition_probabilities_equal(sequence_states):
     trans_proba_df = pd.DataFrame()

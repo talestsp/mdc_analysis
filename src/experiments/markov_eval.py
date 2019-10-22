@@ -1,11 +1,13 @@
 import uuid
+from ast import literal_eval
+
 import src.ml.markov as mk
 from src.utils.others import k_fold_iteration
 from src.utils.metrics import jaccard
 from src.exceptions import exceptions
 from src.dao import experiments_dao
 from src.entity.stop_region import StopRegionGroup
-from ast import literal_eval
+from src.utils.others import partition_dict_by_keys_one_vs_all
 
 EQUAL_DESTINATION_PROBA = "EQUAL_DESTINATION_PROBA"
 
@@ -156,13 +158,15 @@ def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_versio
 
     execution_id = str(uuid.uuid4())
 
+    user_tags, rest_cluster = partition_dict_by_keys_one_vs_all(a_dict=cluster, split_key=test_user_id)
+
     for repeat_i in range(repeats_n):
 
-        test_data = test_markov(train=cluster_tags, test=user_tags, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
+        test_data = test_markov(train=rest_cluster, test=user_tags, is_distributive=is_distributive, random_dummy_mode=random_dummy_mode)
 
         test_data["algorithm"] = "markov"
         test_data["trained_with"] = "cluster"
-        test_data["train_size"] = len(cluster_tags)
+        test_data["train_size"] = sum([len(rest_cluster[train_user_id]) for train_user_id in rest_cluster.keys()])
         test_data["test_size"] = len(user_tags)
 
         if random_dummy_mode is None:
@@ -175,7 +179,7 @@ def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_versio
         test_data["k"] = None
         test_data["iteration"] = repeat_i
 
-        test_data["user_id"] = user_id
+        test_data["user_id"] = test_user_id
 
         test_data["is_distributive"] = is_distributive
         test_data["input_data_version"] = input_data_version
