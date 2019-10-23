@@ -174,6 +174,5 @@ class transition_prob_test(unittest.TestCase):
         self.assertEquals(len(cluster_transitions[(cluster_transitions["origin"] == "D") &
                                               (cluster_transitions["destination"] == "A")]),0)
 
-
-
-
+        self.assertAlmostEqual(cluster_transitions[(cluster_transitions["origin"] == "A") &
+                                                  (cluster_transitions["destination"] == "B")]["transition_freq"].item(), 1/9)

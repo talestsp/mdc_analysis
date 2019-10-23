@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import src.exceptions.exceptions as exceptions
-
+from src.utils.math import fill_prob_1
 
 
 class MarkovPredictor:
@@ -34,8 +34,17 @@ class MarkovPredictor:
 def to_dict(trans_proba_df):
     # maybe using pandas pivot table improve time execution
     trans_proba_dict = {}
-    print(trans_proba_df)
+
+    print("trans_proba_df['transition_freq'] SUM")
+    print(trans_proba_df["transition_freq"].sum())
+
+    if not trans_proba_df["transition_freq"].sum() == 1:
+        trans_proba_df["transition_freq"] = fill_prob_1(trans_proba_df["transition_freq"])
+
     trans_proba_df.apply(lambda row: __add_value(row, trans_proba_dict), axis=1)
+
+    print("trans_proba_df['transition_freq'] SUM 2")
+    print(trans_proba_df["transition_freq"].sum())
 
     return trans_proba_dict
 
@@ -72,7 +81,28 @@ def cluster_transition_probabilities(list_of_tags):
         transitions = transition_probabilities(tags)
         cluster_transitions = cluster_transitions.append(transitions)
 
-    return cluster_transitions.groupby(["origin", "destination"])["transition_count"].sum().to_frame().reset_index()
+    cluster_transitions = cluster_transitions.groupby(["origin", "destination"])["transition_count"].sum().to_frame().reset_index()
+
+    # cluster_transitions["transition_freq"] = cluster_transitions["transition_count"] / cluster_transitions["transition_count"].sum()
+
+    print(cluster_transitions.set_index(["origin", "destination"], drop=False))
+
+    map_id_destination = cluster_transitions["destination"]
+
+
+    transition_freq = cluster_transitions.groupby(["origin"]).apply(lambda group : group["transition_count"] / group["transition_count"].sum()).to_frame()
+
+    print("cluster_transitions")
+    print(cluster_transitions)
+    print()
+    print("transition_freq")
+    print(transition_freq.reset_index())
+    transition_freq["destination"] = transition_freq.reset_index()["level_1"].replace(map_id_destination, axis=1)
+    print(transition_freq.reset_index())
+    print(transition_freq["transition_freq"])
+
+    return cluster_transitions
+
 
 def transition_probabilities_equal(sequence_states):
     trans_proba_df = pd.DataFrame()
@@ -199,6 +229,17 @@ class MarkovChain(object):
         current_state: str
             The current state of the system.
         """
+
+        print()
+        print("self.transition_prob")
+        print(self.transition_prob)
+        soma = 0
+        for k1 in self.transition_prob.keys():
+            for k2 in self.transition_prob[k1].keys():
+                soma += self.transition_prob[k1][k2]
+
+        print()
+        print("SUM:", soma)
 
         return np.random.choice(
             list(self.transition_prob[current_state].keys()),

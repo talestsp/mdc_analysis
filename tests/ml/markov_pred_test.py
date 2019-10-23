@@ -114,9 +114,6 @@ class markov_pred_test(unittest.TestCase):
 
 
 
-
-
-
 def is_valid_state(state):
     if state == "[]" or state == []:
         return False

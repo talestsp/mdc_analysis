@@ -27,3 +27,7 @@ class ContextNotFoundInLeavesMapKeys(Exception):
 
 class ClusterSizeInadequate(Exception):
     pass
+
+class ValueFarFromOne(Exception):
+    pass
+
