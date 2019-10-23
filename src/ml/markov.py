@@ -212,17 +212,6 @@ class MarkovChain(object):
             The current state of the system.
         """
 
-        print()
-        print("self.transition_prob")
-        print(self.transition_prob)
-        soma = 0
-        for k1 in self.transition_prob.keys():
-            for k2 in self.transition_prob[k1].keys():
-                soma += self.transition_prob[k1][k2]
-
-        print()
-        print("SUM:", soma)
-
         return np.random.choice(
             list(self.transition_prob[current_state].keys()),
             p=[self.transition_prob[current_state][next_state]
