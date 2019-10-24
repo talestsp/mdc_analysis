@@ -175,7 +175,7 @@ def evaluation_markov_single_partition_light_mem(tags_sequence, user_id, input_d
             experiments_dao.save_execution_test_data(result_dict=test_data,
                                                      filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
 
-def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_version,
+def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_version, cluster_version,
                                         dir_name, repeats_n=3, is_distributive=False,
                                         random_dummy_mode=None, save_result=True):
 
