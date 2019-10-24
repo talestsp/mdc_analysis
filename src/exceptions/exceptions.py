@@ -21,3 +21,13 @@ class NoCategoryMatched(Exception):
 
 class NotValidTypes(Exception):
     pass
+
+class ContextNotFoundInLeavesMapKeys(Exception):
+    pass
+
+class ClusterSizeInadequate(Exception):
+    pass
+
+class ValueFarFromOne(Exception):
+    pass
+

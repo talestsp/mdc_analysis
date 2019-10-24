@@ -14,12 +14,12 @@ class stop_region_agglutination_test(unittest.TestCase):
     def test_stop_region_agglutination(self):
         sr_sequence = csv_dao.stop_region_sequence(6070)
 
-        for sr in sr_sequence[199:202]:
-            print()
-            print(sr.start_time)
-            print(sr.end_time)
-            print(sr.sr_id)
-            print(sr.semantics)
+        # for sr in sr_sequence[199:202]:
+        #     print()
+        #     print(sr.start_time)
+        #     print(sr.end_time)
+        #     print(sr.sr_id)
+        #     print(sr.semantics)
 
         agg_sr = sr_sequence[200].agglutinate_with([sr_sequence[199], sr_sequence[201]])
 
@@ -33,7 +33,7 @@ class stop_region_agglutination_test(unittest.TestCase):
         sr_sequence = csv_dao.stop_region_sequence(6070)
         agglutinate, agglut_report = group_stop_regions_for_agglutination(sr_sequence, same_closest_poi, same_closest_poi)
 
-        print(agglut_report)
+        # print(agglut_report)
 
         sr_ids = []
         for group in agglutinate:
@@ -60,7 +60,7 @@ class stop_region_agglutination_test(unittest.TestCase):
 
         for sr in sr_agglutinated.agglutination:
             sr_ids.append(sr.sr_id)
-            print(sr.sr_id)
+            # print(sr.sr_id)
 
         self.assertIn("6070_198", sr_ids)
         self.assertIn("6070_199", sr_ids)

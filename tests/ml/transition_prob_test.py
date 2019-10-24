@@ -2,9 +2,10 @@ import os
 os.chdir("/home/tales/dev/master/mdc_analysis/")
 
 import ast
+import pandas as pd
 
 import unittest
-from src.ml.markov import transition_probabilities, distributive_transition_probabilities, transition_probabilities_equal, equalize_transition_prob
+from src.ml.markov import transition_probabilities, distributive_transition_probabilities, equalize_transition_prob, cluster_transition_probabilities
 
 class transition_prob_test(unittest.TestCase):
 
@@ -49,7 +50,6 @@ class transition_prob_test(unittest.TestCase):
         trans_proba = equalize_transition_prob(transition_probabilities(sequence))
 
         for origin in trans_proba["origin"]:
-            print("origin:", origin)
             origin_df = trans_proba[trans_proba["origin"] == origin]
 
             for transition_freq in origin_df["transition_freq"]:
@@ -124,5 +124,55 @@ class transition_prob_test(unittest.TestCase):
                 self.assertIn(tag, dist_trans_proba["destination"].tolist())
 
 
+    def test_transitions_origins_and_destinations(self):
+        tags_1 = ["A", "B", "A", "C", "A", "D"]
+        tags_2 = ["A", "X", "A", "C", "A", "D", "X"]
+        tags_3 = ["A", "Y", "A", "Y", "C", "A", "D", "Y"]
+
+        cluster_transitions = pd.DataFrame()
+
+        for tags in [tags_1, tags_2, tags_3]:
+            transitions = transition_probabilities(tags)
+            cluster_transitions = cluster_transitions.append(transitions)
+
+        cluster_transitions = cluster_transitions.groupby(["origin", "destination"])["transition_count"].sum().to_frame().reset_index()
 
 
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "A") &
+                                              (cluster_transitions["destination"] == "D")]["transition_count"].item(),3)
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "C") &
+                                              (cluster_transitions["destination"] == "A")]["transition_count"].item(),3)
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "X") &
+                                              (cluster_transitions["destination"] == "A")]["transition_count"].item(),1)
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "Y") &
+                                              (cluster_transitions["destination"] == "A")]["transition_count"].item(),1)
+
+        self.assertEquals(len(cluster_transitions[(cluster_transitions["origin"] == "D") &
+                                              (cluster_transitions["destination"] == "A")]),0)
+
+
+
+        cluster_transitions = cluster_transition_probabilities([tags_1, tags_2, tags_3])
+
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "A") &
+                                              (cluster_transitions["destination"] == "D")]["transition_count"].item(),3)
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "C") &
+                                              (cluster_transitions["destination"] == "A")]["transition_count"].item(),3)
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "X") &
+                                              (cluster_transitions["destination"] == "A")]["transition_count"].item(),1)
+
+        self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "Y") &
+                                              (cluster_transitions["destination"] == "A")]["transition_count"].item(),1)
+
+        self.assertEquals(len(cluster_transitions[(cluster_transitions["origin"] == "D") &
+                                              (cluster_transitions["destination"] == "A")]),0)
+
+        self.assertAlmostEqual(cluster_transitions[(cluster_transitions["origin"] == "A") &
+                                                  (cluster_transitions["destination"] == "B")]["transition_freq"].item(), 1/9)
