@@ -204,22 +204,6 @@ class StopRegionGroup:
             tags.append(sequence_row)
 
         tags_df = pd.DataFrame(tags)
-        # print(tags_df)
-
-        # if len(tags_df.iloc[0]["sr_semantics"]) == 0:
-        #     print("concat_lists(tags_df.iloc[0]['sr_types'])")
-        #     print(concat_lists(tags_df.iloc[0]["sr_types"]))
-        # else:
-        #     print("else 0")
-        #     print(tags_df.iloc[0]["sr_semantics"])
-        #
-        # if len(tags_df.iloc[1]["sr_semantics"]) == 0:
-        #     print("concat_lists(tags_df.iloc[1]['sr_types'])")
-        #     print(concat_lists(tags_df.iloc[1]["sr_types"]))
-        # else:
-        #     print("else 1")
-        #     print(tags_df.iloc[1]["sr_semantics"])
-
 
         try:
             tags = tags_df.apply(
@@ -235,7 +219,7 @@ class StopRegionGroup:
 
         tags_df["tag"] = tags
 
-        return tags_df[["sr_start_time", "tag"]]
+        return tags_df[["sr_start_time", "sr_end_time", "tag"]]
 
     def agglutinate_stop_regions(self):
         agglutinated = []
