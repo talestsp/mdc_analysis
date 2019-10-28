@@ -126,9 +126,13 @@ class StopRegionGroup:
 
     def plot(self, title="", width=800, height=600, plot_n_pois=4, fill_color="magenta", p=None, mark_type="circle"):
 
-        return plot2.plot_stop_region_group(stop_region_group=self, title=title, mark_type=mark_type,
+        p = plot2.plot_stop_region_group(stop_region_group=self, title=title, mark_type=mark_type,
                                             width=width, height=height, fill_color=fill_color, p=p,
                                             plot_n_pois=plot_n_pois)
+
+        p = plot2.mark_home_and_work(p, self)
+
+        return p
 
     def search_stop_region_by_id(self, sr_id):
         for sr in self.stop_region_list:

@@ -257,3 +257,12 @@ def mercator_fig(title, point_mercator1=None, point_mercator2=None, width=1500, 
     p.add_tile(CARTODBPOSITRON)
 
     return p
+
+def mark_home_and_work(plot, sr_group):
+    for sr in sr_group.stop_region_list:
+        if "HOME" in sr.semantics:
+            plot = sr.plot_simple(p=plot, color="lightblue", legend="HOME")
+
+        if "WORK" in sr.semantics:
+            plot = sr.plot_simple(p=plot, color="lightgreen", legend="WORK")
+    return plot
