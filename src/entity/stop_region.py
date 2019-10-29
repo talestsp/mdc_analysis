@@ -158,7 +158,8 @@ class StopRegionGroup:
 
         for sr in self.stop_region_list[1:]:
             sequence_row = {"distance": round(sr.distance_to_another_sr(last_sr), 1),
-                            "delta_t": sr.delta_time_to_another_sr(last_sr),
+                            "delta_t_from_last_sr": sr.delta_time_to_another_sr(last_sr),
+                            "stay_time": sr.end_time - sr.start_time,
                             "last_sr": last_sr.sr_id, "last_sr_type": last_sr.tag_closest_poi(),
                             "sr": sr.sr_id, "sr_type": sr.tag_closest_poi(),
                             "last_sr_semantics": last_sr.semantics,
