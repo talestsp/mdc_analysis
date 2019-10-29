@@ -174,6 +174,10 @@ class StopRegionGroup:
             simpĺe_cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
             report = report[simpĺe_cols]
 
+        report["tags"] = self.merge_into_tags(report,
+                         types_colname="sr_type",
+                         semantics_colname="sr_semantics")
+
         return report
 
     def sequence_pois_type(self):
@@ -209,21 +213,26 @@ class StopRegionGroup:
 
         tags_df = pd.DataFrame(tags)
 
+        tags_df["tag"] = self.merge_into_tags(tags_df,
+                                              types_colname="sr_types",
+                                              semantics_colname="sr_semantics")
+
+        return tags_df[["sr_start_time", "sr_end_time", "tag"]]
+
+    def merge_into_tags(self, df, types_colname, semantics_colname):
         try:
-            tags = tags_df.apply(
-                lambda tag_dict: concat_lists(tag_dict["sr_types"]) if len(tag_dict["sr_semantics"]) == 0 else tag_dict[
-                    "sr_semantics"], axis=1)
+            tags = df.apply(
+                lambda tag_dict: concat_lists(tag_dict[types_colname]) if len(tag_dict[semantics_colname]) == 0 else tag_dict[
+                    semantics_colname], axis=1)
         except ValueError:
             tags = []
-            for index, row in tags_df.iterrows():
+            for index, row in df.iterrows():
                 if len(row["sr_semantics"]) == 0:
                     tags.append(concat_lists(row["sr_types"]))
                 else:
                     tags.append(row["sr_semantics"])
 
-        tags_df["tag"] = tags
-
-        return tags_df[["sr_start_time", "sr_end_time", "tag"]]
+        return tags
 
     def agglutinate_stop_regions(self):
         agglutinated = []

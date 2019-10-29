@@ -9,7 +9,7 @@ def load_stop_region_group_object(user_id):
     with open("outputs/stop_region_objects/{}".format(user_id), 'rb') as srg_file:
         return pickle.load(srg_file)
 
-def load_alll_stop_region_group_object():
+def load_all_stop_region_group_object():
     users_srg = {}
     users = os.listdir("outputs/stop_regions/")
 
