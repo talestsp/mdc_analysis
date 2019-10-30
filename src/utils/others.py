@@ -54,6 +54,11 @@ def partition_dict_by_keys_one_vs_all(a_dict, split_key):
     return one_key_value, a_dict
 
 def concat_lists(lists):
+    '''
+    Return all lists values in one single list
+    :param lists:
+    :return:
+    '''
     concat = []
     for lista in lists:
         concat = concat + lista

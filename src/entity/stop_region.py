@@ -126,9 +126,13 @@ class StopRegionGroup:
 
     def plot(self, title="", width=800, height=600, plot_n_pois=4, fill_color="magenta", p=None, mark_type="circle"):
 
-        return plot2.plot_stop_region_group(stop_region_group=self, title=title, mark_type=mark_type,
+        p = plot2.plot_stop_region_group(stop_region_group=self, title=title, mark_type=mark_type,
                                             width=width, height=height, fill_color=fill_color, p=p,
                                             plot_n_pois=plot_n_pois)
+
+        p = plot2.mark_home_and_work(p, self)
+
+        return p
 
     def search_stop_region_by_id(self, sr_id):
         for sr in self.stop_region_list:
@@ -154,7 +158,8 @@ class StopRegionGroup:
 
         for sr in self.stop_region_list[1:]:
             sequence_row = {"distance": round(sr.distance_to_another_sr(last_sr), 1),
-                            "delta_t": sr.delta_time_to_another_sr(last_sr),
+                            "delta_t_from_last_sr": sr.delta_time_to_another_sr(last_sr),
+                            "stay_time_h": (sr.end_time - sr.start_time) / (60*60),
                             "last_sr": last_sr.sr_id, "last_sr_type": last_sr.tag_closest_poi(),
                             "sr": sr.sr_id, "sr_type": sr.tag_closest_poi(),
                             "last_sr_semantics": last_sr.semantics,
@@ -169,6 +174,10 @@ class StopRegionGroup:
         if only_simple_cols:
             simpĺe_cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
             report = report[simpĺe_cols]
+
+        report["tags"] = self.merge_into_tags(report,
+                         types_colname="sr_type",
+                         semantics_colname="sr_semantics")
 
         return report
 
@@ -204,38 +213,27 @@ class StopRegionGroup:
             tags.append(sequence_row)
 
         tags_df = pd.DataFrame(tags)
-        # print(tags_df)
 
-        # if len(tags_df.iloc[0]["sr_semantics"]) == 0:
-        #     print("concat_lists(tags_df.iloc[0]['sr_types'])")
-        #     print(concat_lists(tags_df.iloc[0]["sr_types"]))
-        # else:
-        #     print("else 0")
-        #     print(tags_df.iloc[0]["sr_semantics"])
-        #
-        # if len(tags_df.iloc[1]["sr_semantics"]) == 0:
-        #     print("concat_lists(tags_df.iloc[1]['sr_types'])")
-        #     print(concat_lists(tags_df.iloc[1]["sr_types"]))
-        # else:
-        #     print("else 1")
-        #     print(tags_df.iloc[1]["sr_semantics"])
+        tags_df["tag"] = self.merge_into_tags(tags_df,
+                                              types_colname="sr_types",
+                                              semantics_colname="sr_semantics")
 
+        return tags_df[["sr_start_time", "sr_end_time", "tag"]]
 
+    def merge_into_tags(self, df, types_colname, semantics_colname):
         try:
-            tags = tags_df.apply(
-                lambda tag_dict: concat_lists(tag_dict["sr_types"]) if len(tag_dict["sr_semantics"]) == 0 else tag_dict[
-                    "sr_semantics"], axis=1)
+            tags = df.apply(
+                lambda tag_dict: concat_lists(tag_dict[types_colname]) if len(tag_dict[semantics_colname]) == 0 else tag_dict[
+                    semantics_colname], axis=1)
         except ValueError:
             tags = []
-            for index, row in tags_df.iterrows():
+            for index, row in df.iterrows():
                 if len(row["sr_semantics"]) == 0:
                     tags.append(concat_lists(row["sr_types"]))
                 else:
                     tags.append(row["sr_semantics"])
 
-        tags_df["tag"] = tags
-
-        return tags_df[["sr_start_time", "tag"]]
+        return tags
 
     def agglutinate_stop_regions(self):
         agglutinated = []
