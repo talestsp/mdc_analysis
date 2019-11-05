@@ -5,6 +5,12 @@
 
 
 def early_bird(user_srg, leaving_time=6):
+    '''
+    It considers times before leaving_time inclusive
+    :param user_srg:
+    :param leaving_time:
+    :return:
+    '''
     user_data = sequence_report(user_srg)
     f = first_trip_of_the_day(user_data)
     f = filter_weekdays(f, "start_weekday")
@@ -16,6 +22,12 @@ def early_bird(user_srg, leaving_time=6):
 
 
 def nigh_owl(user_srg, boarding_time=20):
+    '''
+    It considers times after boarding_time inclusive
+    :param user_srg:
+    :param boarding_time:
+    :return:
+    '''
     user_data = sequence_report(user_srg)
     l = last_trip_of_the_day(user_data)
     l = filter_weekdays(l, "start_weekday").head()
