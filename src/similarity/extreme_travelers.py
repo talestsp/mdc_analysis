@@ -3,6 +3,7 @@
 
 #https://www.sciencedirect.com/science/article/pii/S0197397516301539
 
+import pandas as pd
 
 def early_bird(user_srg, leaving_time=6):
     '''
@@ -37,6 +38,29 @@ def nigh_owl(user_srg, boarding_time=20):
 
     return len(l) / float(n_week_days)
 
+def time_diff_between_diff_tags(report):
+    rows = []
+
+    counter = 0
+    while counter < (len(report) - 2):
+        from_sr_id = report.index[counter]
+        counter += 1
+        to_sr_id_candidate = report.index[counter]
+
+        while report.loc[from_sr_id]["tags"] == report.loc[to_sr_id_candidate]["tags"] and counter < (len(report) - 1):
+            counter += 1
+            to_sr_id_candidate = report.index[counter]
+
+        if report.loc[from_sr_id]["tags"] != report.loc[to_sr_id_candidate]["tags"]:
+            time_diff = report.loc[to_sr_id_candidate]["sr_start_time"] - report.loc[from_sr_id]["sr_end_time"]
+
+            rows.append({"from_sr_id": from_sr_id,
+                         "to_sr_id": to_sr_id_candidate,
+                         "from_tags": report.loc[from_sr_id]["tags"],
+                         "to_tags": report.loc[to_sr_id_candidate]["tags"],
+                         "time_diff": time_diff})
+
+    return pd.DataFrame(rows)[["from_sr_id", "to_sr_id", "from_tags", "to_tags", "time_diff"]]
 
 def first_trip_of_the_day(report):
     report = report.sort_values("sr_start_time")
