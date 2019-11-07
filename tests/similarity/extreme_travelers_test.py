@@ -2,13 +2,13 @@ import unittest
 
 from src.dao import csv_dao
 from src.dao import objects_dao
-from src.similarity.extreme_travelers import sequence_report, first_trip_of_the_day, last_trip_of_the_day, time_diff_between_diff_tags
+from src.similarity.extreme_travelers import sequence_report, first_trip_of_the_day, last_trip_of_the_day, time_diff_between_diff_tags, tireless_intinerant
 
 import pandas as pd
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
-pd.set_option('display.float_format', lambda x: '%.f' % x)
+pd.set_option('display.float_format', lambda x: '%.2f' % x)
 
 class extreme_travelers_test(unittest.TestCase):
 
@@ -41,10 +41,25 @@ class extreme_travelers_test(unittest.TestCase):
         hw = seq["tags"].apply(lambda lista: "HOME" in lista or "WORK" in lista)
         use_seq = seq[hw]
 
-        print(use_seq[['tags', 'sr_start_time', 'sr_end_time', 'stay_time_h', 'start_date', 'start_time', 'end_date', 'end_time']].head(10))
+        time_diffs = time_diff_between_diff_tags(use_seq)
+
+        tags_transition = [("agg_5928_4",  "agg_5928_10"),
+                           ("agg_5928_18", "agg_5928_38"),
+                           ("5928_44",     "agg_5928_46"),
+                           ("5928_67",     "5928_69")]
+
+        for i in range(len(tags_transition)):
+            self.assertEquals(time_diffs.iloc[i]["from_sr_id"], tags_transition[i][0])
+            self.assertEquals(time_diffs.iloc[i]["to_sr_id"], tags_transition[i][1])
+
+        time_diffs_real = [99128.0, 64976.0, 12852.0, 67319.0]
+
+        for i in range(len(time_diffs_real)):
+            self.assertAlmostEqual(time_diffs_real[i], time_diffs.iloc[i]["time_diff_s"])
+
+    def test_tireless_itinerants(self):
+        ti = tireless_intinerant(self.srg)
+        print(ti)
 
 
 
-        time_diff_between_diff_tags(use_seq)
-
-        uaehueahehau

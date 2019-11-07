@@ -38,10 +38,29 @@ def nigh_owl(user_srg, boarding_time=20):
 
     return len(l) / float(n_week_days)
 
+def tireless_intinerant(user_srg, commuting_time_m=60, threshold_max_time_m=180):
+    user_data = sequence_report(user_srg)
+    data_week = filter_weekdays(user_data, "start_weekday")
+
+    hw = data_week["tags"].apply(lambda lista: "HOME" in lista or "WORK" in lista)
+    data_week_clean = data_week[hw]
+
+    time_diffs = time_diff_between_diff_tags(data_week_clean)
+
+    if len(time_diffs) == 0:
+        return 0
+
+    time_diffs_clean = time_diffs[time_diffs["time_diff_s"] <= (threshold_max_time_m * 60)]
+
+    ti_rates = time_diffs_clean[time_diffs_clean["time_diff_s"] >= (commuting_time_m * 60)]
+
+    return len(ti_rates) / len(time_diffs_clean)
+
 def time_diff_between_diff_tags(report):
     rows = []
 
     counter = 0
+
     while counter < (len(report) - 2):
         from_sr_id = report.index[counter]
         counter += 1
@@ -58,9 +77,17 @@ def time_diff_between_diff_tags(report):
                          "to_sr_id": to_sr_id_candidate,
                          "from_tags": report.loc[from_sr_id]["tags"],
                          "to_tags": report.loc[to_sr_id_candidate]["tags"],
-                         "time_diff": time_diff})
+                         "time_diff_s": time_diff,
+                         "time_diff_h": time_diff / 3600})
 
-    return pd.DataFrame(rows)[["from_sr_id", "to_sr_id", "from_tags", "to_tags", "time_diff"]]
+        #skipping consecutive equals
+        while counter < (len(report) - 2) and report.loc[to_sr_id_candidate]["tags"] == report.loc[report.index[counter + 1]]["tags"]:
+            counter += 1
+
+    if len(rows) == 0:
+        return pd.DataFrame(rows)
+
+    return pd.DataFrame(rows)[["from_sr_id", "to_sr_id", "from_tags", "to_tags", "time_diff_s", "time_diff_h"]]
 
 def first_trip_of_the_day(report):
     report = report.sort_values("sr_start_time")

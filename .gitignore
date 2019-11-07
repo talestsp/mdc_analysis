@@ -5,6 +5,7 @@ credentials/
 outputs/*
 *plot.html
 *.html
+notebooks/outputs/*
 
 .pytest_cache/*
 
