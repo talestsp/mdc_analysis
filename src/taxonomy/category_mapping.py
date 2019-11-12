@@ -10,6 +10,8 @@ CATEG_MAPPER = None
 def tags_to_categ(user_tags_dict, version="0.1.categ_v1"):
     if not CATEG_MAPPER:
         categ_mapper = CategoryMapper()
+    else:
+        categ_mapper = CATEG_MAPPER
 
     users_categ_sequence = {}
     users_categ_sequence_elements = {}
