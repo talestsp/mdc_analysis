@@ -370,22 +370,6 @@ def group_stop_regions_for_agglutination(sr_list, agglutination_rule_1, agglutin
         ["agglutinate", "delta_t", "distance", "last_sr_tag", "sr_tag", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]]
 
 
-# def agglutinate_stop_regions(self):
-#     agglutinated = []
-#     singles = []
-#
-#     grouped_stop_regions, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_sequence, same_closest_poi)
-#
-#     for group in grouped_stop_regions:
-#         if len(group) == 1:
-#             singles.append(group[0])
-#         else:
-#             agg_sr = agglutinate(group)
-#             agglutinated.append(StopRegion(**agg_sr))
-#
-#     return StopRegionSequence((agglutinated + singles).sort(key=lambda x: x.start_time, reverse=False))
-
-
 if __name__ == "__main__":
     sr = StopRegion(46.7, 6.8, "1234_56")
     print(sr.centroid_mercator())

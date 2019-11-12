@@ -1,163 +1,118 @@
-import pandas as pd
-import json
+from itertools import groupby
 
-from src.exceptions.exceptions import TopParentNotCategory, NoCategoryMatched
-from src.utils.type_hierarchy_analysis import parent, relations_freq
-from src.poi_grabber import google_places
+from src.taxonomy.category_mapper import CategoryMapper
 from src.utils.others import remove_list_elements
-from src.exceptions.exceptions import NotValidTypes
+from src.exceptions.exceptions import NoCategoryMatched, NotValidTypes
 
-class CategoryMapper:
 
-    def __init__(self, categories_version="v1"):
-        self.categories = self._load_categories(categories_version=categories_version)
-        self.relations_freq = relations_freq(google_places.load_all_google_places_data(valid_pois=True))
+CATEG_MAPPER = None
 
-    def _load_categories(self, categories_version):
-        filename = "categories_{}.csv".format(categories_version)
-        with open('outputs/taxonomy/google_places/{}'.format(filename)) as json_file:
-            return json.load(json_file)
+def tags_to_categ(user_tags_dict, version="0.1.categ_v1"):
+    if not CATEG_MAPPER:
+        categ_mapper = CategoryMapper()
 
-    def _map_type_categ(self, a_type, categs):
-        '''
-        Finds a parent category for a given type. If the given type is already a category it returns the type.
-        :param a_type:
-        :param categs:
-        :return:
-        '''
-        if self._is_categ(a_type, categs):
-            return a_type
+    users_categ_sequence = {}
+    users_categ_sequence_elements = {}
 
-        else:
-            return self._top_parent_categ(a_type, categs)
+    n = 0
+    for user_id in list(user_tags_dict.keys()):
+        n += 1
+        print("n:", n, "user_id:", user_id)
 
-    def _is_categ(self, categ, categories):
-        for key in categories.keys():
-            if categ in categories[key]:
-                return True
-        return False
+        user_tags_dict[user_id] = clean_sequence(user_tags_dict[user_id])
 
-    def _get_top_parent(self, a_type):
-        '''
-        Return the top parent excluding "point_of_interest" and "establishment"
-        :param a_type:
-        :return:
-        '''
-        type_parent_df = parent(a_type, self.relations_freq)
+        if len(remove_list_elements(user_tags_dict[user_id], elements=[[]])) < 8:
+            continue
 
-        i = 0
-        top_parent = type_parent_df["parent"].iloc[i]
+        categ_sequence = []
 
-        while top_parent in ["point_of_interest", "establishment"]:
-            i += 1
-            top_parent = type_parent_df["parent"].iloc[i]
-
-        return top_parent
-
-    def _top_parent_categ(self, a_type, categs):
-        '''
-        Return the top frequent parent if it is a category
-        :param a_type:
-        :param categs:
-        :return:
-        '''
-        try:
-            # top_parent = parent(a_type)["parent"].iloc[0]
-            top_parent = self._get_top_parent(a_type)
-        except IndexError:
-            top_parent = ""
-
-        if self._is_categ(top_parent, categs):
-            return top_parent
-        else:
-            raise TopParentNotCategory()
-
-    def _map_types_to_categ(self, types, categs):
-        mapped_categs = []
-
-        for a_type in types:
-            try:
-                mapped_categ = self._map_type_categ(a_type, categs)
-                mapped_categs.append(mapped_categ)
-            except TopParentNotCategory:
-                continue
-
-        if len(mapped_categs) == 0:
-            raise NoCategoryMatched()
-
-        return mapped_categs
-
-    def _most_specific(self, categories):
-        return categories[0]
-
-    def _valid_types(self, types):
-        clean_types = remove_list_elements(types, elements=['premise', 'point_of_interest', 'establishment'])
-        if len(clean_types) == 0:
-            raise NotValidTypes
-
-        return clean_types
-
-    def map_categ(self, types, method="most_specific", logs=False):
-        '''
-
-        :param types:
-        :param method: 'most_specific' or 'most_frequent'
-        :param logs:
-        :return:
-        '''
-        types = self._valid_types(types)
-        mapped = self._map_types_to_categ(types, self.categories)
-
-        mapped_categs = pd.Series(mapped).value_counts()
-        most_frequent = mapped_categs[mapped_categs == mapped_categs.max()].index.tolist()
-        most_specific = self._most_specific(mapped)
-
-        if logs:
-            print("\n---")
-            print("TYPES :", types)
-            print("\nMAPPED:", mapped)
-            print("most_frequent:", most_frequent)
-            print("most_specific:", most_specific)
-            print("chosen method:", method)
-
-        if method == "most_specific":
-            return most_specific
-
-        elif method == "most_frequent":
-            if len(most_frequent) == 0:
-                raise NoCategoryMatched()
-
-            if len(most_frequent) > 1:
-                return self._most_specific(mapped)
+        for tags in user_tags_dict[user_id]:
+            if tags == ["WORK"] or tags == ["HOME"]:
+                categ_sequence.append(tags)
 
             else:
-                return most_frequent[0]
+                try:
+                    categ = categ_mapper.map_categ(tags, method="most_specific")
+                    categ_sequence.append([categ])
+
+                except NotValidTypes:
+                    pass
+
+                except NoCategoryMatched:
+                    categ_sequence.append(["NoCategoryMatched"])
+
+        if version == "0.1.categ_v1":
+            users_categ_sequence[user_id] = agglutinate_consecutive_elements(categ_sequence)
+            users_categ_sequence_elements[user_id] = [categ[0] for categ in users_categ_sequence[user_id]]
+
+        else:
+            users_categ_sequence[user_id] = categ_sequence
+            users_categ_sequence_elements[user_id] = [categ[0] for categ in categ_sequence]
+
+    return users_categ_sequence, users_categ_sequence_elements
+
+# class CategoryMapping:
+#
+#     def __init__(self):
+#         self.categ_mapper = None
+#
+#     def tags_to_categ(self, user_tags_dict, version="0.1.categ_v1"):
+#         if not self.categ_mapper:
+#             self.categ_mapper = CategoryMapper()
+#
+#         users_categ_sequence = {}
+#         users_categ_sequence_elements = {}
+#
+#         n = 0
+#         for user_id in list(user_tags_dict.keys()):
+#             n += 1
+#             print("n:", n, "user_id:", user_id)
+#
+#             user_tags_dict[user_id] = clean_sequence(user_tags_dict[user_id])
+#
+#             if len(remove_list_elements(user_tags_dict[user_id], elements=[[]])) < 8:
+#                 continue
+#
+#             categ_sequence = []
+#
+#             for tags in user_tags_dict[user_id]:
+#                 if tags == ["WORK"] or tags == ["HOME"]:
+#                     categ_sequence.append(tags)
+#
+#                 else:
+#                     try:
+#                         categ = self.categ_mapper.map_categ(tags, method="most_specific")
+#                         categ_sequence.append([categ])
+#
+#                     except NotValidTypes:
+#                         pass
+#
+#                     except NoCategoryMatched:
+#                         categ_sequence.append(["NoCategoryMatched"])
+#
+#             if version == "0.1.categ_v1":
+#                 users_categ_sequence[user_id] = agglutinate_consecutive_elements(categ_sequence)
+#                 users_categ_sequence_elements[user_id] = [categ[0] for categ in users_categ_sequence[user_id]]
+#
+#             else:
+#                 users_categ_sequence[user_id] = categ_sequence
+#                 users_categ_sequence_elements[user_id] = [categ[0] for categ in categ_sequence]
+#
+#         return users_categ_sequence, users_categ_sequence_elements
 
 
-if __name__ == "__main__":
-    print("RUN!")
 
-    categs = []
-    not_found = []
+def clean_sequence(sequence):
+    new_sequence = []
 
-    from src.poi_grabber import google_places
+    for tags in sequence:
+        if "parking" in tags:
+            continue
+        else:
+            new_sequence.append(tags)
 
-    d = google_places.load_all_google_places_data(valid_pois=True)
+    return new_sequence
 
-    print(len(d))
 
-    for i, poi in d.iterrows():
-        try:
-            categ = CategoryMapper().map_categ(poi["types"], logs=False)
-            # print("CATEG:", categ, "<<<")
-            categs.append(categ)
-            if "premise" in poi["types"]:
-                print(poi["types"])
-
-        except NoCategoryMatched:
-            categs.append(["NoCategoryMatched"])
-            not_found.append(poi["types"])
-
-    print(not_found)
-
-    print("\nfinished!")
+def agglutinate_consecutive_elements(a_list):
+    return [x[0] for x in groupby(a_list)]

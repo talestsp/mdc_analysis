@@ -9,14 +9,15 @@ def load_stop_region_group_object(user_id):
     with open("outputs/stop_region_objects/{}".format(user_id), 'rb') as srg_file:
         return pickle.load(srg_file)
 
-def load_all_stop_region_group_object():
+def load_all_stop_region_group_object(verbose=True):
     users_srg = {}
     users = os.listdir("outputs/stop_regions/")
 
     n=0
     for user_id in users:
         n += 1
-        print("Loading user_id: {} - {} out of {}".format(user_id, n, len(users)))
+        if verbose:
+            print("Loading user_id: {} - {} out of {}".format(user_id, n, len(users)))
         users_srg[user_id] = load_stop_region_group_object(user_id)
 
     return users_srg
