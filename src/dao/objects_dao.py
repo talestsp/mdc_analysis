@@ -35,6 +35,7 @@ def load_users_tags_sequence(sr_stay_time_above_h=0.5):
     print("Loading Stop Region Group data")
     if not USERS_SRG:
         user_srg = load_all_stop_region_group_object(verbose=False)
+        USERS_SRG = user_srg
     else:
         user_srg = USERS_SRG
 
