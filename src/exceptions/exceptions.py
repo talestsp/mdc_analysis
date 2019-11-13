@@ -31,3 +31,7 @@ class ClusterSizeInadequate(Exception):
 class ValueFarFromOne(Exception):
     pass
 
+class EmptyDirectory(Exception):
+    pass
+
+

@@ -50,10 +50,4 @@ def load_users_tags_sequence(sr_stay_time_above_h=0.5):
         sizes_filtered.append(len(seq_report_filtered))
         sizes_original.append(len(seq_report))
 
-    print("***************")
-    print("Original sequence size median:", np.median(sizes_original))
-    print("***************")
-    print("Filtered sequence size median:", np.median(sizes_filtered))
-    print("***************")
-
     return {"original": users_tags_sequence_original, "filtered": users_tags_sequence_filtered}
