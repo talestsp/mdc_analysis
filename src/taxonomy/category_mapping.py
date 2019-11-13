@@ -5,14 +5,14 @@ from src.utils.others import remove_list_elements
 from src.exceptions.exceptions import NoCategoryMatched, NotValidTypes
 
 
-CATEG_MAPPER = None
+cache = {}
 
 def tags_to_categ(user_tags_dict, version="0.1.categ_v1"):
-    if not CATEG_MAPPER:
+    if not "CATEG_MAPPER" in cache.keys():
         categ_mapper = CategoryMapper()
-        CATEG_MAPPER = categ_mapper
+        cache["CATEG_MAPPER"] = categ_mapper
     else:
-        categ_mapper = CATEG_MAPPER
+        categ_mapper = cache["CATEG_MAPPER"]
 
     users_categ_sequence = {}
     users_categ_sequence_elements = {}

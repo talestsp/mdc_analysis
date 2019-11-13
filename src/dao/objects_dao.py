@@ -2,7 +2,7 @@ import os
 import pickle
 import numpy as np
 
-USERS_SRG = None
+cache = {}
 
 def save_stop_region_group_object(srg, user_id):
     with open("outputs/stop_region_objects/{}".format(user_id), 'wb') as srg_file:
@@ -33,11 +33,11 @@ def load_users_tags_sequence(sr_stay_time_above_h=0.5):
     sizes_filtered = []
 
     print("Loading Stop Region Group data")
-    if not USERS_SRG:
+    if not "USERS_SRG" in cache.keys():
         user_srg = load_all_stop_region_group_object(verbose=False)
-        USERS_SRG = user_srg
+        cache["USERS_SRG"] = user_srg
     else:
-        user_srg = USERS_SRG
+        user_srg = cache["USERS_SRG"]
 
     print("Building Stop Region Group sequence")
     for user_id in user_srg.keys():
