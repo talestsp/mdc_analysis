@@ -3,6 +3,7 @@ import pickle
 import numpy as np
 
 cache = {}
+TOTAL_N_USERS = 163
 
 def save_stop_region_group_object(srg, user_id):
     with open("outputs/stop_region_objects/{}".format(user_id), 'wb') as srg_file:
@@ -33,11 +34,12 @@ def load_users_tags_sequence(sr_stay_time_above_h=0.5):
     sizes_filtered = []
 
     print("Loading Stop Region Group data")
-    if not "USERS_SRG" in cache.keys():
+    if "USERS_SRG" in cache.keys() and len(cache["USERS_SRG"]) == TOTAL_N_USERS:
+        user_srg = cache["USERS_SRG"]
+    else:
         user_srg = load_all_stop_region_group_object(verbose=False)
         cache["USERS_SRG"] = user_srg
-    else:
-        user_srg = cache["USERS_SRG"]
+
 
     print("Building Stop Region Group sequence")
     for user_id in user_srg.keys():
@@ -51,3 +53,5 @@ def load_users_tags_sequence(sr_stay_time_above_h=0.5):
         sizes_original.append(len(seq_report))
 
     return {"original": users_tags_sequence_original, "filtered": users_tags_sequence_filtered}
+
+

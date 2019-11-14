@@ -204,6 +204,7 @@ def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_versio
             test_data["is_dummy"] = True
 
         test_data["method"] = "cluster"
+        test_data["cluster_size"] = len(cluster)
 
         test_data["k"] = None
         test_data["iteration"] = repeat_i
