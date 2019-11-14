@@ -52,6 +52,8 @@ def tags_to_categ(user_tags_dict, version="0.1.categ_v1"):
             users_categ_sequence[user_id] = categ_sequence
             users_categ_sequence_elements[user_id] = [categ[0] for categ in categ_sequence]
 
+        print(len(users_categ_sequence.keys()))
+
     return users_categ_sequence, users_categ_sequence_elements
 
 # class CategoryMapping:
