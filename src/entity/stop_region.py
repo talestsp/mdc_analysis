@@ -4,6 +4,7 @@ from src.dao import csv_dao
 from src.poi_grabber import google_places
 from src.plot import plot2
 from src.utils.others import concat_lists
+from src.utils.time_utils import human_time
 from src.exceptions import exceptions
 
 class StopRegion:
@@ -146,7 +147,7 @@ class StopRegionGroup:
     def delta_time(self):
         return self.stop_region_list[-1].end_time - self.stop_region_list[0].start_time
 
-    def sequence_report(self, only_simple_cols=True):
+    def sequence_report(self, enrich_columns=False):
         self.stop_region_list.sort(key=lambda x: x.start_time, reverse=False)
 
         if self.size() <= 1:
@@ -160,7 +161,8 @@ class StopRegionGroup:
             sequence_row = {"distance": round(sr.distance_to_another_sr(last_sr), 1),
                             "delta_t_from_last_sr": sr.delta_time_to_another_sr(last_sr),
                             "stay_time_h": (sr.end_time - sr.start_time) / (60*60),
-                            "last_sr": last_sr.sr_id, "last_sr_type": last_sr.tag_closest_poi(),
+                            "last_sr": last_sr.sr_id,
+                            "last_sr_type": last_sr.tag_closest_poi(),
                             "sr": sr.sr_id, "sr_type": sr.tag_closest_poi(),
                             "last_sr_semantics": last_sr.semantics,
                             "sr_semantics": sr.semantics,
@@ -171,15 +173,37 @@ class StopRegionGroup:
 
         report = pd.DataFrame(sequence_report)
 
-        if only_simple_cols:
-            simpĺe_cols = ["delta_t", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]
+        if enrich_columns:
+            report = self.enrich_sequence_report(report)
+
+        else:
+            simpĺe_cols = ["delta_t_from_last_sr", "distance", "last_sr_type", "sr_type", "last_sr_semantics", "sr_semantics",
+                           "last_sr", "sr"]
             report = report[simpĺe_cols]
 
         report["tags"] = self.merge_into_tags(report,
                          types_colname="sr_type",
                          semantics_colname="sr_semantics")
 
+        report["last_tags"] = self.merge_into_tags(report,
+                         types_colname="last_sr_type",
+                         semantics_colname="last_sr_semantics")
+
         return report
+
+    def enrich_sequence_report(self, sequence_report):
+        sr_start_time_h = sequence_report["sr_start_time"].apply(human_time)
+        sr_end_time_h = sequence_report["sr_end_time"].apply(human_time)
+
+        sequence_report["start_weekday"] = sr_start_time_h.apply(lambda x: x["weekday"])
+        sequence_report["start_date"] = sr_start_time_h.apply(lambda x: x["datetime"].split(" ")[0])
+        sequence_report["start_time"] = sr_start_time_h.apply(lambda x: x["datetime"].split(" ")[1])
+
+        sequence_report["end_date"] = sr_end_time_h.apply(lambda x: x["datetime"].split(" ")[0])
+        sequence_report["end_time"] = sr_end_time_h.apply(lambda x: x["datetime"].split(" ")[1])
+        sequence_report["end_weekday"] = sr_end_time_h.apply(lambda x: x["weekday"])
+
+        return sequence_report
 
     def sequence_pois_type(self):
         return self.sequence_report["last_sr_tag"].tolist()
@@ -344,22 +368,6 @@ def group_stop_regions_for_agglutination(sr_list, agglutination_rule_1, agglutin
 
     return agglutinate, pd.DataFrame(agglutination_report)[
         ["agglutinate", "delta_t", "distance", "last_sr_tag", "sr_tag", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]]
-
-
-# def agglutinate_stop_regions(self):
-#     agglutinated = []
-#     singles = []
-#
-#     grouped_stop_regions, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_sequence, same_closest_poi)
-#
-#     for group in grouped_stop_regions:
-#         if len(group) == 1:
-#             singles.append(group[0])
-#         else:
-#             agg_sr = agglutinate(group)
-#             agglutinated.append(StopRegion(**agg_sr))
-#
-#     return StopRegionSequence((agglutinated + singles).sort(key=lambda x: x.start_time, reverse=False))
 
 
 if __name__ == "__main__":

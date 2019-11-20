@@ -6,6 +6,9 @@ import math
 import copy
 import gc
 
+from src.exceptions.exceptions import EmptyDirectory
+
+
 TEST_DIR = "outputs/experiments/"
 
 def save_execution_test_data(result_dict, filename):
@@ -20,12 +23,15 @@ def load_execution_test_data(filename):
     with open('{}/{}.json'.format(TEST_DIR, filename)) as json_file:
         return json.load(json_file)
 
-def load_execution_test_data_by_model(model):
-    model_dir = "{}/{}/".format(TEST_DIR, model)
+def load_execution_test_data(dir):
+    dir_path = "{}/{}/".format(TEST_DIR, dir)
+
+    if len(os.listdir(dir_path)) == 0:
+        raise EmptyDirectory(dir_path)
 
     executions_data = []
-    for filename in os.listdir(model_dir):
-        with open("{}/{}".format(model_dir, filename)) as json_file:
+    for filename in os.listdir(dir_path):
+        with open("{}/{}".format(dir_path, filename)) as json_file:
             executions_data.append(json.load(json_file))
 
     return executions_data

@@ -2,4 +2,4 @@ markov-0.0 : Only places tags used as states for a Markov Chain. The tags used a
 markov-0.0.d : Applying Distributive property to transitions with multiple tags. The distributive transitions of [A, B] ~> [C, D] is A ~> B, A ~> D, B ~> C, B ~> D
 
 0.0.categ_v1: Using Category Taxonomy version 1
-0.1.categ_v1: Agglutinate consecutive categories from 0.0.categ_v1
+0.1.categ_v1: Agglutinate equal consecutive categories from 0.0.categ_v1
