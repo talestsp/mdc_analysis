@@ -42,6 +42,32 @@ def load_user_gps_csv(userid, from_day_n=None, to_day_n=None, fill=False):
 
     return user_data
 
+def load_user_gps_csv_by_timestamp_interval(userid, from_ts=None, to_ts=None, fill=False):
+    try:
+        user_data = pd.read_csv("outputs/user_gps/" + str(userid) + '_gps.csv')
+    except pd.errors.EmptyDataError:
+        return pd.DataFrame()
+
+    user_data = local_time(user_data)
+    if len(user_data) > 0:
+        user_data = user_data.drop_duplicates().sort_values(by="local_time")
+
+    print(user_data["local_time"].min())
+    print(user_data["local_time"].max())
+
+    if from_ts is None:
+        from_ts = user_data["local_time"].min()
+
+    if to_ts is None:
+        to_ts = user_data["local_time"].max()
+
+    user_data = user_data[(user_data["local_time"] >= from_ts) & (user_data["local_time"] <= to_ts)]
+
+    if fill:
+        pass
+
+    return user_data
+
 def load_user_gps_time_window(userid, from_local_time, to_local_time):
     user_gps_data = load_user_gps_csv(userid)
 
