@@ -52,9 +52,6 @@ def load_user_gps_csv_by_timestamp_interval(userid, from_ts=None, to_ts=None, fi
     if len(user_data) > 0:
         user_data = user_data.drop_duplicates().sort_values(by="local_time")
 
-    print(user_data["local_time"].min())
-    print(user_data["local_time"].max())
-
     if from_ts is None:
         from_ts = user_data["local_time"].min()
 

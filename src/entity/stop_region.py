@@ -1,4 +1,5 @@
 import pandas as pd
+import copy
 from src.utils import geo
 from src.dao import csv_dao
 from src.poi_grabber import google_places
@@ -131,7 +132,7 @@ class StopRegionGroup:
                                             width=width, height=height, fill_color=fill_color, p=p,
                                             plot_n_pois=plot_n_pois)
 
-        p = plot2.mark_home_and_work(p, self)
+        # p = plot2.mark_home_and_work(p, self)
 
         return p
 
@@ -140,6 +141,21 @@ class StopRegionGroup:
             if sr.sr_id == sr_id:
                 return sr
         return None
+
+    def subsequence(self, from_ts, to_ts):
+        '''
+        Return Stop Region Group with stop regions which start times are between from_ts and to_ts
+        :param from_ts:
+        :param to_ts:
+        :return:
+        '''
+        stop_region_sub_list = []
+
+        for sr in self.stop_region_list:
+            if sr.start_time <= to_ts and sr.end_time >= from_ts:
+                stop_region_sub_list.append(sr)
+
+        return StopRegionGroup(stop_region_sub_list)
 
     def size(self):
         return len(self.stop_region_list)
