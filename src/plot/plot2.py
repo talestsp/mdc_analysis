@@ -135,11 +135,11 @@ def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magent
                      fill_alpha=0.7, legend=None, tooltips=None):
 
     if mark_type == "circle":
-        p.circle("lon", "lat", color="fill_color", size=point_size, source=sr_source, legend="legend")
+        p.circle("lon", "lat", color="fill_color", size=point_size, source=sr_source, legend=legend)
         centroid_mark = p.circle("lon", "lat", color="fill_color", size=point_size, source=sr_source, fill_color="fill_color")
 
     elif mark_type == "square":
-        p.square("lon", "lat", color="fill_color", size=point_size, source=sr_source, legend="legend")
+        p.square("lon", "lat", color="fill_color", size=point_size, source=sr_source, legend=legend)
         centroid_mark = p.square("lon", "lat", color="fill_color", size=point_size, source=sr_source, fill_color="fill_color")
 
     if not tooltips is None:
@@ -283,8 +283,8 @@ def mercator_fig(title, point_mercator1=None, point_mercator2=None, width=1500, 
 def mark_home_and_work(plot, sr_group, home_color="lightblue", work_color="lightgreen"):
     for sr in sr_group.stop_region_list:
         if "HOME" in sr.semantics:
-            plot = sr.plot_simple(p=plot, color=home_color, legend="HOME")
+            plot = sr.plot_simple(p=plot, color=HOME_SR_COLOR, legend="HOME")
 
         if "WORK" in sr.semantics:
-            plot = sr.plot_simple(p=plot, color=work_color, legend="WORK")
+            plot = sr.plot_simple(p=plot, color=WORK_SR_COLOR, legend="WORK")
     return plot

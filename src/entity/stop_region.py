@@ -132,7 +132,7 @@ class StopRegionGroup:
                                             width=width, height=height, fill_color=fill_color, p=p,
                                             plot_n_pois=plot_n_pois)
 
-        # p = plot2.mark_home_and_work(p, self)
+        p = plot2.mark_home_and_work(p, self)
 
         return p
 

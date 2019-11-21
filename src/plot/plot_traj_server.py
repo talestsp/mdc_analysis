@@ -14,8 +14,6 @@ from src.utils.geo import gps_loc_to_web_mercator
 from src.utils.time_utils import enrich_time_columns, human_time
 from src.entity.stop_region import sr_row_to_stop_region
 
-from bokeh.io import show
-
 
 def callback():
     point_circle = p.circle(x=[], y=[], line_color=[], size=[])
@@ -30,11 +28,9 @@ def callback():
     point_sizes = []
     new_point_data = dict()
     new_centroid_data = dict()
-    print("callbackkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-    while counter < len(user_data):
-        print("whileeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-        if time.time() - last_time >= period:
 
+    while counter < len(user_data):
+        if time.time() - last_time >= period:
             last_time = time.time()
             counter += 1
 
@@ -123,6 +119,7 @@ def plot_gps_traj(userid, from_timestamp, to_timestamp, r=50, delta_t=300):
     " | From: " + user_data["local_datetime"].iloc[0] + \
     " | To  : " + user_data["local_datetime"].iloc[len(user_data) - 1]
 
+    time.sleep(3)
     return animate(user_data, clusters, plot_title)
 
 def animate(user_data, clusters, plot_title, plot2=False, verbose=False):
@@ -132,13 +129,10 @@ def animate(user_data, clusters, plot_title, plot2=False, verbose=False):
     print("PLOTTING")
 
     aplot = AnimatedPlot(user_data, clusters, title=plot_title)
-
     if not plot2:
         p = aplot.build_stop_region_plot(color="orange", circle_alpha=0.4, cluster_alpha=0.05)
     else:
         p = aplot.build_stop_region_group_quick_plot()
-
-    show(p)
 
     # add a button widget and configure with the call back
     button_go = Button(label="Go")
@@ -180,6 +174,6 @@ else:
     user_data, p, aplot, hilight_centroid = plot_gps_points_by_timestamp_interval(userid=5928,
                                                                                   r=50,
                                                                                   delta_t=300,
-                                                                                  from_ts=1254149048.0,
-                                                                                  to_ts=1254219480.0,
+                                                                                  from_ts=1253014779.0,
+                                                                                  to_ts=1253363550.0 + (48*60*60),
                                                                                   plot2=True)
