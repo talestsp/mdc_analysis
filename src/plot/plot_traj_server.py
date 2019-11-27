@@ -35,7 +35,13 @@ def callback():
             counter += 1
 
             next = aplot.get_next_point()
-            print(next[["weekday", "hour", "min", "sec", "speed"]])
+
+            print("\n\n")
+            print("weekday:", next["point"]["weekday"])
+            print("hour:", next["point"]["hour"])
+            print("min: ", next["point"]["min"])
+            print("sec: ", next["point"]["sec"])
+            print("speed:", next["point"]["speed"])
 
             point = next["point"]
             centroid = next["centroid"]
@@ -136,6 +142,7 @@ def animate(user_data, clusters, plot_title, plot2=False, verbose=False):
 
     # add a button widget and configure with the call back
     button_go = Button(label="Go")
+    print("callback")
     button_go.on_click(callback)
 
     # put the button and plot in a layout and add to the document
@@ -175,5 +182,5 @@ else:
                                                                                   r=50,
                                                                                   delta_t=300,
                                                                                   from_ts=1253014779.0,
-                                                                                  to_ts=1253363550.0 + (48*60*60),
+                                                                                  to_ts=1253363550.0 + (12*60*60),
                                                                                   plot2=True)
