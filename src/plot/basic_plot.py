@@ -19,7 +19,7 @@ def plot_result_multi_line(xs_list, ys_list, x_label, y_label, color_list=[], le
     return p
 
 
-def plot_result(xs, ys, x_label, y_label, color="darkblue", legend=None, title="", p=None, width=400, height=300):
+def plot_result(xs, ys, x_label, y_label, line_width=2, circle_size=4, alpha=0.8, color="darkblue", legend=None, title="", p=None, width=400, height=300):
     xs = [float(x) for x in xs]
     ys = [float(y) for y in ys]
 
@@ -29,10 +29,10 @@ def plot_result(xs, ys, x_label, y_label, color="darkblue", legend=None, title="
                    title=title,
                    x_axis_label=x_label,
                    y_axis_label=y_label,
-                   tools=['xwheel_zoom', 'xpan'])
+                   tools=['xwheel_zoom', 'xpan', 'reset'])
 
-    p.line(xs, ys, color=color, alpha=0.8, line_width=2)
-    p.circle(xs, ys, color=color, fill_alpha=1, size=4, legend=legend)
+    p.line(xs, ys, color=color, alpha=alpha, line_width=line_width)
+    p.circle(xs, ys, color=color, fill_alpha=alpha, size=circle_size, legend=legend)
     p.legend.location = "bottom_right"
 
     return p
