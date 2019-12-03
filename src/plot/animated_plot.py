@@ -1,5 +1,6 @@
 from src.plot.plot import plot_stop_region_with_trajectory, plot_user_loc
 from src.utils.geo import cluster_centroid, index_clusters
+from src.dao import objects_dao
 
 class AnimatedPlot:
 
@@ -20,6 +21,11 @@ class AnimatedPlot:
     def build_stop_region_plot(self, color="navy", circle_alpha=0.2, cluster_alpha=0.2):
         return plot_stop_region_with_trajectory(self.user_data, [self.indexed_clusters[key] for key in self.indexed_clusters.keys()],
                                                 self.title, color=color, circle_alpha=circle_alpha, cluster_alpha=cluster_alpha)
+
+    def build_stop_region_group_quick_plot(self):
+        srg = objects_dao.load_stop_region_group_object(self.user_data["userid"].drop_duplicates().item())
+        sub_srg = srg.subsequence(from_ts=self.user_data["local_time"].min(), to_ts=self.user_data["local_time"].max())
+        return sub_srg.plot(width=1000, height=800)
 
     def get_next_point(self, reset=False):
         if reset:

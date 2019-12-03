@@ -9,6 +9,10 @@ from src.utils import time_utils
 
 from bokeh.models import HoverTool
 
+HOME_SR_COLOR = "lightblue"
+WORK_SR_COLOR = "lightgreen"
+ORDINARY_SR_COLOR = "magenta"
+
 
 def stop_region_centroid_data_source(stop_regions):
     if str(type(stop_regions).__name__) == "StopRegion":
@@ -24,8 +28,24 @@ def stop_region_centroid_data_source(stop_regions):
     start_weekdays = []
     end_weekdays = []
     ids = []
+    stop_region_fill_colors = []
+    legends = []
 
     for sr in stop_regions:
+        if "HOME" in sr.semantics:
+            stop_region_fill_colors.append(HOME_SR_COLOR)
+            legends.append(sr.semantics)
+
+        elif "WORK" in sr.semantics:
+            stop_region_fill_colors.append(WORK_SR_COLOR)
+            legends.append(sr.semantics)
+
+        else:
+            stop_region_fill_colors.append(ORDINARY_SR_COLOR)
+            legends.append("Stop Region")
+
+
+
         mercator_lon, mercator_lat = geo.gps_loc_to_web_mercator(lat=sr.centroid_lat, lon=sr.centroid_lon)
         mercator_lats.append(mercator_lat)
         mercator_lons.append(mercator_lon)
@@ -50,7 +70,9 @@ def stop_region_centroid_data_source(stop_regions):
         end_time=end_times,
         start_weekday=start_weekdays,
         end_weekday=end_weekdays,
-        sr_id=ids
+        sr_id=ids,
+        fill_color=stop_region_fill_colors,
+        legend=legends
     ))
 
     return sr_source
@@ -110,15 +132,15 @@ def hot_osm_pois_tooltips():
     ]
 
 def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magenta", mark_type="circle",
-                     fill_alpha=0.4, legend=None, tooltips=None):
+                     fill_alpha=0.7, legend=None, tooltips=None):
 
     if mark_type == "circle":
-        p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
-        centroid_mark = p.circle("lon", "lat", color=point_color, size=point_size, source=sr_source)
+        p.circle("lon", "lat", color="fill_color", size=point_size, source=sr_source, legend=legend)
+        centroid_mark = p.circle("lon", "lat", color="fill_color", size=point_size, source=sr_source, fill_color="fill_color")
 
     elif mark_type == "square":
-        p.square("lon", "lat", color=point_color, size=point_size, source=sr_source, legend=legend)
-        centroid_mark = p.square("lon", "lat", color=point_color, size=point_size, source=sr_source)
+        p.square("lon", "lat", color="fill_color", size=point_size, source=sr_source, legend=legend)
+        centroid_mark = p.square("lon", "lat", color="fill_color", size=point_size, source=sr_source, fill_color="fill_color")
 
     if not tooltips is None:
         p.add_tools(HoverTool(renderers=[centroid_mark], tooltips=tooltips))
@@ -126,7 +148,7 @@ def stop_region_mark(p, sr_source, point_color, point_size=3, fill_color="magent
     glyph = centroid_mark.glyph
     glyph.size = 20
     glyph.fill_alpha = fill_alpha
-    glyph.fill_color = fill_color
+    # glyph.fill_color = fill_color
     glyph.line_alpha = fill_alpha
     glyph.line_color = "firebrick"
     glyph.line_dash = [6, 3]
@@ -258,11 +280,11 @@ def mercator_fig(title, point_mercator1=None, point_mercator2=None, width=1500, 
 
     return p
 
-def mark_home_and_work(plot, sr_group):
+def mark_home_and_work(plot, sr_group, home_color="lightblue", work_color="lightgreen"):
     for sr in sr_group.stop_region_list:
         if "HOME" in sr.semantics:
-            plot = sr.plot_simple(p=plot, color="lightblue", legend="HOME")
+            plot = sr.plot_simple(p=plot, color=HOME_SR_COLOR, legend="HOME")
 
         if "WORK" in sr.semantics:
-            plot = sr.plot_simple(p=plot, color="lightgreen", legend="WORK")
+            plot = sr.plot_simple(p=plot, color=WORK_SR_COLOR, legend="WORK")
     return plot
