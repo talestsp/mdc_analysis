@@ -9,7 +9,6 @@ notebooks/outputs/*
 
 .pytest_cache/*
 
-*.ipynb
 .ipynb_checkpoints
 
 .idea/*
