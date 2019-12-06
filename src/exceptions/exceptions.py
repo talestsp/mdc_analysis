@@ -34,4 +34,13 @@ class ValueFarFromOne(Exception):
 class EmptyDirectory(Exception):
     pass
 
+class StopRegionMinTimeNotLoaded(Exception):
+    pass
+
+class VersionNotRegistered(Exception):
+    pass
+
+class MinStopRegionTimeIs5Min(Exception):
+    pass
+
 

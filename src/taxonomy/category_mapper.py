@@ -98,13 +98,15 @@ class CategoryMapper:
         return clean_types
 
     def map_categ(self, types, method="most_specific", logs=False):
-        '''
+        # TODO Describe 'most_specific' and 'most_frequent'
 
+        '''
         :param types:
         :param method: 'most_specific' or 'most_frequent'
         :param logs:
         :return:
         '''
+
         types = self._valid_types(types)
         mapped = self._map_types_to_categ(types, self.categories)
 

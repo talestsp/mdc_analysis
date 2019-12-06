@@ -44,13 +44,17 @@ def load_users_tags_sequence(sr_stay_time_above_h=0.5):
     print("Building Stop Region Group sequence")
     for user_id in user_srg.keys():
         seq_report = user_srg[user_id].sequence_report(enrich_columns=True)
-        seq_report_filtered = seq_report[seq_report["stay_time_h"] > sr_stay_time_above_h]
 
         users_tags_sequence_original[user_id] = seq_report["tags"]
-        users_tags_sequence_filtered[user_id] = seq_report_filtered["tags"]
-
-        sizes_filtered.append(len(seq_report_filtered))
         sizes_original.append(len(seq_report))
+
+        if sr_stay_time_above_h:
+            seq_report_filtered = seq_report[seq_report["stay_time_h"] > sr_stay_time_above_h]
+            users_tags_sequence_filtered[user_id] = seq_report_filtered["tags"]
+            sizes_filtered.append(len(seq_report_filtered))
+
+    if sr_stay_time_above_h is None:
+        users_tags_sequence_filtered = None
 
     return {"original": users_tags_sequence_original, "filtered": users_tags_sequence_filtered}
 
