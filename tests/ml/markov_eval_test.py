@@ -21,4 +21,5 @@ class markov_pred_test(unittest.TestCase):
                                         input_data_version="0.0.categ_v1",
                                         dir_name="trash/",
                                         repeats_n=3,
+                                        cluster_version="test",
                                         save_result=False)

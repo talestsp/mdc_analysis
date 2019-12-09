@@ -88,6 +88,63 @@ def test_markov_cluster(train_cluster, test, is_distributive, random_dummy_mode=
                            test=test,
                            is_distributive=is_distributive)
 
+def test_markov_cluster_multi_trip(train_trips, test_trips):
+    transition_proba = mk.cluster_transition_probabilities(train_trips)
+    transition_proba_dict = mk.to_dict(transition_proba)
+
+    return do_markov_test_multi_trip(trans_proba_dict=transition_proba_dict,
+                                     test_trips=test_trips,
+                                    is_distributive=False)
+
+def do_markov_test_multi_trip(trans_proba_dict, test_trips, is_distributive,):
+
+    predictor = mk.MarkovPredictor().fit(trans_proba_dict)
+
+    hits = []
+    misses = []
+    states_not_trained_as_origin = []
+    partial_hits = []
+
+    for test in test_trips:
+
+        for test_i in range(len(test[0:-1])):
+            current_state_list = test[test_i]
+            next_state_real_list = test[test_i + 1]
+
+            if not is_valid_state(current_state_list) or not is_valid_state(next_state_real_list):
+                continue
+
+            next_state_real = str(next_state_real_list)
+
+            try:
+                if is_distributive:
+                    next_state_pred_list = predict_distributive_tags(predictor, current_state_list)
+
+                else:
+                    next_state_pred_list = predict_tags(predictor, str(current_state_list))
+
+            except exceptions.StateNotPresentInTrainAsOrigin:
+                states_not_trained_as_origin.append(str(current_state_list))
+                partial_hits.append(0)
+                misses.append({"real": next_state_real, "pred": None})
+                continue
+
+            partial_hits.append(jaccard(next_state_real_list, next_state_pred_list))
+
+            if set(next_state_real_list) == set(next_state_pred_list):
+                hits.append(next_state_real)
+            else:
+                misses.append({"real": next_state_real, "pred": str(next_state_pred_list)})
+
+    return {"total_hits": len(hits),
+            "total_misses": len(misses),
+            "total_states_not_trained_as_origin": len(states_not_trained_as_origin),
+            "hits": hits,
+            "misses": misses,
+            "states_not_trained_as_origin": states_not_trained_as_origin,
+            "partial_hits": partial_hits
+            }
+
 def do_markov_test(trans_proba_dict, test, is_distributive,):
 
     predictor = mk.MarkovPredictor().fit(trans_proba_dict)
