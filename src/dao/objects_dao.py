@@ -17,14 +17,33 @@ def load_all_stop_region_group_object(verbose=True):
     users_srg = {}
     users = os.listdir("outputs/stop_regions/")
 
-    n=0
-    for user_id in users:
-        n += 1
-        if verbose:
-            print("Loading user_id: {} - {} out of {}".format(user_id, n, len(users)))
-        users_srg[user_id] = load_stop_region_group_object(user_id)
+    if "USERS_SRG" in cache.keys() and len(cache["USERS_SRG"]) == TOTAL_N_USERS:
+        users_srg = cache["USERS_SRG"]
+
+    else:
+        n=0
+        for user_id in users:
+            n += 1
+            if verbose:
+                print("Loading user_id: {} - {} out of {}".format(user_id, n, len(users)))
+            users_srg[user_id] = load_stop_region_group_object(user_id)
+
+        cache["USERS_SRG"] = users_srg
 
     return users_srg
+
+def load_users_sequence_report():
+    if "USERS_SEQ_REPORT" in cache.keys() and len(cache["USERS_SEQ_REPORT"]) == TOTAL_N_USERS:
+        users_seq_report = cache["USERS_SEQ_REPORT"]
+
+    else:
+        users_srg = load_all_stop_region_group_object()
+        users_seq_report = {}
+
+        for user_id in users_srg.keys():
+            users_seq_report[user_id] = users_srg[user_id].sequence_report(enrich_columns=True)
+
+    return users_seq_report
 
 def load_users_tags_sequence(sr_stay_time_above_h=0.5):
     users_tags_sequence_original = {}
@@ -34,12 +53,7 @@ def load_users_tags_sequence(sr_stay_time_above_h=0.5):
     sizes_filtered = []
 
     print("Loading Stop Region Group data")
-    if "USERS_SRG" in cache.keys() and len(cache["USERS_SRG"]) == TOTAL_N_USERS:
-        user_srg = cache["USERS_SRG"]
-    else:
-        user_srg = load_all_stop_region_group_object(verbose=False)
-        cache["USERS_SRG"] = user_srg
-
+    user_srg = load_all_stop_region_group_object(verbose=False)
 
     print("Building Stop Region Group sequence")
     for user_id in user_srg.keys():

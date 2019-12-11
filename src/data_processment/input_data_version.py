@@ -2,6 +2,7 @@ from src.dao import objects_dao
 from src.taxonomy.category_mapping import tags_to_categ
 from src.exceptions.exceptions import StopRegionMinTimeNotLoaded, VersionNotRegistered, MinStopRegionTimeIs5Min
 
+DATA_VERSIONS = ["markov-0.0", "0.0.categ_v1", "0.1.categ_v1"]
 
 class InputDataManager:
 
@@ -10,20 +11,18 @@ class InputDataManager:
             if other_sr_stay_time_min_threshold < 5:
                 raise MinStopRegionTimeIs5Min()
 
-        print("Loading min_threshold data: {} min".format(5))
-        self.tags_sequence_5_min_sr = objects_dao.load_users_tags_sequence(sr_stay_time_above_h=None)["original"]
-
         self.tags_sequence_sr_min_times = {}
 
-        for sr_stay_time in other_sr_stay_time_thresholds_minutes:
+        for sr_stay_time in [5] + other_sr_stay_time_thresholds_minutes:
             sr_stay_time_h = sr_stay_time / 60.
             print("Loading min_threshold data: {} min".format(sr_stay_time))
             self.tags_sequence_sr_min_times[sr_stay_time] = objects_dao.load_users_tags_sequence(sr_stay_time_above_h=sr_stay_time_h)["filtered"]
 
-        self.tags_sequence_sr_min_times[5] = self.tags_sequence_5_min_sr
-
         self.versions = {}
         self.versions_other_sr_min_times = {}
+
+    def avaliable_versions(self):
+        return DATA_VERSIONS
 
     def get_input_data(self, version, sr_min_time=5):
 

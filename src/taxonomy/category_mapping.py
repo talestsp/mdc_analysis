@@ -2,7 +2,7 @@ from itertools import groupby
 
 from src.taxonomy.category_mapper import CategoryMapper
 from src.utils.others import remove_list_elements
-from src.exceptions.exceptions import NoCategoryMatched, NotValidTypes
+from src.exceptions.exceptions import NoCategoryMatched, NotValidTypes, VersionNotRegistered
 
 
 cache = {}
@@ -49,9 +49,12 @@ def tags_to_categ(user_tags_dict, version="0.1.categ_v1", verbose=True):
             users_categ_sequence[user_id] = agglutinate_consecutive_elements(categ_sequence)
             users_categ_sequence_elements[user_id] = [categ[0] for categ in users_categ_sequence[user_id]]
 
-        else:
+        elif version == "0.0.categ_v1":
             users_categ_sequence[user_id] = categ_sequence
             users_categ_sequence_elements[user_id] = [categ[0] for categ in categ_sequence]
+
+        else:
+            raise VersionNotRegistered()
 
     return users_categ_sequence, users_categ_sequence_elements
 
