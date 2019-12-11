@@ -14,35 +14,35 @@ class InputDataManager:
     def avaliable_versions(self):
         return DATA_VERSIONS
 
-    def get_input_data(self, version, sr_stay_time=5):
+    def get_input_data(self, version, sr_stay_time_minutes=5):
 
         try:
-            input_data = self.cache[version][sr_stay_time]
+            input_data = self.cache[version][sr_stay_time_minutes]
 
         except KeyError:
 
             if version == "markov-0.0":
-                input_data = self.__markov_0_0(sr_stay_time=sr_stay_time)
+                input_data = self.__markov_0_0(sr_stay_time_minutes=sr_stay_time_minutes)
 
             elif version == "0.0.categ_v1":
-                input_data = self.__0_0_categ_v1(sr_stay_time=sr_stay_time)
+                input_data = self.__0_0_categ_v1(sr_stay_time_minutes=sr_stay_time_minutes)
 
             elif version == "0.1.categ_v1":
-                input_data = self.__0_1_categ_v1(sr_stay_time=sr_stay_time)
+                input_data = self.__0_1_categ_v1(sr_stay_time_minutes=sr_stay_time_minutes)
 
             else:
                 raise VersionNotRegistered()
 
-            self.__insert_in_lvl_2_cache(place=[version, sr_stay_time], value=input_data)
+            self.__insert_in_lvl_2_cache(place=[version, sr_stay_time_minutes], value=input_data)
 
         return input_data
 
     def get_user_ids(self):
         return self.users_seq_report.keys()
 
-    def __filter_sr_by_minimum_stay_time(self, sr_stay_time):
+    def __filter_sr_by_minimum_stay_time_minutes(self, sr_stay_time_minutes):
         users_filtered = {}
-        sr_stay_time_h = sr_stay_time / 60.0
+        sr_stay_time_h = sr_stay_time_minutes / 60.0
 
         for user_id in self.users_seq_report.keys():
             seq_report = self.users_seq_report[user_id]
@@ -59,14 +59,14 @@ class InputDataManager:
             self.cache[place[0]][place[1]] = value
 
 
-    def __markov_0_0(self, sr_stay_time=5):
-        return self.__filter_sr_by_minimum_stay_time(sr_stay_time=sr_stay_time)
+    def __markov_0_0(self, sr_stay_time_minutes=5):
+        return self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
 
-    def __0_0_categ_v1(self, sr_stay_time=5):
-        tags_sequence = self.__filter_sr_by_minimum_stay_time(sr_stay_time=sr_stay_time)
+    def __0_0_categ_v1(self, sr_stay_time_minutes=5):
+        tags_sequence = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
         return tags_to_categ(tags_sequence, version="0.0.categ_v1", verbose=False)[0]
 
-    def __0_1_categ_v1(self, sr_stay_time=5):
-        tags_sequence = self.__filter_sr_by_minimum_stay_time(sr_stay_time=sr_stay_time)
+    def __0_1_categ_v1(self, sr_stay_time_minutes=5):
+        tags_sequence = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
         return tags_to_categ(tags_sequence, version="0.1.categ_v1", verbose=False)[0]
 
