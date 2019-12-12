@@ -6,13 +6,17 @@ DATA_VERSIONS = ["markov-0.0", "0.0.categ_v1", "0.1.categ_v1"]
 
 class InputDataManager:
 
-    def __init__(self):
+    def __init__(self, use_cache=True):
         print("Loading Users Sequence Report")
-        self.users_seq_report = objects_dao.load_users_sequence_report()
+        self.users_seq_report = objects_dao.load_users_sequence_report(use_cache=use_cache)
+        self.use_cache = use_cache
         self.cache = {}
 
     def avaliable_versions(self):
         return DATA_VERSIONS
+
+    def __use_cache(self):
+        return self.use_cache
 
     def get_input_data(self, version, sr_stay_time_minutes=5):
 
@@ -33,7 +37,8 @@ class InputDataManager:
             else:
                 raise VersionNotRegistered()
 
-            self.__insert_in_lvl_2_cache(place=[version, sr_stay_time_minutes], value=input_data)
+            if self.__use_cache():
+                self.__insert_in_lvl_2_cache(place=[version, sr_stay_time_minutes], value=input_data)
 
         return input_data
 
@@ -57,7 +62,6 @@ class InputDataManager:
 
         elif not place[1] in self.cache[place[0]].keys():
             self.cache[place[0]][place[1]] = value
-
 
     def __markov_0_0(self, sr_stay_time_minutes=5):
         return self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
