@@ -46,15 +46,15 @@ class InputDataManager:
         return self.users_seq_report.keys()
 
     def __filter_sr_by_minimum_stay_time_minutes(self, sr_stay_time_minutes):
-        users_filtered = {}
+        users_filtered_tags = {}
         sr_stay_time_h = sr_stay_time_minutes / 60.0
 
         for user_id in self.users_seq_report.keys():
             seq_report = self.users_seq_report[user_id]
             seq_report_filtered = seq_report[seq_report["stay_time_h"] >= sr_stay_time_h]
-            users_filtered[user_id] = seq_report_filtered
+            users_filtered_tags[user_id] = seq_report_filtered["tags"]
 
-        return users_filtered
+        return users_filtered_tags
 
     def __insert_in_lvl_2_cache(self, place, value):
         if not place[0] in self.cache.keys():
@@ -73,4 +73,5 @@ class InputDataManager:
     def __0_1_categ_v1(self, sr_stay_time_minutes=5):
         tags_sequence = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
         return tags_to_categ(tags_sequence, version="0.1.categ_v1", verbose=False)[0]
+
 
