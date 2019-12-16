@@ -3,16 +3,16 @@ import numpy as np
 import copy
 
 def gaps_params(user_gps_data, gap_tresh_minutes):
-    gaps_data = gap_missing_values(user_gps_data).to_frame().reset_index().rename({0: "gap_time", "index": "stop"},
+    gaps_data = gap_missing_values(user_gps_data).to_frame().reset_index().rename({0: "gap_time_sec", "index": "stop"},
                                                                                   axis=1)
     gaps_data["start"] = [None] + gaps_data.iloc[0: len(gaps_data) - 1]["stop"].tolist()
     gaps_data["start"] = gaps_data["start"].replace({np.NaN: None})
 
-    selected_gaps = copy.deepcopy(gaps_data[gaps_data["gap_time"] > gap_tresh_minutes * 60])
+    selected_gaps = copy.deepcopy(gaps_data[gaps_data["gap_time_sec"] >= gap_tresh_minutes * 60])
 
     selected_gaps["user_id"] = user_gps_data["userid"].drop_duplicates().item()
 
-    return selected_gaps[["user_id", "gap_time", "start", "stop"]]
+    return selected_gaps[["user_id", "gap_time_sec", "start", "stop"]]
 
 def cut_traj_in_trips(srg_sequence_report, gaps):
     srg_sequence_report = srg_sequence_report.sort_values(by="sr_start_time")
