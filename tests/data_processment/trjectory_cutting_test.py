@@ -7,7 +7,7 @@ from src.data_processment.trajectory_cutting import gaps_params, cut_traj_in_tri
 class trajectory_cutting_test(unittest.TestCase):
 
     def setUp(self):
-        user_id = "6189"
+        user_id = "5936"
 
         self.user_srg = objects_dao.load_stop_region_group_object(user_id)
         self.user_gps_data = csv_dao.load_user_gps_csv(user_id)
