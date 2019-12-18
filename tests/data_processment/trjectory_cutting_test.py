@@ -18,3 +18,6 @@ class trajectory_cutting_test(unittest.TestCase):
     def test_cut_traj_in_trips(self):
 
         cut_traj_in_trips(srg_sequence_report=self.user_srg.sequence_report(), gaps=self.gaps)
+
+    def test_gaps_params(self):
+        gaps = gaps_params(self.user_gps_data, gap_tresh_minutes=60 * 12)

@@ -66,12 +66,7 @@ class InputDataManager:
 
         for user_id in self.users_seq_report.keys():
             seq_report = self.users_seq_report[user_id]
-            if user_id == "5936":
-                print("seq_report:", len(seq_report))
             seq_report_filtered = seq_report[seq_report["stay_time_h"] >= sr_stay_time_h]
-            if user_id == "5936":
-                print("seq_report_filtered:", len(seq_report_filtered))
-                print('seq_report_filtered["tags"]', len(seq_report_filtered["tags"]))
             users_filtered_tags[user_id] = seq_report_filtered["tags"]
 
         return users_filtered_tags
@@ -92,12 +87,10 @@ class InputDataManager:
 
     def __0_0_categ_v1(self, sr_stay_time_minutes=5):
         tags_sequence = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
-        print("tags_sequence['5936'] - __0_0_categ_v1", len(tags_sequence['5936']))
         return tags_to_categ(tags_sequence, version="0.0.categ_v1", verbose=False)[1]
 
     def __0_1_categ_v1(self, sr_stay_time_minutes=5):
         tags_sequence = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
-        print("tags_sequence - __0_1_categ_v1", len(tags_sequence['5936']))
         return tags_to_categ(tags_sequence, version="0.1.categ_v1", verbose=False)[1]
 
 

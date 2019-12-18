@@ -3,6 +3,12 @@ import numpy as np
 import copy
 
 def gaps_params(user_gps_data, gap_tresh_minutes):
+    '''
+    Returns a pd.DataFrame with gaps parameters
+    :param user_gps_data:
+    :param gap_tresh_minutes:
+    :return:
+    '''
     gaps_data = gap_missing_values(user_gps_data).to_frame().reset_index().rename({0: "gap_time_sec", "index": "stop"},
                                                                                   axis=1)
     gaps_data["start"] = [None] + gaps_data.iloc[0: len(gaps_data) - 1]["stop"].tolist()

@@ -8,7 +8,6 @@ from src.exceptions.exceptions import NoCategoryMatched, NotValidTypes, VersionN
 cache = {}
 
 def tags_to_categ(user_tags_dict, version="0.1.categ_v1", verbose=True):
-    print("tags_to_categ INIT", len(user_tags_dict["5936"]))
     if not "CATEG_MAPPER" in cache.keys():
         categ_mapper = CategoryMapper()
         cache["CATEG_MAPPER"] = categ_mapper
@@ -30,10 +29,6 @@ def tags_to_categ(user_tags_dict, version="0.1.categ_v1", verbose=True):
             continue
 
         categ_sequence = []
-
-        if user_id == "5936":
-            print("tags_to_categ user_tags_dict[user_id]", user_id)
-            print(len(user_tags_dict[user_id]))
 
         for tags in user_tags_dict[user_id]:
             if tags == ["WORK"] or tags == ["HOME"]:
@@ -61,8 +56,6 @@ def tags_to_categ(user_tags_dict, version="0.1.categ_v1", verbose=True):
         else:
             raise VersionNotRegistered()
 
-    if user_id == "5936":
-        print(len(users_categ_sequence), len(users_categ_sequence_elements))
     return users_categ_sequence, users_categ_sequence_elements
 
 def clean_sequence(sequence):
