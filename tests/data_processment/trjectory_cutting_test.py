@@ -13,6 +13,7 @@ class trajectory_cutting_test(unittest.TestCase):
         self.user_gps_data = csv_dao.load_user_gps_csv(user_id)
         self.gaps = gaps_params(self.user_gps_data, 30)
 
+        pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
 
     def test_cut_traj_in_trips(self):
@@ -21,3 +22,6 @@ class trajectory_cutting_test(unittest.TestCase):
 
     def test_gaps_params(self):
         gaps = gaps_params(self.user_gps_data, gap_tresh_minutes=60 * 12)
+
+        print()
+        print(gaps)
