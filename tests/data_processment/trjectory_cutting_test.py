@@ -26,6 +26,7 @@ class trajectory_cutting_test(unittest.TestCase):
         self.assertEqual(gaps.iloc[13]["start"], 1255100576)
 
     def test_cut_traj_in_trips(self):
+        print(self.user_srg.sequence_report(enrich_columns=True).head(12))
 
         trips = cut_traj_in_trips(srg_sequence_report=self.user_srg.sequence_report(enrich_columns=True), gaps=self.gaps)
 
