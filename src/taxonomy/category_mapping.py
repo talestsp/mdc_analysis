@@ -25,8 +25,8 @@ def tags_to_categ(user_tags_dict, version="0.1.categ_v1", verbose=True):
 
         user_tags_dict[user_id] = clean_sequence(user_tags_dict[user_id])
 
-        if len(remove_list_elements(user_tags_dict[user_id], elements=[[]])) < 8:
-            continue
+        # if len(remove_list_elements(user_tags_dict[user_id], elements=[[]])) < 8:
+        #     continue
 
         categ_sequence = []
 

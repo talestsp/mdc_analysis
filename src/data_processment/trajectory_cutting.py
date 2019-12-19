@@ -34,6 +34,8 @@ def cut_traj_in_trips(srg_sequence_report, gaps):
         else:
             trips[-1].append(stop_region_row["tags"])
 
+        previous_stop_region_row = stop_region_row
+
     return trips
 
 
