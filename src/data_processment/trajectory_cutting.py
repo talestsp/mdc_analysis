@@ -26,13 +26,13 @@ def cut_traj_in_trips(srg_sequence_report, gaps):
     trips = [ [] ]
     previous_stop_region_row = srg_sequence_report.iloc[0]
 
-    trips[-1].append(previous_stop_region_row["tags"])
+    trips[-1].append(previous_stop_region_row)
 
     for i, stop_region_row in srg_sequence_report.iloc[1:20].iterrows():
         if is_there_gap_between(previous_stop_region_row, stop_region_row, gaps):
-            trips.append([stop_region_row["tags"]])
+            trips.append([stop_region_row])
         else:
-            trips[-1].append(stop_region_row["tags"])
+            trips[-1].append(stop_region_row)
 
         previous_stop_region_row = stop_region_row
 
@@ -40,18 +40,9 @@ def cut_traj_in_trips(srg_sequence_report, gaps):
 
 
 def is_there_gap_between(sr1, sr2, gaps):
-    print("===========================")
-    print("SR1")
-    print(sr1[["sr", "start_date", "start_time", "tags"]])
-    print()
-    print("SR2")
-    print(sr2[["sr", "start_date", "start_time", "tags"]])
-    print()
     if len(gaps[(gaps["start"] >= sr1["sr_end_time"]) & (gaps["stop"] <= sr2["sr_start_time"])]) > 0:
-        print("TRUE")
         return True
 
-    print("FALSE")
     return False
 
 def gap_missing_values(report):

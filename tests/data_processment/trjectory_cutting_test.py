@@ -2,7 +2,7 @@ import unittest
 import pandas as pd
 from src.dao import csv_dao, objects_dao
 from src.data_processment.trajectory_cutting import gaps_params, cut_traj_in_trips
-from src.taxonomy.category_mapping import tags_to_categ
+from src.taxonomy.category_mapping import users_tags_to_categ
 
 
 class trajectory_cutting_test(unittest.TestCase):
@@ -23,16 +23,12 @@ class trajectory_cutting_test(unittest.TestCase):
         self.assertEqual(self.gaps.iloc[13]["start"], 1255100576)
 
     def test_cut_traj_in_trips(self):
-        print(self.user_srg.sequence_report(enrich_columns=True).head(12)[["sr", "tags", "start_date", "start_time", "end_date", "end_time"]])
-
-        print()
-
         trips = cut_traj_in_trips(srg_sequence_report=self.user_srg.sequence_report(enrich_columns=True), gaps=self.gaps)
 
-        categ_0 = tags_to_categ({self.user_id: trips[0]}, version="0.0.categ_v1", verbose=False)[1]
-        categ_1 = tags_to_categ({self.user_id: trips[1]}, version="0.0.categ_v1", verbose=False)[1]
-        categ_2 = tags_to_categ({self.user_id: trips[2]}, version="0.0.categ_v1", verbose=False)[1]
-        categ_3 = tags_to_categ({self.user_id: trips[3]}, version="0.0.categ_v1", verbose=False)[1]
+        categ_0 = users_tags_to_categ({self.user_id: [sr['tags'] for sr in trips[0]]}, version="0.0.categ_v1", verbose=False)[1]
+        categ_1 = users_tags_to_categ({self.user_id: [sr['tags'] for sr in trips[1]]}, version="0.0.categ_v1", verbose=False)[1]
+        categ_2 = users_tags_to_categ({self.user_id: [sr['tags'] for sr in trips[2]]}, version="0.0.categ_v1", verbose=False)[1]
+        categ_3 = users_tags_to_categ({self.user_id: [sr['tags'] for sr in trips[3]]}, version="0.0.categ_v1", verbose=False)[1]
 
         self.assertEqual(categ_0[self.user_id], ["liquor_store", "WORK"])
         self.assertEqual(categ_1[self.user_id], ["political", "lodging"])

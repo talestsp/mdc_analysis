@@ -94,7 +94,7 @@ def test_markov_cluster_multi_trip(train_trips, test_trips):
 
     return do_markov_test_multi_trip(trans_proba_dict=transition_proba_dict,
                                      test_trips=test_trips,
-                                    is_distributive=False)
+                                     is_distributive=False)
 
 def do_markov_test_multi_trip(trans_proba_dict, test_trips, is_distributive,):
 
@@ -267,6 +267,52 @@ def evaluation_markov_cluster_light_mem(cluster, test_user_id, input_data_versio
         test_data["iteration"] = repeat_i
 
         test_data["user_id"] = test_user_id
+        test_data["multi_trip"] = False
+
+        test_data["is_distributive"] = is_distributive
+        test_data["input_data_version"] = input_data_version
+        test_data["cluster_version"] = cluster_version
+
+        test_data["test_id"] = execution_id
+
+        if save_result:
+            experiments_dao.save_execution_test_data(result_dict=test_data,
+                                                     filename=dir_name + "/" + test_data["test_id"] + "_i_{}".format(repeat_i))
+
+def evaluation_markov_cluster_multi_trip(cluster, test_user_id, input_data_version, cluster_version,
+                                        dir_name, repeats_n=3, is_distributive=False,
+                                        random_dummy_mode=None, save_result=True):
+
+    execution_id = str(uuid.uuid4())
+
+    if len(cluster) <= 1:
+        raise exceptions.ClusterSizeInadequate
+
+    user_tags, rest_cluster = partition_dict_by_keys_one_vs_all(a_dict=cluster, split_key=test_user_id)
+
+    for repeat_i in range(repeats_n):
+
+        test_data = test_markov_cluster_multi_trip(train_trips=[rest_cluster[user_id] for user_id in rest_cluster.keys()],
+                                                   test_trips=user_tags)
+
+        test_data["algorithm"] = "markov"
+        test_data["trained_with"] = "cluster"
+        test_data["train_size"] = sum([len(rest_cluster[train_user_id]) for train_user_id in rest_cluster.keys()])
+        test_data["test_size"] = len(user_tags)
+
+        if random_dummy_mode is None:
+            test_data["is_dummy"] = False
+        else:
+            test_data["is_dummy"] = True
+
+        test_data["method"] = "cluster"
+        test_data["cluster_size"] = len(cluster)
+
+        test_data["k"] = None
+        test_data["iteration"] = repeat_i
+
+        test_data["user_id"] = test_user_id
+        test_data["multi_trip"] = True
 
         test_data["is_distributive"] = is_distributive
         test_data["input_data_version"] = input_data_version
