@@ -26,7 +26,7 @@ class trajectory_cutting_test(unittest.TestCase):
         self.assertEqual(gaps.iloc[13]["start"], 1255100576)
 
     def test_cut_traj_in_trips(self):
-        print(self.user_srg.sequence_report(enrich_columns=True).head(12))
+        print(self.user_srg.sequence_report(enrich_columns=True).head(12)[["sr", "tags", "start_date", "start_time", "end_date", "end_time"]])
 
         trips = cut_traj_in_trips(srg_sequence_report=self.user_srg.sequence_report(enrich_columns=True), gaps=self.gaps)
 
@@ -45,16 +45,16 @@ class trajectory_cutting_test(unittest.TestCase):
         now = datetime.now()
 
         print(trips[0])
-        print(categ_0)
+        print(categ_0["5936"])
         print()
         print(trips[1])
-        print(categ_1)
+        print(categ_1["5936"])
         print()
         print(trips[2])
-        print(categ_2)
+        print(categ_2["5936"])
         print()
         print(trips[3])
-        print(categ_3)
+        print(categ_3["5936"])
 
         self.assertEqual(categ_0[self.user_id], ["liquor_store", "WORK"])
         self.assertEqual(categ_1[self.user_id], ["political", "lodging"])
