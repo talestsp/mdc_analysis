@@ -137,8 +137,6 @@ class transition_prob_test(unittest.TestCase):
 
         cluster_transitions = cluster_transitions.groupby(["origin", "destination"])["transition_count"].sum().to_frame().reset_index()
 
-
-
         self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "A") &
                                               (cluster_transitions["destination"] == "D")]["transition_count"].item(),3)
 
@@ -157,7 +155,6 @@ class transition_prob_test(unittest.TestCase):
 
 
         cluster_transitions = cluster_transition_probabilities([tags_1, tags_2, tags_3])
-
 
         self.assertEquals(cluster_transitions[(cluster_transitions["origin"] == "A") &
                                               (cluster_transitions["destination"] == "D")]["transition_count"].item(),3)

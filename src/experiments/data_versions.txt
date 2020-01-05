@@ -1,5 +1,16 @@
-markov-0.0 : Only places tags used as states for a Markov Chain. The tags used are Google Places types or, in case of place semantics, the semantic tag
-markov-0.0.d : Applying Distributive property to transitions with multiple tags. The distributive transitions of [A, B] ~> [C, D] is A ~> B, A ~> D, B ~> C, B ~> D
+markov-0.0 : Only places tags used as states for a Markov Chain. The tags used are Google Places types or, in case of
+place semantics, the semantic tag
+markov-0.0.d : Applying Distributive property to transitions with multiple tags. The distributive transitions of
+[A, B] ~> [C, D] is A ~> B, A ~> D, B ~> C, B ~> D
+
+RENAMING
+raw_tags-0.0 : Only places tags used as states for a Markov Chain. The tags used are Google Places types or, in case of
+place semantics, the semantic tag
+raw_tags-0.0.d : Applying Distributive property to transitions with multiple tags. The distributive transitions of
+[A, B] ~> [C, D] is A ~> B, A ~> D, B ~> C, B ~> D
+
+raw_tags-0.1 : Only places tags used as states for a Markov Chain. The tags used are Google Places types or, in case of
+place semantics, the semantic tag. Agglutinating consecutive tags.
 
 0.0.categ_v1: Using Category Taxonomy version 1
 0.1.categ_v1: Agglutinate equal consecutive categories from 0.0.categ_v1
