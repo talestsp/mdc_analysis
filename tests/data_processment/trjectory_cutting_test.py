@@ -17,8 +17,6 @@ class trajectory_cutting_test(unittest.TestCase):
         pd.set_option('display.float_format', lambda x: '%.3f' % x)
 
     def test_gaps_params(self):
-        print()
-        print(self.gaps)
         self.assertEqual(self.gaps.iloc[0]["start"], 1253806201)
         self.assertEqual(self.gaps.iloc[13]["start"], 1255100576)
 
@@ -30,7 +28,7 @@ class trajectory_cutting_test(unittest.TestCase):
         categ_2 = users_tags_to_categ({self.user_id: [sr['tags'] for sr in trips[2]]}, version="0.0.categ_v1", verbose=False)[1]
         categ_3 = users_tags_to_categ({self.user_id: [sr['tags'] for sr in trips[3]]}, version="0.0.categ_v1", verbose=False)[1]
 
-        self.assertEqual(categ_0[self.user_id], ["liquor_store", "WORK"])
+        self.assertEqual(categ_0[self.user_id], ["liquor_store", "liquor_store", "WORK"])
         self.assertEqual(categ_1[self.user_id], ["political", "lodging"])
         self.assertEqual(categ_2[self.user_id], ["HOME", "WORK", "NoCategoryMatched", "WORK", "store", "WORK"])
         self.assertEqual(categ_3[self.user_id], ["lodging", "travel_agency"])

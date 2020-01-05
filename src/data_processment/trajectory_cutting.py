@@ -28,7 +28,7 @@ def cut_traj_in_trips(srg_sequence_report, gaps):
 
     trips[-1].append(previous_stop_region_row)
 
-    for i, stop_region_row in srg_sequence_report.iloc[1:20].iterrows():
+    for i, stop_region_row in srg_sequence_report.iterrows():
         if is_there_gap_between(previous_stop_region_row, stop_region_row, gaps):
             trips.append([stop_region_row])
         else:

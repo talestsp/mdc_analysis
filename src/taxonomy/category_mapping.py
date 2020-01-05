@@ -43,7 +43,7 @@ def users_tags_to_categ(user_tags_dict, version="0.1.categ_v1", verbose=True):
 
     return users_categ_sequence, users_categ_sequence_elements
 
-def do_tags_to_categ(tags_list):
+def do_tags_to_categ(tags_list, verbose=False):
     if not "CATEG_MAPPER" in cache.keys():
         categ_mapper = CategoryMapper()
         cache["CATEG_MAPPER"] = categ_mapper
@@ -59,6 +59,10 @@ def do_tags_to_categ(tags_list):
         else:
             try:
                 categ = categ_mapper.map_categ(tags, method="most_specific")
+                if verbose:
+                    print("TYPES:", tags)
+                    print("CATEG:", categ)
+                    print()
                 categ_sequence.append([categ])
 
             except NotValidTypes:

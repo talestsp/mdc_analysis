@@ -81,17 +81,48 @@ class InputDataManager:
                 users_multi_trip_dict[user_id] = [sr["tags"] for sr in users_multi_trip_sr[user_id]]
 
             elif version == "raw_tags-0.1":
-                tags = [sr["tags"] for sr in users_multi_trip_sr[user_id]]
-                users_multi_trip_dict[user_id] = self.__agglutinate_consecutive_elements(tags)
+                tags_multi_trip = self.__estract_tags_from_multi_trip(users_multi_trip_sr[user_id])
+                users_multi_trip_dict[user_id] = self.__agglutinate_consecutive_elements(tags_multi_trip)
 
             elif version == "0.0.categ_v1":
-                users_multi_trip_dict[user_id] = do_tags_to_categ(users_multi_trip_sr[user_id]["tags"])
+                tags_multi_trip = self.__estract_tags_from_multi_trip(users_multi_trip_sr[user_id])
+                if user_id == "6015":
+                    verbose = True
+                else:
+                    verbose = False
+                users_multi_trip_dict[user_id] = self.__tags_multi_trip_to_categs_multi_trip(tags_multi_trip, verbose=verbose)
 
             elif version == "0.1.categ_v1":
-                categs = do_tags_to_categ(users_multi_trip_sr[user_id]["tags"])
-                users_multi_trip_dict[user_id] = self.__agglutinate_consecutive_elements(categs)
+                tags_multi_trip = self.__estract_tags_from_multi_trip(users_multi_trip_sr[user_id])
+                categs_multi_trip = self.__tags_multi_trip_to_categs_multi_trip(tags_multi_trip)
+                users_multi_trip_dict[user_id] = self.__agglutinate_multi_trip_consecutive_elements(categs_multi_trip)
 
         return users_multi_trip_dict
+
+    def __agglutinate_multi_trip_consecutive_elements(self, elements_multi_trip):
+        agglutinated = []
+
+        for elements in elements_multi_trip:
+            agglutinated.append(self.__agglutinate_consecutive_elements(elements))
+
+        return agglutinated
+
+    def __tags_multi_trip_to_categs_multi_trip(self, tags_multi_trip, verbose=False):
+        categs_multi_trip = []
+
+        for tags in tags_multi_trip:
+            categs = do_tags_to_categ(tags, verbose=verbose)
+            categs_multi_trip.append(categs)
+
+        return categs_multi_trip
+
+    def __estract_tags_from_multi_trip(self, multi_trip):
+        only_tags = []
+
+        for trip in multi_trip:
+            only_tags.append([sr["tags"] for sr in trip])
+
+        return only_tags
 
     def __agglutinate_consecutive_elements(self, a_list):
         return [x[0] for x in groupby(a_list)]
@@ -103,7 +134,7 @@ class InputDataManager:
         for user_id in self.users_seq_report.keys():
             seq_report = self.users_seq_report[user_id]
             seq_report_filtered = seq_report[seq_report["stay_time_h"] >= sr_stay_time_h]
-            users_filtered_tags[user_id] = seq_report_filtered["tags"]
+            users_filtered_tags[user_id] = seq_report_filtered
 
         return users_filtered_tags
 
@@ -118,23 +149,31 @@ class InputDataManager:
         raw_tags = {}
         users_raw_traj = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
         for user_id in users_raw_traj.keys():
-            raw_tags[user_id] = [single_element_list[0] for single_element_list in  users_raw_traj[user_id].tolist()]
+            raw_tags[user_id] = [single_element_list for single_element_list in users_raw_traj[user_id]["tags"].tolist()]
         return raw_tags
 
     def __raw_tags_0_1(self, sr_stay_time_minutes=5):
         raw_tags = {}
         users_raw_traj = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
         for user_id in users_raw_traj.keys():
-            tags = [single_element_list[0] for single_element_list in  users_raw_traj[user_id].tolist()]
+            tags = [single_element_list for single_element_list in users_raw_traj[user_id]["tags"].tolist()]
             raw_tags[user_id] = self.__agglutinate_consecutive_elements(tags)
         return raw_tags
 
     def __0_0_categ_v1(self, sr_stay_time_minutes=5):
-        tags_sequence = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
+        stop_regions = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
+        tags_sequence = {}
+
+        for user_id in stop_regions.keys():
+            tags_sequence[user_id] = stop_regions[user_id]["tags"]
         return users_tags_to_categ(tags_sequence, version="0.0.categ_v1", verbose=False)[1]
 
     def __0_1_categ_v1(self, sr_stay_time_minutes=5):
-        tags_sequence = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
+        stop_regions = self.__filter_sr_by_minimum_stay_time_minutes(sr_stay_time_minutes=sr_stay_time_minutes)
+        tags_sequence = {}
+
+        for user_id in stop_regions.keys():
+            tags_sequence[user_id] = stop_regions[user_id]["tags"]
         return users_tags_to_categ(tags_sequence, version="0.1.categ_v1", verbose=False)[1]
 
 
