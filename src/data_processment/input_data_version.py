@@ -87,7 +87,7 @@ class InputDataManager:
             elif version == "0.0.categ_v1":
                 tags_multi_trip = self.__estract_tags_from_multi_trip(users_multi_trip_sr[user_id])
                 if user_id == "6015":
-                    verbose = True
+                    verbose = False
                 else:
                     verbose = False
                 users_multi_trip_dict[user_id] = self.__tags_multi_trip_to_categs_multi_trip(tags_multi_trip, verbose=verbose)
@@ -118,6 +118,11 @@ class InputDataManager:
 
     def __estract_tags_from_multi_trip(self, multi_trip):
         only_tags = []
+
+
+        soma_categs_multi_trip = 0
+        for trip in multi_trip:
+            soma_categs_multi_trip += len(trip)
 
         for trip in multi_trip:
             only_tags.append([sr["tags"] for sr in trip])

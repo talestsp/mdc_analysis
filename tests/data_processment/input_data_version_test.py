@@ -1,5 +1,7 @@
 import unittest
+from src.dao import objects_dao
 from src.data_processment.input_data_version import InputDataManager
+from src.taxonomy.category_mapping import do_tags_to_categ
 
 
 class input_data_version_test(unittest.TestCase):
@@ -42,27 +44,53 @@ class input_data_version_test(unittest.TestCase):
         raw_tags = self.data_manager.get_input_data("raw_tags-0.0")["user_data"]["6015"]
 
         categs_multi_trip = self.data_manager.users_multi_trip(gap_tresh_minutes=60 * 12,
-                                                               sr_stay_time_minutes=5,
+                                                               sr_stay_time_minutes=4,
                                                                version="0.0.categ_v1")["6015"]
 
         soma_categs_multi_trip = 0
         for trip in categs_multi_trip:
             soma_categs_multi_trip += len(trip)
 
-        print('''categs_multi_trip''')
-        print(categs_multi_trip)
+        print("OBJ DAO", objects_dao.load_stop_region_group_object("6015").size())
 
-        print("\n\n\n")
+        print("")
+        print("LEN MULTI TRIP:", soma_categs_multi_trip)
+        print("LEN  RAW  TAGS:", len(raw_tags))
+        print("")
 
-        print('''raw_tags''')
-        print(raw_tags)
+        print(raw_tags[0], ">>>", do_tags_to_categ([raw_tags[0]]))
+        print(raw_tags[1], ">>>", do_tags_to_categ([raw_tags[1]]))
+        print(raw_tags[2], ">>>", do_tags_to_categ([raw_tags[2]]))
+        print(raw_tags[3], ">>>", do_tags_to_categ([raw_tags[3]]))
+        print(raw_tags[4], ">>>", do_tags_to_categ([raw_tags[4]]))
+        print(raw_tags[5], ">>>", do_tags_to_categ([raw_tags[5]]))
+        print(raw_tags[6], ">>>", do_tags_to_categ([raw_tags[6]]))
 
-        print("\n\n\n")
 
-        print("len(raw_tags):", len(raw_tags))
-        print("soma_categs_multi_trip:", soma_categs_multi_trip)
+        print("\n***\n")
 
-        # self.assertEqual(len(raw_tags), soma_categs_multi_trip)
+        print(categs_multi_trip[0])
+        print(categs_multi_trip[1])
+        print(categs_multi_trip[2])
+        print(categs_multi_trip[3])
+
+
+
+
+        # print('''categs_multi_trip''')
+        # print(categs_multi_trip)
+        #
+        # print("\n\n\n")
+        #
+        # print('''raw_tags''')
+        # print(raw_tags)
+        #
+        # print("\n\n\n")
+        #
+        # print("len(raw_tags):", len(raw_tags))
+        # print("soma_categs_multi_trip:", soma_categs_multi_trip)
+
+        self.assertEqual(len(raw_tags), soma_categs_multi_trip)
 
     def test_0_1_categ_v1(self):
         raw_tags = self.data_manager.get_input_data("raw_tags-0.1")["user_data"]["6015"]

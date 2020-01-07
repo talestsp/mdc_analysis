@@ -18,11 +18,12 @@ def load_all_stop_region_group_object(verbose=True, use_cache=True):
     users = os.listdir("outputs/stop_regions/")
 
     if "USERS_SRG" in cache.keys() and len(cache["USERS_SRG"]) == TOTAL_N_USERS:
+        print("Loading data from cache!")
         users_srg = cache["USERS_SRG"]
 
     else:
         n=0
-        for user_id in users[0:5]:
+        for user_id in users:
             n += 1
             if verbose:
                 print("Loading user_id: {} - {} out of {}".format(user_id, n, len(users)))
