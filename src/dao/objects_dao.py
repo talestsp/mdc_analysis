@@ -5,12 +5,26 @@ import gc
 cache = {}
 TOTAL_N_USERS = 163
 
-def save_stop_region_group_object(srg, user_id):
-    with open("outputs/stop_region_objects/{}".format(user_id), 'wb') as srg_file:
+def save_stop_region_group_object(srg, user_id, is_agg):
+    dir = "outputs/stop_region_objects/{}".format(user_id)
+
+    if is_agg:
+        dir = dir.replace("stop_region_objects", "stop_region_objects_agg")
+    else:
+        dir = dir.replace("stop_region_objects", "stop_region_objects_raw")
+
+    with open(dir, 'wb') as srg_file:
         pickle.dump(srg, srg_file)
 
-def load_stop_region_group_object(user_id):
-    with open("outputs/stop_region_objects/{}".format(user_id), 'rb') as srg_file:
+def load_stop_region_group_object(user_id, is_agg):
+    dir = "outputs/stop_region_objects/{}".format(user_id)
+
+    if is_agg:
+        dir = dir.replace("stop_region_objects", "stop_region_objects_agg")
+    else:
+        dir = dir.replace("stop_region_objects", "stop_region_objects_raw")
+
+    with open(dir, 'rb') as srg_file:
         return pickle.load(srg_file)
 
 def load_all_stop_region_group_object(verbose=True, use_cache=True):
