@@ -51,7 +51,7 @@ class input_data_version_test(unittest.TestCase):
         for trip in categs_multi_trip:
             soma_categs_multi_trip += len(trip)
 
-        print("OBJ DAO", objects_dao.load_stop_region_group_object("6015").size())
+        print("OBJ DAO", objects_dao.load_stop_region_group_object(is_agg=False, user_id="6015").size())
 
         print("")
         print("LEN MULTI TRIP:", soma_categs_multi_trip)

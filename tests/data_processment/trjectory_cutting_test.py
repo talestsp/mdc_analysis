@@ -10,7 +10,7 @@ class trajectory_cutting_test(unittest.TestCase):
     def setUp(self):
         self.user_id = "5936"
 
-        self.user_srg = objects_dao.load_stop_region_group_object(self.user_id)
+        self.user_srg = objects_dao.load_stop_region_group_object(is_agg=True, user_id=self.user_id)
         self.user_gps_data = csv_dao.load_user_gps_csv(self.user_id)
         self.gaps = gaps_params(self.user_gps_data, gap_tresh_minutes=60 * 12)
 

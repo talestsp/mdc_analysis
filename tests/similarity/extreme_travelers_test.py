@@ -14,7 +14,7 @@ class extreme_travelers_test(unittest.TestCase):
 
     def setUp(self):
         user_id = 5928
-        self.srg = objects_dao.load_stop_region_group_object(user_id)
+        self.srg = objects_dao.load_stop_region_group_object(is_agg=True, user_id=user_id)
 
     def test_first_trip_of_the_day(self):
         rep = sequence_report(self.srg)

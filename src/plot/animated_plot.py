@@ -23,7 +23,7 @@ class AnimatedPlot:
                                                 self.title, color=color, circle_alpha=circle_alpha, cluster_alpha=cluster_alpha)
 
     def build_stop_region_group_quick_plot(self):
-        srg = objects_dao.load_stop_region_group_object(self.user_data["userid"].drop_duplicates().item())
+        srg = objects_dao.load_stop_region_group_object(user_id=self.user_data["userid"].drop_duplicates().item(), is_agg=True)
         sub_srg = srg.subsequence(from_ts=self.user_data["local_time"].min(), to_ts=self.user_data["local_time"].max())
         return sub_srg.plot(width=1000, height=800)
 

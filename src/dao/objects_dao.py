@@ -27,7 +27,7 @@ def load_stop_region_group_object(user_id, is_agg):
     with open(dir, 'rb') as srg_file:
         return pickle.load(srg_file)
 
-def load_all_stop_region_group_object(verbose=True, use_cache=True):
+def load_all_stop_region_group_object(is_agg, verbose=True, use_cache=True):
     users_srg = {}
     users = os.listdir("outputs/stop_regions/")
 
@@ -41,19 +41,19 @@ def load_all_stop_region_group_object(verbose=True, use_cache=True):
             n += 1
             if verbose:
                 print("Loading user_id: {} - {} out of {}".format(user_id, n, len(users)))
-            users_srg[user_id] = load_stop_region_group_object(user_id)
+            users_srg[user_id] = load_stop_region_group_object(user_id, is_agg=is_agg)
 
         if use_cache:
             cache["USERS_SRG"] = users_srg
 
     return users_srg
 
-def load_users_sequence_report(use_cache=True):
+def load_users_sequence_report(is_agg=True, use_cache=True):
     if "USERS_SEQ_REPORT" in cache.keys() and len(cache["USERS_SEQ_REPORT"]) == TOTAL_N_USERS:
         users_seq_report = cache["USERS_SEQ_REPORT"]
 
     else:
-        users_srg = load_all_stop_region_group_object()
+        users_srg = load_all_stop_region_group_object(is_agg=is_agg)
         users_seq_report = {}
 
         for user_id in users_srg.keys():
