@@ -119,7 +119,6 @@ class InputDataManager:
     def __estract_tags_from_multi_trip(self, multi_trip):
         only_tags = []
 
-
         soma_categs_multi_trip = 0
         for trip in multi_trip:
             soma_categs_multi_trip += len(trip)

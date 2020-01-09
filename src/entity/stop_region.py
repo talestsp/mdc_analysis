@@ -281,10 +281,14 @@ class StopRegionGroup:
 
         agglutinated_srs, agglutination_report = group_stop_regions_for_agglutination(self.stop_region_list, same_closest_poi, same_not_null_semantics)
 
+        print(agglutination_report)
+
         for group in agglutinated_srs:
+            print("group:", len(group), group)
             if len(group) == 1:
                 singles.append(group[0])
             else:
+
                 agglutinated_stop_regions = agglutinate(group)
                 agglutinated.append(StopRegion(**agglutinated_stop_regions))
 
@@ -322,47 +326,51 @@ def same_not_null_semantics(last_sr, sr):
 
     set_sr_semantics = set(sr.semantics)
     set_last_sr_semantics = set(last_sr.semantics)
-    return set_sr_semantics.intersection(set_last_sr_semantics) == set_sr_semantics .union(set_last_sr_semantics)
+    return set_sr_semantics.intersection(set_last_sr_semantics) == set_sr_semantics.union(set_last_sr_semantics)
 
 def close_sr_short_time(last_sr, sr, time_tolerance_secs=600, distance_tolerance_m=5):
     return sr.distance_to_another_sr(last_sr) <= distance_tolerance_m and sr.delta_time_to_another_sr(
         last_sr) <= time_tolerance_secs
 
 def agglutinate(stop_regions):
-        end_times = []
-        start_times = []
-        user_ids = []
-        semantics = []
-        gps_points = pd.DataFrame()
+    print("Agglutinating")
+    print(stop_regions)
 
-        early_time_sr = stop_regions[0]
+    end_times = []
+    start_times = []
+    user_ids = []
+    semantics = []
+    gps_points = pd.DataFrame()
 
-        for sr in stop_regions:
-            end_times.append(sr.end_time)
-            start_times.append(sr.start_time)
-            user_ids.append(sr.user_id)
-            semantics = semantics + sr.semantics
-            gps_points = gps_points.append(csv_dao.load_stop_region_by_sr_id(sr.user_id, sr.sr_id))[["latitude", "longitude"]]
+    early_time_sr = stop_regions[0]
 
-            if sr.start_time < early_time_sr.start_time:
-                early_time_sr = sr
+    for sr in stop_regions:
+        end_times.append(sr.end_time)
+        start_times.append(sr.start_time)
+        user_ids.append(sr.user_id)
+        semantics = semantics + sr.semantics
+        gps_points = gps_points.append(csv_dao.load_stop_region_by_sr_id(sr.user_id, sr.sr_id))[["latitude", "longitude"]]
 
-        centroid = geo.cluster_centroid(gps_points)
+        if sr.start_time < early_time_sr.start_time:
+            early_time_sr = sr
 
-        return {'centroid_lat': centroid["latitude"],
-                'centroid_lon': centroid["longitude"],
-                'start_time': pd.Series(start_times).min(),
-                'end_time': pd.Series(end_times).max(),
-                'sr_id': "agg_{}".format(early_time_sr.sr_id),
-                'user_id': early_time_sr.user_id,
-                'semantics': pd.Series(semantics).drop_duplicates().tolist(),
-                'agglutination': stop_regions}
+    centroid = geo.cluster_centroid(gps_points)
+
+    return {'centroid_lat': centroid["latitude"],
+            'centroid_lon': centroid["longitude"],
+            'start_time': pd.Series(start_times).min(),
+            'end_time': pd.Series(end_times).max(),
+            'sr_id': "agg_{}".format(early_time_sr.sr_id),
+            'user_id': early_time_sr.user_id,
+            'semantics': pd.Series(semantics).drop_duplicates().tolist(),
+            'agglutination': stop_regions}
 
 def group_stop_regions_for_agglutination(sr_list, agglutination_rule_1, agglutination_rule_2):
     agglutinate = [[sr_list[0]]]
     agglutination_report = []
 
     last_sr = sr_list[0]
+
     for sr in sr_list[1:]:
         agglutination_report_row = {"distance": round(sr.distance_to_another_sr(last_sr), 1),
                                     "delta_t": sr.delta_time_to_another_sr(last_sr),
@@ -382,6 +390,10 @@ def group_stop_regions_for_agglutination(sr_list, agglutination_rule_1, agglutin
         agglutination_report.append(agglutination_report_row)
         last_sr = sr
 
+    print("sr_list", len(sr_list))
+    print([(sr.tag_closest_poi(), len(sr.closest_poi())) for sr in agglutinate[0]])
+    print([(sr.tag_closest_poi(), len(sr.closest_poi())) for sr in agglutinate[1]])
+    print()
     return agglutinate, pd.DataFrame(agglutination_report)[
         ["agglutinate", "delta_t", "distance", "last_sr_tag", "sr_tag", "last_sr_semantics", "sr_semantics", "last_sr", "sr"]]
 
